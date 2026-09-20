@@ -271,3 +271,32 @@ Notable implementation details:
 - `search(prefix)` uses `LIKE 'prefix%'`, which is index-friendly on `number`; a name-only search is not implemented on Android (matching the iOS app, where it exists in the service layer but is disabled in the UI for privacy reasons — this port skipped building it at all rather than shipping a disabled code path).
 - Results are capped at 200 rows per query as a basic safety bound against dumps with millions of rows.
 - This screen is hidden by default and unlocked via the same 5-tap-on-version-string easter egg as iOS, gated by a flag in `SettingsDataStore`.
+
+---
+
+## 14. Cross-Platform Catalog Sync Check
+
+`codes.json` and `wifi_navigation_rooms.json` are maintained as two separate files — one per platform repo — rather than a shared package, so nothing enforces at build time that this repo's copy still matches [qvacell-ios](https://github.com/albertolicea00/Qvacell-ios)'s. [`.github/workflows/cross-platform-sync-check.yml`](.github/workflows/cross-platform-sync-check.yml) is a CI guard against that drift.
+
+### 14.1 Trigger and flow
+
+Runs on every push to `main` touching either JSON file (plus `workflow_dispatch` for a manual run). Two independent jobs, `check-codes` and `check-wifi-rooms`, each:
+
+1. Fetch the counterpart file from the iOS repo's raw GitHub URL (`raw.githubusercontent.com/albertolicea00/Qvacell-ios/main/...`) — no auth needed, since both repos are public.
+2. Run a comparison script (`.github/scripts/check-catalog-sync.mjs` or `check-wifi-catalog-sync.mjs`) against the local copy.
+3. On drift: upload the diff as a build artifact, open (or update, if one is already open) an issue **on the iOS repo** — not this one — labeled `catalog-sync`, and fail the job so it shows red in Actions.
+4. On no drift: exit clean.
+
+Opening the issue on the *other* repo (rather than this one) requires the `CROSS_REPO_TOKEN` secret — a PAT with `Issues: write` on `Qvacell-ios`. Without that secret configured, the job still detects and reports drift (failed run + artifact), it just can't open the cross-repo issue.
+
+### 14.2 What "structure" means for `codes.json`
+
+Only these fields are compared, per code: `id`, `code` (the dial string), `type`, `requiresInput`, `inputPlaceholder`, `noConfirmCode`, `smsBody`, `options`, `isSubscription`, `variants`, plus which category id and group name it lives under (and the overall category order). Deliberately **ignored**: `icon` (SF Symbol names vs. Material icon names are expected to differ, §3), `price`, `compact`, `showsNumber`, `title`, `details` — all presentation/wording, not behavior. This means editing a title's phrasing or swapping an icon never trips the check; changing a dial string, adding/removing a code, or moving one to a different category does.
+
+### 14.3 What's compared for `wifi_navigation_rooms.json`
+
+This file has no cosmetic fields — every field is data (province name, room name/address/positions, hotspot municipality/spots) — so the check compares it in full, per province, rather than filtering a subset.
+
+### 14.4 Relationship to `wifi-rooms-sync-check.yml` (iOS repo)
+
+The iOS repo also has a separate, unrelated workflow (`wifi-rooms-sync-check.yml`) that checks the bundled WiFi directory against ETECSA's *own* website for source-data drift. This cross-platform check answers a different question — "do the two apps still agree with each other" — not "is the data still accurate against ETECSA."

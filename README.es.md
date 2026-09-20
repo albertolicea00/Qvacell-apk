@@ -7,6 +7,7 @@
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202024.09-blue.svg)](https://developer.android.com/jetpack/compose)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 ![PRs Bienvenidos](https://img.shields.io/badge/PRs-bienvenidos-brightgreen)
+[![Sincronización iOS](https://github.com/albertolicea00/Qvacell-apk/actions/workflows/cross-platform-sync-check.yml/badge.svg)](https://github.com/albertolicea00/Qvacell-apk/actions/workflows/cross-platform-sync-check.yml)
 
 Una aplicación para Android para acceder rápidamente a los **códigos de servicio USSD de ETECSA (Cubacel)**: consulta tu saldo, compra paquetes de datos/voz/SMS, transfiere saldo y más — todo desde una lista limpia y organizada que envía el código directamente al marcador del sistema.
 
@@ -82,6 +83,10 @@ En **Ajustes › Utilidades**:
 ## 🛜 Salas de Navegación y Wi-Fi Público
 
 Incluye un directorio offline de salas de navegación oficiales de ETECSA y puntos Wi-Fi públicos por provincia, empaquetado igual que en la app iOS.
+
+## 🔄 Sincronización entre Plataformas
+
+[`cross-platform-sync-check.yml`](.github/workflows/cross-platform-sync-check.yml) se ejecuta en cada push a `main` que modifique `codes.json` o `wifi_navigation_rooms.json`, y compara la copia de este repo contra la de [qvacell-ios](https://github.com/albertolicea00/Qvacell-ios). Si han divergido, abre (o actualiza) un issue en el *otro* repositorio para que se actualice la plataforma que quedó atrás. Solo se compara la **estructura** en `codes.json` (ids, cadenas de marcado, tipo de acción, manejo de entrada, ubicación en categoría/grupo) — los campos cosméticos (icono, precio, redacción del título, etc.) pueden diferir entre plataformas. Ver [ARCHITECTURE.md § 14](ARCHITECTURE.md#14-cross-platform-catalog-sync-check) para el detalle exacto de qué se compara y cómo.
 
 ## 🚧 Limitaciones Conocidas
 
