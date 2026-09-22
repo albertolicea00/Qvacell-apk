@@ -1,12 +1,15 @@
 package com.qvacell.app.ui.screens
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
+// import androidx.compose.material3.Icon // unused while the group icon below is commented out
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -24,7 +27,7 @@ import com.qvacell.app.model.UssdCodeGroup
 import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.components.SearchableTopAppBar
 import com.qvacell.app.ui.components.rememberCodeActionHandler
-import com.qvacell.app.ui.resolveAndroidIcon
+// import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
 
 @Composable
 fun CategoryListScreen(categoryId: String, title: String) {
@@ -64,34 +67,50 @@ fun CategoryListScreen(categoryId: String, title: String) {
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            LazyColumn {
+            LazyColumn(
+                contentPadding = PaddingValues(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 filteredGroups.forEach { group ->
-                    if (group.name != null) {
-                        item {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                if (group.icon != null) {
-                                    Icon(
-                                        imageVector = resolveAndroidIcon(group.icon),
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(end = 8.dp)
+                    item {
+                        Column {
+                            if (group.name != null) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                ) {
+                                    // Temporarily disabled to compare the look without a group icon — codes.json still has it.
+                                    // if (group.icon != null) {
+                                    //     Icon(
+                                    //         imageVector = resolveAndroidIcon(group.icon),
+                                    //         contentDescription = null,
+                                    //         tint = MaterialTheme.colorScheme.primary,
+                                    //         modifier = Modifier.padding(end = 8.dp)
+                                    //     )
+                                    // }
+                                    Text(
+                                        group.name.value,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(start = 2.dp)
                                     )
                                 }
-                                Text(
-                                    group.name.value,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
                             }
-                        }
-                    }
-                    items(group.codes) { code ->
-                        Column {
-                            CodeRow(code = code, onClick = { onCodeClick(code) }, showIcon = categoryId !in setOf("purchase", "sms"))
-                            HorizontalDivider()
+                            Card(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                group.codes.forEachIndexed { index, code ->
+                                    CodeRow(
+                                        code = code,
+                                        onClick = { onCodeClick(code) },
+                                        showIcon = categoryId !in setOf("purchase", "sms")
+                                    )
+                                    if (index != group.codes.lastIndex) {
+                                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                    }
+                                }
+                            }
                         }
                     }
                 }
