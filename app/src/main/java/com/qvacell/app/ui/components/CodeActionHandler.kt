@@ -23,7 +23,10 @@ import com.qvacell.app.service.DialService
  * variant/options picker for SMS codes, then either an SMS intent or a dial intent.
  */
 @Composable
-fun rememberCodeActionHandler(useNoConfirmCode: Boolean = false): (UssdCode) -> Unit {
+fun rememberCodeActionHandler(
+    useNoConfirmCode: Boolean = false,
+    onOpenCodeOptions: ((UssdCode) -> Unit)? = null
+): (UssdCode) -> Unit {
     val context = LocalContext.current
     var activeCode by remember { mutableStateOf<UssdCode?>(null) }
     var inputText by remember { mutableStateOf("") }
@@ -55,6 +58,8 @@ fun rememberCodeActionHandler(useNoConfirmCode: Boolean = false): (UssdCode) -> 
                 }
             )
         } else if (hasOptionsOrVariants) {
+            // Only reached when the caller didn't supply onOpenCodeOptions — the returned lambda
+            // below routes straight there instead of ever setting activeCode in that case.
             val labels = code.variants?.map { it.label.value } ?: code.options.orEmpty()
             AlertDialog(
                 onDismissRequest = { activeCode = null },
@@ -63,13 +68,7 @@ fun rememberCodeActionHandler(useNoConfirmCode: Boolean = false): (UssdCode) -> 
                     Column {
                         labels.forEach { label ->
                             TextButton(onClick = {
-                                val body = code.variants?.firstOrNull { it.label.value == label }?.smsBody
-                                    ?: code.resolvedSmsBody(label)
-                                if (code.type == UssdActionType.SMS) {
-                                    DialService.sendSms(context, code.code, body)
-                                } else {
-                                    DialService.dial(context, code.resolvedCode(label))
-                                }
+                                dialCodeOption(context, code, label)
                                 activeCode = null
                             }) { Text(label) }
                         }
@@ -86,7 +85,25 @@ fun rememberCodeActionHandler(useNoConfirmCode: Boolean = false): (UssdCode) -> 
         }
     }
 
-    return { code -> activeCode = code }
+    return { code ->
+        val hasOptionsOrVariants = !code.options.isNullOrEmpty() || !code.variants.isNullOrEmpty()
+        if (!code.requiresInput && hasOptionsOrVariants && onOpenCodeOptions != null) {
+            onOpenCodeOptions(code)
+        } else {
+            activeCode = code
+        }
+    }
+}
+
+/** The SMS/dial action for one option or variant label — shared with `CodeOptionsScreen`. */
+fun dialCodeOption(context: android.content.Context, code: UssdCode, label: String) {
+    val body = code.variants?.firstOrNull { it.label.value == label }?.smsBody
+        ?: code.resolvedSmsBody(label)
+    if (code.type == UssdActionType.SMS) {
+        DialService.sendSms(context, code.code, body)
+    } else {
+        DialService.dial(context, code.resolvedCode(label))
+    }
 }
 
 private fun performAction(context: android.content.Context, code: UssdCode, input: String?, useNoConfirmCode: Boolean) {

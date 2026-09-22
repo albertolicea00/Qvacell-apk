@@ -16,6 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.qvacell.app.ui.screens.CategoryListScreen
+import com.qvacell.app.ui.screens.CodeOptionsScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
 import com.qvacell.app.ui.screens.DirectorySearchScreen
 import com.qvacell.app.ui.screens.HelpScreen
@@ -86,7 +87,11 @@ fun QvacellNavHost() {
             modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
         ) {
             composable(BottomTab.Helplines.route) {
-                CategoryListScreen(categoryId = "helplines", title = "Líneas de Ayuda")
+                CategoryListScreen(
+                    categoryId = "helplines",
+                    title = "Líneas de Ayuda",
+                    onOpenCodeOptions = { codeId -> navController.navigate(Routes.codeOptions(codeId)) }
+                )
             }
             composable(BottomTab.Contacts.route) {
                 ContactsListScreen(onContactSelected = { contact ->
@@ -101,7 +106,11 @@ fun QvacellNavHost() {
                 )
             }
             composable(BottomTab.Purchase.route) {
-                CategoryListScreen(categoryId = "purchase", title = "Compras")
+                CategoryListScreen(
+                    categoryId = "purchase",
+                    title = "Compras",
+                    onOpenCodeOptions = { codeId -> navController.navigate(Routes.codeOptions(codeId)) }
+                )
             }
             composable(BottomTab.Settings.route) {
                 SettingsScreen(onNavigate = { destination ->
@@ -146,7 +155,17 @@ fun QvacellNavHost() {
                 ReminderEditScreen(onDone = { navController.popBackStack() })
             }
             composable(Routes.SMS_SERVICES) {
-                CategoryListScreen(categoryId = "sms", title = "Servicios por SMS")
+                CategoryListScreen(
+                    categoryId = "sms",
+                    title = "Servicios por SMS",
+                    onOpenCodeOptions = { codeId -> navController.navigate(Routes.codeOptions(codeId)) }
+                )
+            }
+            composable(
+                Routes.CODE_OPTIONS,
+                arguments = listOf(navArgument("codeId") { type = NavType.StringType })
+            ) { backStack ->
+                CodeOptionsScreen(codeId = backStack.arguments?.getString("codeId") ?: "")
             }
             composable(Routes.WIFI_PROVINCES) {
                 WifiProvinceListScreen(onProvinceSelected = { province ->

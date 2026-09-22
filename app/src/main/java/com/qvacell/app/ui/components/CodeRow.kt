@@ -48,16 +48,7 @@ fun CodeRow(code: UssdCode, onClick: () -> Unit, modifier: Modifier = Modifier, 
         }
         Spacer(modifier = Modifier.width(8.dp))
         if (code.price != null) {
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Text(
-                    code.price,
-                    style = MaterialTheme.typography.labelMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
+            PriceChip(price = code.price)
         }
         if (code.isSubscription == true) {
             Spacer(modifier = Modifier.width(4.dp))
@@ -72,5 +63,21 @@ fun CodeRow(code: UssdCode, onClick: () -> Unit, modifier: Modifier = Modifier, 
                 )
             }
         }
+    }
+}
+
+/** Small rounded price tag, e.g. "$4.00" — shared between `CodeRow` and `CodeOptionsScreen` rows. */
+@Composable
+fun PriceChip(price: String, modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.primaryContainer
+    ) {
+        Text(
+            price,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
     }
 }

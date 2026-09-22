@@ -37,7 +37,7 @@ import com.qvacell.app.ui.components.rememberCodeActionHandler
 // import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
 
 @Composable
-fun CategoryListScreen(categoryId: String, title: String) {
+fun CategoryListScreen(categoryId: String, title: String, onOpenCodeOptions: (String) -> Unit = {}) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
     val catalog = remember { repository.loadCatalog() }
@@ -45,7 +45,10 @@ fun CategoryListScreen(categoryId: String, title: String) {
 
     // Compras-only, and never persisted — it starts off on every fresh visit, same as iOS.
     var isQuickActionEnabled by remember { mutableStateOf(false) }
-    val onCodeClick = rememberCodeActionHandler(useNoConfirmCode = categoryId == "purchase" && isQuickActionEnabled)
+    val onCodeClick = rememberCodeActionHandler(
+        useNoConfirmCode = categoryId == "purchase" && isQuickActionEnabled,
+        onOpenCodeOptions = { code -> onOpenCodeOptions(code.id) }
+    )
 
     var query by remember { mutableStateOf("") }
     var searching by remember { mutableStateOf(false) }

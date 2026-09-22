@@ -36,4 +36,6 @@ object Routes {
     const val DIRECTORY_SEARCH = "settings/directory"
     const val TRANSFER_PIN = "settings/pin"
     const val HELP = "settings/help"
+    const val CODE_OPTIONS = "code-options/{codeId}"
+    fun codeOptions(codeId: String) = "code-options/$codeId"
 }
