@@ -44,7 +44,7 @@ enum class UssdActionType {
 
 @Serializable
 data class SmsVariant(
-    val label: String,
+    val label: LocalizedString,
     val smsBody: String
 )
 

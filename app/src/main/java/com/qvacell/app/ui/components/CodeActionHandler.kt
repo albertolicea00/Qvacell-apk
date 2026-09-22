@@ -55,7 +55,7 @@ fun rememberCodeActionHandler(): (UssdCode) -> Unit {
                 }
             )
         } else if (hasOptionsOrVariants) {
-            val labels = code.variants?.map { it.label } ?: code.options.orEmpty()
+            val labels = code.variants?.map { it.label.value } ?: code.options.orEmpty()
             AlertDialog(
                 onDismissRequest = { activeCode = null },
                 title = { Text(code.title.value) },
@@ -63,7 +63,7 @@ fun rememberCodeActionHandler(): (UssdCode) -> Unit {
                     Column {
                         labels.forEach { label ->
                             TextButton(onClick = {
-                                val body = code.variants?.firstOrNull { it.label == label }?.smsBody
+                                val body = code.variants?.firstOrNull { it.label.value == label }?.smsBody
                                     ?: code.resolvedSmsBody(label)
                                 if (code.type == UssdActionType.SMS) {
                                     DialService.sendSms(context, code.code, body)
