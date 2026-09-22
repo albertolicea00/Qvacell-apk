@@ -90,11 +90,29 @@ fun ContactsListScreen(onContactSelected: (DeviceContact) -> Unit) {
                     }
                 }
             } else if (contacts.isEmpty()) {
-                Text(
-                    "No se encontraron contactos con números cubanos.",
+                Column(
                     modifier = Modifier.align(Alignment.Center).padding(24.dp),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Contacts,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(56.dp)
+                    )
+                    Text(
+                        "No se encontraron números cubanos",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        "Solo se muestran contactos con un número en formato cubano (+53). Revisa que tus contactos tengan el código de país correcto.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
             } else {
                 LazyColumn {
                     items(contacts) { contact ->
