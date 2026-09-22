@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.automirrored.filled.CallMade
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.ErrorOutline
@@ -26,6 +27,7 @@ import androidx.compose.material.icons.filled.Sailing
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.Wifi
@@ -42,7 +44,11 @@ fun sfSymbolToMaterialIcon(name: String?): ImageVector = when (name) {
     "flipphone" -> Icons.Filled.Phone
     "envelope.badge" -> Icons.Filled.Sms
     "phone.fill" -> Icons.Filled.Call
-    "creditcard" -> Icons.Filled.CreditCard
+    "creditcard", "creditcard.fill" -> Icons.Filled.CreditCard
+    "message.fill" -> Icons.Filled.Sms
+    "creditcard.trianglebadge.exclamationmark" -> Icons.Filled.Warning
+    "person.2.fill" -> Icons.Filled.People
+    "gift.fill" -> Icons.Filled.CardGiftcard
     "wifi" -> Icons.Filled.Wifi
     "antenna.radiowaves.left.and.right" -> Icons.Filled.NetworkCell
     "checkmark.circle.fill" -> Icons.Filled.CheckCircle
