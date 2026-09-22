@@ -4,11 +4,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.CallMade
+import androidx.compose.material.icons.automirrored.filled.CallMade
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material.icons.filled.EventNote
+import androidx.compose.material.icons.automirrored.filled.EventNote
 import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Headset
 import androidx.compose.material.icons.filled.Home
@@ -56,11 +56,11 @@ fun sfSymbolToMaterialIcon(name: String?): ImageVector = when (name) {
     "sailboat.fill" -> Icons.Filled.Sailing
     "bolt.fill" -> Icons.Filled.Bolt
     "drop.fill" -> Icons.Filled.WaterDrop
-    "phone.arrow.up.right" -> Icons.Filled.CallMade
+    "phone.arrow.up.right" -> Icons.AutoMirrored.Filled.CallMade
     "info.circle.fill" -> Icons.Filled.Info
     "phone.down.fill" -> Icons.Filled.PhoneDisabled
     "building.2.fill" -> Icons.Filled.Apartment
-    "clock.fill" -> Icons.Filled.EventNote
+    "clock.fill" -> Icons.AutoMirrored.Filled.EventNote
     "person.2.wave.2.fill" -> Icons.Filled.People
     "exclamationmark.bubble.fill" -> Icons.Filled.ErrorOutline
     "building.columns.fill" -> Icons.Filled.Gavel
