@@ -13,17 +13,17 @@
             android:translateX="0.14"
             android:translateY="-2.14">
             <path
-                android:fillColor="#0099CC"
+                android:fillColor="#FF000000"
                 android:pathData="M66.441,63.9L20.22,107.28C26.54,119.17 36.33,128.96 48.22,135.26L106.29,76.9L66.441,63.9Z" />
         </group>
         <path
-            android:fillColor="#0099CC"
+            android:fillColor="#FF000000"
             android:pathData="M16.66,99.42L103.11,12.68C95.75,9.88 87.76,8.36 79.43,8.36C42.4,8.36 12.36,38.49 12.36,75.67C12.36,84.03 13.88,92.04 16.66,99.44L16.66,99.42Z" />
         <group
             android:translateX="-1"
             android:translateY="-2.28">
             <path
-                android:fillColor="#0099CC"
+                android:fillColor="#FF000000"
                 android:pathData="M91.02,103.72L56.07,138.77C63.34,141.46 71.22,142.96 79.43,142.96C106.5,142.96 129.83,126.88 140.42,103.72L91.02,103.72Z" />
         </group>
     </group>
