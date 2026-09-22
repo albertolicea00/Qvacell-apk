@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
@@ -178,7 +179,11 @@ fun WifiProvinceDetailScreen(provinceName: String) {
                                     IconButton(onClick = {
                                         DialService.openMapsSearch(context, "${room.name} $provinceName")
                                     }) {
-                                        Icon(Icons.Filled.Place, contentDescription = "Ver en mapa")
+                                        Icon(
+                                            Icons.Filled.Place,
+                                            contentDescription = "Ver en mapa",
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
                                     }
                                 }
                                 if (index != filteredRooms.lastIndex) {
@@ -236,14 +241,22 @@ fun WifiProvinceDetailScreen(provinceName: String) {
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                                .padding(horizontal = 16.dp, vertical = 0.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Text(spot, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                                            IconButton(onClick = {
-                                                DialService.openMapsSearch(context, "$spot $provinceName")
-                                            }) {
-                                                Icon(Icons.Filled.Place, contentDescription = "Ver en mapa")
+                                            Text(spot, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                                            IconButton(
+                                                onClick = {
+                                                    DialService.openMapsSearch(context, "$spot $provinceName")
+                                                },
+                                                modifier = Modifier.size(38.dp)
+                                            ) {
+                                                Icon(
+                                                    Icons.Filled.Place,
+                                                    contentDescription = "Ver en mapa",
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
                                             }
                                         }
                                         if (index != group.spots.lastIndex) {
