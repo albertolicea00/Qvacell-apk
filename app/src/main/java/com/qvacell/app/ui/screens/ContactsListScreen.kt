@@ -17,7 +17,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +34,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.qvacell.app.service.ContactsRepository
 import com.qvacell.app.service.DeviceContact
 import com.qvacell.app.ui.components.ContactRow
+import com.qvacell.app.ui.components.SearchableTopAppBar
 
 @Composable
 fun ContactsListScreen(onContactSelected: (DeviceContact) -> Unit) {
@@ -48,6 +48,8 @@ fun ContactsListScreen(onContactSelected: (DeviceContact) -> Unit) {
         )
     }
     var contacts by remember { mutableStateOf<List<DeviceContact>>(emptyList()) }
+    var query by remember { mutableStateOf("") }
+    var searching by remember { mutableStateOf(false) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         hasPermission = granted
@@ -60,7 +62,18 @@ fun ContactsListScreen(onContactSelected: (DeviceContact) -> Unit) {
         }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Contactos") }) }) { padding ->
+    Scaffold(
+        topBar = {
+            SearchableTopAppBar(
+                title = "Contactos",
+                query = query,
+                onQueryChange = { query = it },
+                searching = searching,
+                onSearchingChange = { searching = it },
+                showSearchAction = hasPermission && contacts.isNotEmpty()
+            )
+        }
+    ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (!hasPermission) {
                 Column(
@@ -114,8 +127,12 @@ fun ContactsListScreen(onContactSelected: (DeviceContact) -> Unit) {
                     )
                 }
             } else {
+                val filteredContacts = remember(contacts, query) {
+                    val q = query.trim()
+                    if (q.isEmpty()) contacts else contacts.filter { it.name.contains(q, ignoreCase = true) }
+                }
                 LazyColumn {
-                    items(contacts) { contact ->
+                    items(filteredContacts) { contact ->
                         ContactRow(contact = contact, onClick = { onContactSelected(contact) })
                     }
                 }
