@@ -30,23 +30,47 @@ import com.qvacell.app.ui.screens.TransferPinScreen
 import com.qvacell.app.ui.screens.WifiProvinceDetailScreen
 import com.qvacell.app.ui.screens.WifiProvinceListScreen
 
+// Every destination pushed from within Ajustes — not all share the "settings/..." route prefix
+// (SMS_SERVICES is just "sms"), so this is spelled out explicitly rather than string-matched.
+private val SETTINGS_NESTED_ROUTES = setOf(
+    Routes.REMINDERS,
+    Routes.REMINDER_EDIT,
+    Routes.SMS_SERVICES,
+    Routes.WIFI_PROVINCES,
+    Routes.WIFI_PROVINCE_DETAIL,
+    Routes.DIRECTORY_SEARCH,
+    Routes.TRANSFER_PIN,
+    Routes.HELP
+)
+
 @Composable
 fun QvacellNavHost() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
 
+    // Used both to keep the Ajustes tab highlighted while inside one of its nested destinations,
+    // and to know when tapping it should just pop back to its root instead of navigating like a
+    // normal tab switch.
+    val isInSettingsSection = currentRoute in SETTINGS_NESTED_ROUTES
+
     Scaffold(
         bottomBar = {
             NavigationBar {
                 bottomTabs.forEach { tab ->
+                    val selected = currentRoute == tab.route ||
+                        (tab is BottomTab.Settings && isInSettingsSection)
                     NavigationBarItem(
-                        selected = currentRoute == tab.route,
+                        selected = selected,
                         onClick = {
-                            navController.navigate(tab.route) {
-                                popUpTo(BottomTab.Home.route) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
+                            if (tab is BottomTab.Settings && isInSettingsSection) {
+                                navController.popBackStack(BottomTab.Settings.route, inclusive = false)
+                            } else {
+                                navController.navigate(tab.route) {
+                                    popUpTo(BottomTab.Home.route) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         },
                         icon = { Icon(tab.icon, contentDescription = tab.label) },
