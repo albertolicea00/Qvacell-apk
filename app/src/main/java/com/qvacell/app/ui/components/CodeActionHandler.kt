@@ -23,7 +23,7 @@ import com.qvacell.app.service.DialService
  * variant/options picker for SMS codes, then either an SMS intent or a dial intent.
  */
 @Composable
-fun rememberCodeActionHandler(): (UssdCode) -> Unit {
+fun rememberCodeActionHandler(useNoConfirmCode: Boolean = false): (UssdCode) -> Unit {
     val context = LocalContext.current
     var activeCode by remember { mutableStateOf<UssdCode?>(null) }
     var inputText by remember { mutableStateOf("") }
@@ -45,7 +45,7 @@ fun rememberCodeActionHandler(): (UssdCode) -> Unit {
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        performAction(context, code, inputText.ifBlank { null })
+                        performAction(context, code, inputText.ifBlank { null }, useNoConfirmCode = false)
                         activeCode = null
                         inputText = ""
                     }) { Text("Aceptar") }
@@ -81,7 +81,7 @@ fun rememberCodeActionHandler(): (UssdCode) -> Unit {
                 }
             )
         } else {
-            performAction(context, code, null)
+            performAction(context, code, null, useNoConfirmCode = useNoConfirmCode)
             activeCode = null
         }
     }
@@ -89,9 +89,14 @@ fun rememberCodeActionHandler(): (UssdCode) -> Unit {
     return { code -> activeCode = code }
 }
 
-private fun performAction(context: android.content.Context, code: UssdCode, input: String?) {
+private fun performAction(context: android.content.Context, code: UssdCode, input: String?, useNoConfirmCode: Boolean) {
     when (code.type) {
         UssdActionType.SMS -> DialService.sendSms(context, code.code, code.resolvedSmsBody(input))
-        UssdActionType.USSD, UssdActionType.CALL -> DialService.dial(context, code.resolvedCode(input))
+        UssdActionType.USSD, UssdActionType.CALL -> {
+            // "Acción sin Confirmación": auto-selects ETECSA's own confirmation step in one dial
+            // instead of stopping there — only for codes that opted in via `noConfirmCode`.
+            val dialCode = code.noConfirmCode?.takeIf { useNoConfirmCode } ?: code.resolvedCode(input)
+            DialService.dial(context, dialCode)
+        }
     }
 }
