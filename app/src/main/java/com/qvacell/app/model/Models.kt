@@ -32,6 +32,7 @@ data class UssdCategory(
 @Serializable
 data class UssdCodeGroup(
     val name: LocalizedString? = null,
+    val icon: String? = null,
     val codes: List<UssdCode>
 )
 

@@ -470,7 +470,8 @@
               "requiresInput": false,
               "noConfirmCode": "*133*1*2*1#"
             }
-          ]
+          ],
+          "icon": "Filled.Wifi"
         },
         {
           "name": {
@@ -526,7 +527,8 @@
               "requiresInput": false,
               "noConfirmCode": "*133*1*4*4*1#"
             }
-          ]
+          ],
+          "icon": "Filled.Inventory2"
         },
         {
           "name": {
@@ -598,7 +600,8 @@
               "requiresInput": false,
               "noConfirmCode": "*133*2*4*1#"
             }
-          ]
+          ],
+          "icon": "Filled.Sms"
         },
         {
           "name": {
@@ -686,7 +689,8 @@
               "requiresInput": false,
               "noConfirmCode": "*133*3*5*1#"
             }
-          ]
+          ],
+          "icon": "Filled.Call"
         }
       ]
     },
@@ -1119,7 +1123,8 @@
               "requiresInput": false,
               "compact": true
             }
-          ]
+          ],
+          "icon": "Filled.Info"
         },
         {
           "name": {
@@ -1163,7 +1168,8 @@
               "price": "$4.00",
               "compact": true
             }
-          ]
+          ],
+          "icon": "Filled.Flight"
         },
         {
           "name": {
@@ -1308,7 +1314,8 @@
               "price": "$4.00",
               "compact": true
             }
-          ]
+          ],
+          "icon": "Filled.Receipt"
         },
         {
           "name": {
@@ -1622,7 +1629,8 @@
                 }
               ]
             }
-          ]
+          ],
+          "icon": "Filled.SportsSoccer"
         },
         {
           "name": {
@@ -1806,7 +1814,8 @@
               "compact": true,
               "isSubscription": true
             }
-          ]
+          ],
+          "icon": "Filled.Article"
         },
         {
           "name": {
@@ -1962,7 +1971,8 @@
                 "CERDO"
               ]
             }
-          ]
+          ],
+          "icon": "Filled.MenuBook"
         }
       ]
     }
