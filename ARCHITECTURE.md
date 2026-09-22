@@ -52,39 +52,39 @@ There is no MVVM view-model layer and no cross-screen navigation state machine b
 
 ## 2. Source Layout
 
-| File/Package | Responsibility |
-|---|---|
-| `QvacellApplication.kt` | `Application` subclass. Creates the `reminders` and `caller_id` notification channels at process start. |
-| `MainActivity.kt` | Single-`Activity` host. Requests `POST_NOTIFICATIONS` on API 33+ at launch, reads the persisted theme from `SettingsDataStore` and applies it, hosts `QvacellNavHost`. |
-| `model/Models.kt` | `@Serializable` catalog models (`UssdCatalog`, `UssdCategory`, `UssdCodeGroup`, `UssdCode`, `UssdActionType`, `SmsVariant`) and the WiFi navigation-room models (`WifiProvince`, `WifiRoom`, `WifiHotspotGroup`). |
-| `model/CubanPhoneNumber.kt` | The one place that validates/normalizes a Cuban mobile number — ported 1:1 from the iOS app's `CubanPhoneNumber`. |
-| `model/Reminder.kt` | Room `@Entity` for a scheduled reminder, plus `ReminderRecurrence` (`NONE`/`DAILY`/`WEEKLY`/`MONTHLY`/`CUSTOM`). |
-| `model/WrappedCaller.kt` | Room `@Entity` mapping an ETECSA `*99`-wrapped collect-call number to a contact name, plus the `wrappedNumber(localNumber)` formula (§11). |
-| `data/CatalogRepository.kt` | Loads/decodes `assets/codes.json` and `assets/wifi_navigation_rooms.json` via `kotlinx.serialization`. |
-| `data/QvacellDatabase.kt` | Room database (`reminders`, `wrapped_callers` tables). |
-| `data/ReminderDao.kt` / `data/WrappedCallerDao.kt` | Room DAOs. |
-| `data/Converters.kt` | Room `TypeConverter`s (e.g. `ReminderRecurrence` enum ↔ `String`). |
-| `data/SettingsDataStore.kt` | Preferences DataStore: theme mode, default launch tab, accent color hex, hidden debug-search unlock flag. |
-| `service/DialService.kt` | Builds/opens `tel:` URIs via `ACTION_DIAL`, SMS intents via `ACTION_SENDTO`, and Google Maps search URLs via `ACTION_VIEW`. |
-| `service/CellularMonitor.kt` | Wraps `TelephonyManager` to expose the current network type (5G/LTE/3G/2G/none) as a `StateFlow<String>`, for an optional weak/no-signal warning banner. |
-| `service/ContactsRepository.kt` | Queries `ContactsContract` for device contacts, normalizes any Cuban numbers via `CubanPhoneNumber`, and rebuilds the `wrapped_callers` Room table on every fetch (§11) — the Android equivalent of the iOS app's `ContactsService`. |
-| `service/TransferPinStore.kt` | `EncryptedSharedPreferences`-backed transfer PIN store (§12) — the Android equivalent of the iOS app's Keychain-backed `TransferPinStore`. |
-| `service/ReminderRepository.kt` | CRUD over `Reminder` via `ReminderDao`, as a `Flow`. |
-| `service/ReminderScheduler.kt` | Schedules/cancels `AlarmManager.setExactAndAllowWhileIdle` alarms per reminder; computes the next occurrence for recurring reminders (§6). |
-| `service/DirectoryDatabase.kt` | Read-only SQLite reverse-lookup over a user-imported `.db` file (§13) — the Android equivalent of the iOS app's `DirectoryDatabase`. |
-| `service/CallerIdScreeningService.kt` | `CallScreeningService` that unwraps `*99` collect-call numbers and surfaces the resolved name via notification (§11). |
-| `receiver/ReminderAlarmReceiver.kt` | `BroadcastReceiver` fired by `AlarmManager`; shows the reminder notification and reschedules if recurring. |
-| `receiver/ReminderActionReceiver.kt` | Handles the "Mark done" / "Snooze 1 day" notification actions. |
-| `receiver/BootCompletedReceiver.kt` | Re-registers all enabled reminders after `ACTION_BOOT_COMPLETED`, since `AlarmManager` alarms are cleared on reboot (§6) — a correctness step iOS local notifications don't need. |
-| `ui/IconMapping.kt` | Maps the SF Symbol icon names in `codes.json` (inherited from the iOS catalog) to Material `ImageVector`s, with a generic fallback for unmapped names. |
-| `ui/components/` | Reusable, presentation-only composables: `CodeRow`, `ContactRow`, `DirectoryEntryRow`, `ConnectionBanner`, and `CodeActionHandler` (the input/variant/options dialog + dispatch logic shared by every code-tap flow). |
-| `ui/navigation/NavGraph.kt` | `BottomTab` sealed class (the 5 fixed tabs) and `Routes` (nested route constants for screens pushed from Ajustes). |
-| `ui/navigation/QvacellNavHost.kt` | Compose `NavHost` wiring bottom-tab routes and nested routes together. |
-| `ui/screens/` | `CategoryListScreen` (Ayuda/Compras), `ContactsListScreen`, `HomeQuickActionsScreen`, `TransferFlowScreen`, `RechargeFlowScreen`, `ReminderListScreen`/`ReminderEditScreen`, `DirectorySearchScreen`, `WifiRoomsScreen`, `TransferPinScreen`, `SettingsScreen`, `HelpScreen`, `SmsServicesScreen`. |
-| `app/src/main/assets/codes.json` | Static, bundled dataset: version, carrier, categories → groups → codes, each with its dial string and presentation metadata (§3). Byte-identical to the iOS app's copy. |
-| `app/src/main/assets/wifi_navigation_rooms.json` | Static, bundled dataset: one entry per province with its navigation rooms and free WiFi hotspots. Byte-identical to the iOS app's copy. |
+| File/Package                                       | Responsibility                                                                                                                                                                                                                                                                                     |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `QvacellApplication.kt`                            | `Application` subclass. Creates the `reminders` and `caller_id` notification channels at process start.                                                                                                                                                                                            |
+| `MainActivity.kt`                                  | Single-`Activity` host. Requests `POST_NOTIFICATIONS` on API 33+ at launch, reads the persisted theme from `SettingsDataStore` and applies it, hosts `QvacellNavHost`.                                                                                                                             |
+| `model/Models.kt`                                  | `@Serializable` catalog models (`UssdCatalog`, `UssdCategory`, `UssdCodeGroup`, `UssdCode`, `UssdActionType`, `SmsVariant`) and the WiFi navigation-room models (`WifiProvince`, `WifiRoom`, `WifiHotspotGroup`).                                                                                  |
+| `model/CubanPhoneNumber.kt`                        | The one place that validates/normalizes a Cuban mobile number — ported 1:1 from the iOS app's `CubanPhoneNumber`.                                                                                                                                                                                  |
+| `model/Reminder.kt`                                | Room `@Entity` for a scheduled reminder, plus `ReminderRecurrence` (`NONE`/`DAILY`/`WEEKLY`/`MONTHLY`/`CUSTOM`).                                                                                                                                                                                   |
+| `model/WrappedCaller.kt`                           | Room `@Entity` mapping an ETECSA `*99`-wrapped collect-call number to a contact name, plus the `wrappedNumber(localNumber)` formula (§11).                                                                                                                                                         |
+| `data/CatalogRepository.kt`                        | Loads/decodes `assets/codes.json` and `assets/wifi_navigation_rooms.json` via `kotlinx.serialization`.                                                                                                                                                                                             |
+| `data/QvacellDatabase.kt`                          | Room database (`reminders`, `wrapped_callers` tables).                                                                                                                                                                                                                                             |
+| `data/ReminderDao.kt` / `data/WrappedCallerDao.kt` | Room DAOs.                                                                                                                                                                                                                                                                                         |
+| `data/Converters.kt`                               | Room `TypeConverter`s (e.g. `ReminderRecurrence` enum ↔ `String`).                                                                                                                                                                                                                                 |
+| `data/SettingsDataStore.kt`                        | Preferences DataStore: theme mode, default launch tab, accent color hex, hidden debug-search unlock flag.                                                                                                                                                                                          |
+| `service/DialService.kt`                           | Builds/opens `tel:` URIs via `ACTION_DIAL`, SMS intents via `ACTION_SENDTO`, and Google Maps search URLs via `ACTION_VIEW`.                                                                                                                                                                        |
+| `service/CellularMonitor.kt`                       | Wraps `TelephonyManager` to expose the current network type (5G/LTE/3G/2G/none) as a `StateFlow<String>`, for an optional weak/no-signal warning banner.                                                                                                                                           |
+| `service/ContactsRepository.kt`                    | Queries `ContactsContract` for device contacts, normalizes any Cuban numbers via `CubanPhoneNumber`, and rebuilds the `wrapped_callers` Room table on every fetch (§11) — the Android equivalent of the iOS app's `ContactsService`.                                                               |
+| `service/TransferPinStore.kt`                      | `EncryptedSharedPreferences`-backed transfer PIN store (§12) — the Android equivalent of the iOS app's Keychain-backed `TransferPinStore`.                                                                                                                                                         |
+| `service/ReminderRepository.kt`                    | CRUD over `Reminder` via `ReminderDao`, as a `Flow`.                                                                                                                                                                                                                                               |
+| `service/ReminderScheduler.kt`                     | Schedules/cancels `AlarmManager.setExactAndAllowWhileIdle` alarms per reminder; computes the next occurrence for recurring reminders (§6).                                                                                                                                                         |
+| `service/DirectoryDatabase.kt`                     | Read-only SQLite reverse-lookup over a user-imported `.db` file (§13) — the Android equivalent of the iOS app's `DirectoryDatabase`.                                                                                                                                                               |
+| `service/CallerIdScreeningService.kt`              | `CallScreeningService` that unwraps `*99` collect-call numbers and surfaces the resolved name via notification (§11).                                                                                                                                                                              |
+| `receiver/ReminderAlarmReceiver.kt`                | `BroadcastReceiver` fired by `AlarmManager`; shows the reminder notification and reschedules if recurring.                                                                                                                                                                                         |
+| `receiver/ReminderActionReceiver.kt`               | Handles the "Mark done" / "Snooze 1 day" notification actions.                                                                                                                                                                                                                                     |
+| `receiver/BootCompletedReceiver.kt`                | Re-registers all enabled reminders after `ACTION_BOOT_COMPLETED`, since `AlarmManager` alarms are cleared on reboot (§6) — a correctness step iOS local notifications don't need.                                                                                                                  |
+| `ui/IconMapping.kt`                                | Maps the SF Symbol icon names in `codes.json` (inherited from the iOS catalog) to Material `ImageVector`s, with a generic fallback for unmapped names.                                                                                                                                             |
+| `ui/components/`                                   | Reusable, presentation-only composables: `CodeRow`, `ContactRow`, `DirectoryEntryRow`, `ConnectionBanner`, and `CodeActionHandler` (the input/variant/options dialog + dispatch logic shared by every code-tap flow).                                                                              |
+| `ui/navigation/NavGraph.kt`                        | `BottomTab` sealed class (the 5 fixed tabs) and `Routes` (nested route constants for screens pushed from Ajustes).                                                                                                                                                                                 |
+| `ui/navigation/QvacellNavHost.kt`                  | Compose `NavHost` wiring bottom-tab routes and nested routes together.                                                                                                                                                                                                                             |
+| `ui/screens/`                                      | `CategoryListScreen` (Ayuda/Compras), `ContactsListScreen`, `HomeQuickActionsScreen`, `TransferFlowScreen`, `RechargeFlowScreen`, `ReminderListScreen`/`ReminderEditScreen`, `DirectorySearchScreen`, `WifiRoomsScreen`, `TransferPinScreen`, `SettingsScreen`, `HelpScreen`, `SmsServicesScreen`. |
+| `app/src/main/assets/codes.json`                   | Static, bundled dataset: version, carrier, categories → groups → codes, each with its dial string and presentation metadata (§3). Byte-identical to the iOS app's copy.                                                                                                                            |
+| `app/src/main/assets/wifi_navigation_rooms.json`   | Static, bundled dataset: one entry per province with its navigation rooms and free WiFi hotspots. Byte-identical to the iOS app's copy.                                                                                                                                                            |
 
-No separate networking layer or dependency-injection container exists — the `service/` package *is* the service layer, and each service is instantiated where it's needed (typically inside a `remember { }` in the composable that uses it).
+No separate networking layer or dependency-injection container exists — the `service/` package _is_ the service layer, and each service is instantiated where it's needed (typically inside a `remember { }` in the composable that uses it).
 
 ---
 
@@ -117,7 +117,7 @@ A code carries no `category` field of its own — its category and group are ent
 
 ## 4. Navigation Model
 
-`QvacellNavHost` hosts a bottom navigation bar with 5 explicit tabs — Ayuda, Contactos, Home, Compras, Ajustes (`BottomTab` in `NavGraph.kt`) — not a generic loop over every catalog category (the tab order is fixed on purpose: Home sits in the middle). Ayuda and Compras each host a `CategoryListScreen` bound to the matching `UssdCategory` (`helplines`/`purchase`); adding a *code or group* to either category in `codes.json` updates that tab automatically, but adding a whole new top-level category does **not** grow the bottom bar — the tab set itself is fixed, same constraint as iOS.
+`QvacellNavHost` hosts a bottom navigation bar with 5 explicit tabs — Ayuda, Contactos, Home, Compras, Ajustes (`BottomTab` in `NavGraph.kt`) — not a generic loop over every catalog category (the tab order is fixed on purpose: Home sits in the middle). Ayuda and Compras each host a `CategoryListScreen` bound to the matching `UssdCategory` (`helplines`/`purchase`); adding a _code or group_ to either category in `codes.json` updates that tab automatically, but adding a whole new top-level category does **not** grow the bottom bar — the tab set itself is fixed, same constraint as iOS.
 
 Tapping a row in `CategoryListScreen` dials/prompts/sends an SMS intent directly depending on `UssdCode.type` and `requiresInput`, via the shared `CodeActionHandler` — there is no single "code detail" screen type.
 
@@ -133,7 +133,7 @@ There is no single "code detail" screen — what a tap does depends on `UssdCode
 2. **Row tap, input required** (`requiresInput == true`): a dialog collects a text value and disables the confirm button until it is non-empty; `UssdCode.resolvedCode(input)` (or `resolvedSmsBody(input)` for SMS codes) substitutes the `{input}` placeholder.
 3. **`USSD`/`CALL`**: `DialService.dial(context, code)` URI-encodes the code, builds a `tel:` URI, and starts an `ACTION_DIAL` intent — Android's system dialer opens with the code prefilled, requiring the same explicit user confirmation `tel://` gets on iOS. `ACTION_DIAL` (not `ACTION_CALL`) was chosen deliberately so the app never needs the `CALL_PHONE` permission and never places a call without the user tapping the dialer's own call button.
 4. **`SMS`**: `DialService.sendSms(context, number, body)` opens the device's SMS app pre-filled via `ACTION_SENDTO` with `smsto:` + the code as the recipient and the resolved `smsBody` as the message — never sent silently, same one-more-tap-to-confirm shape as a dial. Codes with `options` or `variants` show a picker first.
-5. **Quick Purchase, no confirmation** (opt-in, Compras only): when the "Acción Rápida sin Confirmación" setting is on and the code has a `noConfirmCode`, that string is dialed instead of `code` — it auto-selects ETECSA's own "¿Confirma su compra? 1. Sí" step in one dial instead of stopping there. See README § Direct dial vs. confirmation.
+5. **Quick Purchase, no confirmation** (opt-in, Compras only): when the "Acción sin Confirmación" setting is on and the code has a `noConfirmCode`, that string is dialed instead of `code` — it auto-selects ETECSA's own "¿Confirma su compra? 1. Sí" step in one dial instead of stopping there. See README § Direct dial vs. confirmation.
 
 Separately, the Home Transferir flow and the offline Database search prefill a PIN field from `TransferPinStore` (§12), but that's local to those specific screens, not a general mechanism.
 
@@ -154,7 +154,7 @@ Ajustes › Utilidades › Recordatorios schedules local notifications for a pur
 
 ### 6.2 Known limitations
 
-- Same `CUSTOM`-interval caveat as iOS: a "every N days" reminder is computed from the *previous fire time*, not the originally picked date, since there is no platform API for "start on this date, then repeat every N days" (Android's own inexact-repeating alarms have the same limitation `UNTimeIntervalNotificationTrigger` has on iOS).
+- Same `CUSTOM`-interval caveat as iOS: a "every N days" reminder is computed from the _previous fire time_, not the originally picked date, since there is no platform API for "start on this date, then repeat every N days" (Android's own inexact-repeating alarms have the same limitation `UNTimeIntervalNotificationTrigger` has on iOS).
 - `MONTHLY` uses `Calendar.MONTH + 1`, which rolls over cleanly at month-end (e.g. Jan 31 → Mar 3 in a non-leap context) rather than iOS's `UNCalendarNotificationTrigger`, which simply skips a month lacking that day-of-month. This is a deliberate, documented behavior difference — flagged for anyone comparing outputs across platforms.
 - No schema versioning on `Reminder`, same as `codes.json` itself.
 
@@ -240,7 +240,7 @@ QvacellDatabase.wrappedCallerDao()  ──▶  Room table "wrapped_callers"
 
 ### 11.3 Real constraints (not fixable in code) — the platform gap vs. iOS
 
-- **Cannot inject a custom name into the system in-call UI.** This is the central difference from the iOS app's CallKit Call Directory Extension, which *can* relabel the system's own incoming-call screen. Android's `CallScreeningService` API gives a screening app no mechanism to change the displayed caller name unless that app is also the user's **default dialer app** — a much larger commitment (replacing core phone UI, `InCallService`, etc.) that this project deliberately does not take on for one feature. The heads-up notification is the best-effort substitute: it doesn't replace the incoming-call screen, but it does surface the real name promptly.
+- **Cannot inject a custom name into the system in-call UI.** This is the central difference from the iOS app's CallKit Call Directory Extension, which _can_ relabel the system's own incoming-call screen. Android's `CallScreeningService` API gives a screening app no mechanism to change the displayed caller name unless that app is also the user's **default dialer app** — a much larger commitment (replacing core phone UI, `InCallService`, etc.) that this project deliberately does not take on for one feature. The heads-up notification is the best-effort substitute: it doesn't replace the incoming-call screen, but it does surface the real name promptly.
 - **Only labels contacts already in the address book** — a `*99` call from an unknown number still resolves to nothing, same limitation as the iOS app.
 - **The user must grant the call-screening role once, manually** — Ajustes del sistema will show a role-holder picker; only one app can hold `ROLE_CALL_SCREENING` at a time, so enabling this may replace another call-screening/spam-blocking app the user already had.
 - **Only testable on a physical device with a real telephony stack.**
@@ -258,12 +258,12 @@ Consumers: the Home Transferir flow and the offline Database search's PIN field 
 
 ## 13. Offline Database Search / DirectoryDatabase (`Buscar en Database`)
 
-`DirectoryDatabase` (`service/DirectoryDatabase.kt`) is a read-only SQLite reader (`androidx.sqlite` / `SupportSQLiteOpenHelper`, no ORM) powering the "Buscar en Database" screen over a phone-directory dump the *user* supplies via Android's Storage Access Framework (`ACTION_OPEN_DOCUMENT`) — the app neither bundles nor downloads it, same as the iOS app (whose download-from-URL UI is disabled for legal reasons; this port never implemented that path at all).
+`DirectoryDatabase` (`service/DirectoryDatabase.kt`) is a read-only SQLite reader (`androidx.sqlite` / `SupportSQLiteOpenHelper`, no ORM) powering the "Buscar en Database" screen over a phone-directory dump the _user_ supplies via Android's Storage Access Framework (`ACTION_OPEN_DOCUMENT`) — the app neither bundles nor downloads it, same as the iOS app (whose download-from-URL UI is disabled for legal reasons; this port never implemented that path at all).
 
 The imported file is copied into app-internal storage (`context.filesDir/directory.db`) and identified by querying `sqlite_master` for table names rather than trusting the filename:
 
 - **v1**: a single `contacts(number, name, is_mobile)` table.
-- **v2**: split into `movil(number, name)` and `fix(number, name)` tables — no `is_mobile` column, since which table a row came from *is* the line type.
+- **v2**: split into `movil(number, name)` and `fix(number, name)` tables — no `is_mobile` column, since which table a row came from _is_ the line type.
 
 Notable implementation details:
 
@@ -287,7 +287,7 @@ Runs on every push to `main` touching either JSON file (plus `workflow_dispatch`
 3. On drift: upload the diff as a build artifact, open (or update, if one is already open) an issue **on the iOS repo** — not this one — labeled `catalog-sync`, and fail the job so it shows red in Actions.
 4. On no drift: exit clean.
 
-Opening the issue on the *other* repo (rather than this one) requires the `CROSS_REPO_TOKEN` secret — a PAT with `Issues: write` on `Qvacell-ios`. Without that secret configured, the job still detects and reports drift (failed run + artifact), it just can't open the cross-repo issue.
+Opening the issue on the _other_ repo (rather than this one) requires the `CROSS_REPO_TOKEN` secret — a PAT with `Issues: write` on `Qvacell-ios`. Without that secret configured, the job still detects and reports drift (failed run + artifact), it just can't open the cross-repo issue.
 
 ### 14.2 What "structure" means for `codes.json`
 
@@ -299,4 +299,4 @@ This file has no cosmetic fields — every field is data (province name, room na
 
 ### 14.4 Relationship to `wifi-rooms-sync-check.yml` (iOS repo)
 
-The iOS repo also has a separate, unrelated workflow (`wifi-rooms-sync-check.yml`) that checks the bundled WiFi directory against ETECSA's *own* website for source-data drift. This cross-platform check answers a different question — "do the two apps still agree with each other" — not "is the data still accurate against ETECSA."
+The iOS repo also has a separate, unrelated workflow (`wifi-rooms-sync-check.yml`) that checks the bundled WiFi directory against ETECSA's _own_ website for source-data drift. This cross-platform check answers a different question — "do the two apps still agree with each other" — not "is the data still accurate against ETECSA."

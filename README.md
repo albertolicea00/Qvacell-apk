@@ -69,16 +69,17 @@ app/src/main/assets/
 └── wifi_navigation_rooms.json   # Bundled ETECSA navigation-room/hotspot directory
 ```
 
-*The full USSD code catalog is loaded from the bundled [`codes.json`](app/src/main/assets/codes.json), the same file the iOS app ships, keeping both platforms in sync.* 📁
+_The full USSD code catalog is loaded from the bundled [`codes.json`](app/src/main/assets/codes.json), the same file the iOS app ships, keeping both platforms in sync._ 📁
 
 ## ☎️ Direct Dial vs. Confirmation
 
-Free query codes dial immediately. Paid purchase codes stop at ETECSA's confirmation menu by default; an optional **Acción Rápida sin Confirmación** setting substitutes a code variant that auto-confirms, with a visible UI safety warning.
+Free query codes dial immediately. Paid purchase codes stop at ETECSA's confirmation menu by default; an optional **Acción sin Confirmación** setting substitutes a code variant that auto-confirms, with a visible UI safety warning.
 
 ## 🔍 Phone Directory & Offline Database Search
 
 Under **Ajustes › Utilidades**:
-- **Buscar en Database**: Advanced offline reverse phone lookup over a user-supplied SQLite (`.db`) file, imported via the system file picker. For security and privacy, this feature is hidden by default (unlocked by tapping the app version 5 times in *Acerca de*) and searches strictly by phone number (no name lookup).
+
+- **Buscar en Database**: Advanced offline reverse phone lookup over a user-supplied SQLite (`.db`) file, imported via the system file picker. For security and privacy, this feature is hidden by default (unlocked by tapping the app version 5 times in _Acerca de_) and searches strictly by phone number (no name lookup).
 
 ## 🛜 Navigation Rooms & Public Wi-Fi
 
@@ -86,7 +87,7 @@ Includes an offline directory of official ETECSA navigation rooms and public Wi-
 
 ## 🔄 Cross-Platform Catalog Sync
 
-[`cross-platform-sync-check.yml`](.github/workflows/cross-platform-sync-check.yml) runs on every push to `main` that touches `codes.json` or `wifi_navigation_rooms.json`, and compares this repo's copy against [qvacell-ios](https://github.com/albertolicea00/Qvacell-ios)'s. If they've drifted, it opens (or updates) an issue on the *other* repo so the missed platform gets updated. Only **structure** is compared for `codes.json` (ids, dial strings, action type, input handling, category/group placement) — cosmetic fields (icon, price, title wording, etc.) are allowed to differ per platform. See [ARCHITECTURE.md § 14](ARCHITECTURE.md#14-cross-platform-catalog-sync-check) for exactly what's compared and how.
+[`cross-platform-sync-check.yml`](.github/workflows/cross-platform-sync-check.yml) runs on every push to `main` that touches `codes.json` or `wifi_navigation_rooms.json`, and compares this repo's copy against [qvacell-ios](https://github.com/albertolicea00/Qvacell-ios)'s. If they've drifted, it opens (or updates) an issue on the _other_ repo so the missed platform gets updated. Only **structure** is compared for `codes.json` (ids, dial strings, action type, input handling, category/group placement) — cosmetic fields (icon, price, title wording, etc.) are allowed to differ per platform. See [ARCHITECTURE.md § 14](ARCHITECTURE.md#14-cross-platform-catalog-sync-check) for exactly what's compared and how.
 
 ## 🚧 Known Limitations
 
@@ -103,7 +104,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Please follow the [Code of Conduct](CODE
 > The app UI is intentionally in Spanish — it targets Cuban users. All technical communication follows English conventions.
 
 ## 📚 Sources
+
 The codes were saved from the following sites:
+
 - https://galixpay.com/recargas-a-cuba/
 - https://www.fonoma.com/blog/codigos-ussd-cuba
 - https://www.etecsa.cu/es/taxonomy/term/1445
@@ -114,4 +117,4 @@ The codes were saved from the following sites:
 
 ---
 
-*Developed by @albertolicea00 — Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell-ios).*
+_Developed by @albertolicea00 — Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell-ios)._

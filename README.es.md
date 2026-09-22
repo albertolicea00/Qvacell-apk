@@ -69,16 +69,17 @@ app/src/main/assets/
 └── wifi_navigation_rooms.json   # Directorio de salas de navegación/puntos Wi-Fi de ETECSA incluido
 ```
 
-*El catálogo completo de códigos USSD se carga desde [`codes.json`](app/src/main/assets/codes.json), el mismo archivo que usa la app iOS, manteniendo ambas plataformas sincronizadas.* 📁
+_El catálogo completo de códigos USSD se carga desde [`codes.json`](app/src/main/assets/codes.json), el mismo archivo que usa la app iOS, manteniendo ambas plataformas sincronizadas._ 📁
 
 ## ☎️ Marcado Directo vs. Confirmación
 
-Los códigos de consulta gratuitos se marcan inmediatamente. Los códigos de compra de pago se detienen en el menú de confirmación de ETECSA por defecto; la opción **Acción Rápida sin Confirmación** sustituye el código por una variante que autoconfirma, con una advertencia visible en la interfaz.
+Los códigos de consulta gratuitos se marcan inmediatamente. Los códigos de compra de pago se detienen en el menú de confirmación de ETECSA por defecto; la opción **Acción sin Confirmación** sustituye el código por una variante que autoconfirma, con una advertencia visible en la interfaz.
 
 ## 🔍 Directorio Telefónico y Base de Datos Offline
 
 En **Ajustes › Utilidades**:
-- **Buscar en Database**: Búsqueda inversa offline sobre una base de datos SQLite (`.db`) suministrada por el usuario, importada mediante el selector de archivos del sistema. Por seguridad y privacidad, esta función viene oculta por defecto (se desbloquea tocando 5 veces la versión en *Acerca de*) y la búsqueda es estrictamente solo por número (sin búsqueda por nombre).
+
+- **Buscar en Database**: Búsqueda inversa offline sobre una base de datos SQLite (`.db`) suministrada por el usuario, importada mediante el selector de archivos del sistema. Por seguridad y privacidad, esta función viene oculta por defecto (se desbloquea tocando 5 veces la versión en _Acerca de_) y la búsqueda es estrictamente solo por número (sin búsqueda por nombre).
 
 ## 🛜 Salas de Navegación y Wi-Fi Público
 
@@ -86,7 +87,7 @@ Incluye un directorio offline de salas de navegación oficiales de ETECSA y punt
 
 ## 🔄 Sincronización entre Plataformas
 
-[`cross-platform-sync-check.yml`](.github/workflows/cross-platform-sync-check.yml) se ejecuta en cada push a `main` que modifique `codes.json` o `wifi_navigation_rooms.json`, y compara la copia de este repo contra la de [qvacell-ios](https://github.com/albertolicea00/Qvacell-ios). Si han divergido, abre (o actualiza) un issue en el *otro* repositorio para que se actualice la plataforma que quedó atrás. Solo se compara la **estructura** en `codes.json` (ids, cadenas de marcado, tipo de acción, manejo de entrada, ubicación en categoría/grupo) — los campos cosméticos (icono, precio, redacción del título, etc.) pueden diferir entre plataformas. Ver [ARCHITECTURE.md § 14](ARCHITECTURE.md#14-cross-platform-catalog-sync-check) para el detalle exacto de qué se compara y cómo.
+[`cross-platform-sync-check.yml`](.github/workflows/cross-platform-sync-check.yml) se ejecuta en cada push a `main` que modifique `codes.json` o `wifi_navigation_rooms.json`, y compara la copia de este repo contra la de [qvacell-ios](https://github.com/albertolicea00/Qvacell-ios). Si han divergido, abre (o actualiza) un issue en el _otro_ repositorio para que se actualice la plataforma que quedó atrás. Solo se compara la **estructura** en `codes.json` (ids, cadenas de marcado, tipo de acción, manejo de entrada, ubicación en categoría/grupo) — los campos cosméticos (icono, precio, redacción del título, etc.) pueden diferir entre plataformas. Ver [ARCHITECTURE.md § 14](ARCHITECTURE.md#14-cross-platform-catalog-sync-check) para el detalle exacto de qué se compara y cómo.
 
 ## 🚧 Limitaciones Conocidas
 
@@ -103,7 +104,9 @@ Consulta [CONTRIBUTING.md](CONTRIBUTING.md). Por favor, sigue el [Código de Con
 > La interfaz de la app está intencionalmente en español (está dirigida a usuarios cubanos). Toda la comunicación técnica sigue las convenciones en inglés.
 
 ## 📚 Fuentes
+
 Los códigos se compilaron a partir de los siguientes sitios:
+
 - https://galixpay.com/recargas-a-cuba/
 - https://www.fonoma.com/blog/codigos-ussd-cuba
 - https://www.etecsa.cu/es/taxonomy/term/1445
@@ -114,4 +117,4 @@ Los códigos se compilaron a partir de los siguientes sitios:
 
 ---
 
-*Desarrollado por @albertolicea00 — port a Android de [qvacell-ios](https://github.com/albertolicea00/qvacell-ios).*
+_Desarrollado por @albertolicea00 — port a Android de [qvacell-ios](https://github.com/albertolicea00/qvacell-ios)._
