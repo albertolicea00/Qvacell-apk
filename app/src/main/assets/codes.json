@@ -8,7 +8,7 @@
         "es": "Home",
         "en": "Home"
       },
-      "icon": "house.fill",
+      "icon": "Filled.Home",
       "groups": [
         {
           "name": {
@@ -340,7 +340,7 @@
                 "es": "Activa tu línea para navegar por 4G/LTE.",
                 "en": "Activates your line for browsing on 4G/LTE."
               },
-              "icon": "antenna.radiowaves.left.and.right",
+              "icon": "Filled.NetworkCell",
               "type": "sms",
               "requiresInput": false,
               "compact": true
@@ -357,7 +357,7 @@
                 "es": "Envía los primeros 8 dígitos de tu IMEI para saber si tu teléfono es compatible con 3G o 4G.",
                 "en": "Send the first 8 digits of your IMEI to find out if your phone supports 3G or 4G."
               },
-              "icon": "checkmark.circle.fill",
+              "icon": "Filled.CheckCircle",
               "type": "sms",
               "requiresInput": true,
               "inputPlaceholder": "IMEI (8 dígitos)",
@@ -375,7 +375,7 @@
                 "es": "Envía los primeros 9 dígitos de tu correo electrónico al 4222 para configurar el MMS.",
                 "en": "Send the first 9 digits of your email to 4222 to set up MMS."
               },
-              "icon": "photo.on.rectangle.angled",
+              "icon": "Filled.Photo",
               "type": "sms",
               "requiresInput": true,
               "inputPlaceholder": "Primeros 9 dígitos de tu email",
@@ -414,7 +414,7 @@
         "es": "Compras",
         "en": "Purchases"
       },
-      "icon": "cart",
+      "icon": "Filled.ShoppingCart",
       "groups": [
         {
           "name": {
@@ -696,7 +696,7 @@
         "es": "Líneas de Ayuda",
         "en": "Helplines"
       },
-      "icon": "flipphone",
+      "icon": "Filled.Phone",
       "groups": [
         {
           "name": null,
@@ -712,7 +712,7 @@
                 "es": "Accede a tu buzón de voz.",
                 "en": "Access your voicemail."
               },
-              "icon": "recordingtape",
+              "icon": "Filled.Watch",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -728,7 +728,7 @@
                 "es": "Soporte, dudas, o activar el buzón de voz en tu teléfono.",
                 "en": "Support, questions, or activate voicemail on your phone."
               },
-              "icon": "headphones",
+              "icon": "Filled.Headset",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -752,7 +752,7 @@
                 "es": "Apoyo a adicciones.",
                 "en": "Addiction support."
               },
-              "icon": "pills.fill",
+              "icon": "Filled.MedicalServices",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -768,7 +768,7 @@
                 "es": "Servicio de ambulancias.",
                 "en": "Ambulance service."
               },
-              "icon": "cross.case.fill",
+              "icon": "Filled.LocalHospital",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -784,7 +784,7 @@
                 "es": "También para escapes graves de gas.",
                 "en": "Also for serious gas leaks."
               },
-              "icon": "flame.fill",
+              "icon": "Filled.LocalFireDepartment",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -800,7 +800,7 @@
                 "es": "Policía Nacional Revolucionaria.",
                 "en": "Revolutionary National Police."
               },
-              "icon": "shield.fill",
+              "icon": "Filled.Security",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -816,7 +816,7 @@
                 "es": "Tropas Guardafronteras.",
                 "en": "Border Guard Troops."
               },
-              "icon": "sailboat.fill",
+              "icon": "Filled.Sailing",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -840,7 +840,7 @@
                 "es": "Reporte de cortes y averías eléctricas.",
                 "en": "Report power outages and faults."
               },
-              "icon": "bolt.fill",
+              "icon": "Filled.Bolt",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -856,7 +856,7 @@
                 "es": "Salideros y roturas de tuberías (Acueducto).",
                 "en": "Leaks and burst pipes (Aqueduct)."
               },
-              "icon": "drop.fill",
+              "icon": "Filled.WaterDrop",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -872,7 +872,7 @@
                 "es": "Gas manufacturado — línea directa en La Habana.",
                 "en": "Manufactured gas — direct line in Havana."
               },
-              "icon": "flame",
+              "icon": "Filled.LocalFireDepartment",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -896,7 +896,7 @@
                 "es": "Gestión de llamadas asistidas, nacionales e internacionales.",
                 "en": "Manage assisted calls, domestic and international."
               },
-              "icon": "phone.arrow.up.right",
+              "icon": "AutoMirrored.Filled.CallMade",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -912,7 +912,7 @@
                 "es": "Para pedir un número.",
                 "en": "To request a number."
               },
-              "icon": "info.circle.fill",
+              "icon": "Filled.Info",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -928,7 +928,7 @@
                 "es": "Reporte de interrupciones de telefonía fija.",
                 "en": "Report landline service interruptions."
               },
-              "icon": "phone.down.fill",
+              "icon": "Filled.PhoneDisabled",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -944,7 +944,7 @@
                 "es": "Información general y trámites comerciales.",
                 "en": "General information and commercial procedures."
               },
-              "icon": "building.2.fill",
+              "icon": "Filled.Apartment",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -960,7 +960,7 @@
                 "es": "La hora exacta.",
                 "en": "The exact time."
               },
-              "icon": "clock.fill",
+              "icon": "AutoMirrored.Filled.EventNote",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -976,7 +976,7 @@
                 "es": "Atención comercial unificada.",
                 "en": "Unified customer service."
               },
-              "icon": "person.2.wave.2.fill",
+              "icon": "Filled.People",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -1000,7 +1000,7 @@
                 "es": "Denuncias o quejas sobre policías.",
                 "en": "Reports or complaints about police."
               },
-              "icon": "exclamationmark.bubble.fill",
+              "icon": "Filled.ErrorOutline",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -1016,7 +1016,7 @@
                 "es": "Orientación jurídica y quejas de legalidad.",
                 "en": "Legal guidance and legality complaints."
               },
-              "icon": "building.columns.fill",
+              "icon": "Filled.Gavel",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -1032,7 +1032,7 @@
                 "es": "Línea única gratuita para bultos y giros.",
                 "en": "Single toll-free line for packages and money orders."
               },
-              "icon": "envelope.fill",
+              "icon": "Filled.Mail",
               "showsNumber": true,
               "type": "call",
               "requiresInput": false
@@ -1047,7 +1047,7 @@
         "es": "Servicios por SMS",
         "en": "SMS Services"
       },
-      "icon": "envelope.badge",
+      "icon": "Filled.Sms",
       "groups": [
         {
           "name": {

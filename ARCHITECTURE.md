@@ -76,7 +76,7 @@ There is no MVVM view-model layer and no cross-screen navigation state machine b
 | `receiver/ReminderAlarmReceiver.kt`                | `BroadcastReceiver` fired by `AlarmManager`; shows the reminder notification and reschedules if recurring.                                                                                                                                                                                         |
 | `receiver/ReminderActionReceiver.kt`               | Handles the "Mark done" / "Snooze 1 day" notification actions.                                                                                                                                                                                                                                     |
 | `receiver/BootCompletedReceiver.kt`                | Re-registers all enabled reminders after `ACTION_BOOT_COMPLETED`, since `AlarmManager` alarms are cleared on reboot (§6) — a correctness step iOS local notifications don't need.                                                                                                                  |
-| `ui/IconMapping.kt`                                | Maps the SF Symbol icon names in `codes.json` (inherited from the iOS catalog) to Material `ImageVector`s, with a generic fallback for unmapped names.                                                                                                                                             |
+| `ui/AndroidIconResolver.kt`                        | Resolves the `icon` string in this repo's `codes.json` (e.g. `"Filled.Home"` — this repo's own copy replaces iOS's SF Symbol names with Material icon identifiers in that same field) to a `androidx.compose.material.icons` `ImageVector` via reflection; falls back to a generic circle icon when unset or unresolvable. |
 | `ui/components/`                                   | Reusable, presentation-only composables: `CodeRow`, `ContactRow`, `DirectoryEntryRow`, `ConnectionBanner`, and `CodeActionHandler` (the input/variant/options dialog + dispatch logic shared by every code-tap flow).                                                                              |
 | `ui/navigation/NavGraph.kt`                        | `BottomTab` sealed class (the 5 fixed tabs) and `Routes` (nested route constants for screens pushed from Ajustes).                                                                                                                                                                                 |
 | `ui/navigation/QvacellNavHost.kt`                  | Compose `NavHost` wiring bottom-tab routes and nested routes together.                                                                                                                                                                                                                             |
@@ -96,12 +96,12 @@ No separate networking layer or dependency-injection container exists — the `s
 UssdCatalog
  ├─ version, carrier
  └─ categories: [UssdCategory]
-     ├─ id, name, icon (SF Symbol name — mapped to a Material icon via IconMapping.kt)
+     ├─ id, name, icon (Material icon identifier, e.g. `"Filled.Home"` — resolved via AndroidIconResolver.kt; iOS's copy of this same field holds an SF Symbol name instead)
      └─ groups: [UssdCodeGroup]        (a named sub-heading, or nil-named for no header)
          ├─ name: String?
          └─ codes: [UssdCode]
              ├─ id, code, title, details
-             ├─ icon, price, compact, showsNumber   (all optional — presentation hints)
+             ├─ icon (Material icon identifier, only present on codes that already had an SF Symbol on iOS), price, compact, showsNumber   (all optional — presentation hints)
              ├─ type: UssdActionType   (USSD / CALL / SMS — drives dial-vs-dialog-vs-SMS-intent behavior)
              ├─ requiresInput: Boolean, inputPlaceholder: String?
              ├─ noConfirmCode: String?             (Quick-Purchase-without-confirmation variant of `code`)
@@ -291,7 +291,7 @@ Opening the issue on the _other_ repo (rather than this one) requires the `CROSS
 
 ### 14.2 What "structure" means for `codes.json`
 
-Only these fields are compared, per code: `id`, `code` (the dial string), `type`, `requiresInput`, `inputPlaceholder`, `noConfirmCode`, `smsBody`, `options`, `isSubscription`, `variants`, plus which category id and group name it lives under (and the overall category order). Deliberately **ignored**: `icon` (SF Symbol names vs. Material icon names are expected to differ, §3), `price`, `compact`, `showsNumber`, `title`, `details` — all presentation/wording, not behavior. This means editing a title's phrasing or swapping an icon never trips the check; changing a dial string, adding/removing a code, or moving one to a different category does.
+Only these fields are compared, per code: `id`, `code` (the dial string), `type`, `requiresInput`, `inputPlaceholder`, `noConfirmCode`, `smsBody`, `options`, `isSubscription`, `variants`, plus which category id and group name it lives under (and the overall category order). Deliberately **ignored**: `icon` (SF Symbol names on iOS vs. Material icon identifiers on this repo's copy, §3), `price`, `compact`, `showsNumber`, `title`, `details` — all presentation/wording, not behavior. This means editing a title's phrasing or swapping an icon never trips the check; changing a dial string, adding/removing a code, or moving one to a different category does.
 
 ### 14.3 What's compared for `wifi_navigation_rooms.json`
 

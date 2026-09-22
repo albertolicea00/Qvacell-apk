@@ -6,8 +6,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apartment
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.NetworkCell
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -18,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.data.CatalogRepository
@@ -25,17 +33,18 @@ import com.qvacell.app.model.UssdCode
 import com.qvacell.app.ui.components.QuickActionTileData
 import com.qvacell.app.ui.components.QuickActionTileGrid
 import com.qvacell.app.ui.components.rememberCodeActionHandler
-import com.qvacell.app.ui.sfSymbolToMaterialIcon
 
-private val QUICK_ACTION_CODE_IDS = listOf(
-    "main-balance",
-    "data-plan",
-    "voice-balance",
-    "sms-balance",
-    "national-recharge-limit",
-    "friends-plan",
-    "bonus-usd-plans",
-    "postpaid-balance"
+// Not stored in codes.json — same as iOS, which hardcodes these SF Symbols directly
+// in HomeQuickActionsView's tile array instead of reading them from the catalog.
+private val QUICK_ACTION_CODE_ICONS: List<Pair<String, ImageVector>> = listOf(
+    "main-balance" to Icons.Filled.CreditCard,
+    "data-plan" to Icons.Filled.NetworkCell,
+    "voice-balance" to Icons.Filled.Call,
+    "sms-balance" to Icons.Filled.Sms,
+    "national-recharge-limit" to Icons.Filled.Warning,
+    "friends-plan" to Icons.Filled.People,
+    "bonus-usd-plans" to Icons.Filled.CardGiftcard,
+    "postpaid-balance" to Icons.Filled.Apartment
 )
 
 @Composable
@@ -52,11 +61,11 @@ fun HomeQuickActionsScreen(
     val onCodeClick = rememberCodeActionHandler()
 
     val tiles = remember(codesById) {
-        QUICK_ACTION_CODE_IDS.mapNotNull { id ->
+        QUICK_ACTION_CODE_ICONS.mapNotNull { (id, icon) ->
             codesById[id]?.let { code ->
                 QuickActionTileData(
                     label = code.title.value,
-                    icon = sfSymbolToMaterialIcon(code.icon),
+                    icon = icon,
                     onClick = { onCodeClick(code) }
                 )
             }

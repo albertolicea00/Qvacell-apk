@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.model.UssdCode
-import com.qvacell.app.ui.sfSymbolToMaterialIcon
+import com.qvacell.app.ui.resolveAndroidIcon
 
 @Composable
 fun CodeRow(code: UssdCode, onClick: () -> Unit, modifier: Modifier = Modifier, showIcon: Boolean = true) {
@@ -31,7 +31,7 @@ fun CodeRow(code: UssdCode, onClick: () -> Unit, modifier: Modifier = Modifier, 
     ) {
         if (showIcon) {
             Icon(
-                imageVector = sfSymbolToMaterialIcon(code.icon),
+                imageVector = resolveAndroidIcon(code.icon),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(28.dp)

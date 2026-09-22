@@ -5,8 +5,11 @@
 // (dial string), type, requiresInput, inputPlaceholder, noConfirmCode,
 // smsBody, options, isSubscription, variants. Cosmetic/presentation fields
 // (icon, price, compact, showsNumber, title, details) are intentionally
-// ignored — those are allowed to differ per-platform (e.g. SF Symbol vs.
-// Material icon names) without triggering a drift report.
+// ignored — those are allowed to differ per-platform (this repo's `icon`
+// holds Material icon identifiers in the same field iOS uses for SF Symbol
+// names) without triggering a drift report. This is enforced structurally:
+// structuralCode() below only ever reads its explicit whitelist of fields,
+// so any per-platform field is ignored by construction.
 //
 // Exit codes: 0 = in sync, 1 = drift found (writes REPORT_FILE), 2 = counterpart
 // catalog unreachable (not a failure — nothing to compare against).
