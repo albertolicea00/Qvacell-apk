@@ -32,7 +32,7 @@ fun CategoryListScreen(categoryId: String, title: String) {
                 if (group.name != null) {
                     item {
                         Text(
-                            group.name,
+                            group.name.value,
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)

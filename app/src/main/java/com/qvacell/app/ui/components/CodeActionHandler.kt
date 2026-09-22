@@ -34,7 +34,7 @@ fun rememberCodeActionHandler(): (UssdCode) -> Unit {
         if (code.requiresInput) {
             AlertDialog(
                 onDismissRequest = { activeCode = null; inputText = "" },
-                title = { Text(code.title) },
+                title = { Text(code.title.value) },
                 text = {
                     OutlinedTextField(
                         value = inputText,
@@ -58,7 +58,7 @@ fun rememberCodeActionHandler(): (UssdCode) -> Unit {
             val labels = code.variants?.map { it.label } ?: code.options.orEmpty()
             AlertDialog(
                 onDismissRequest = { activeCode = null },
-                title = { Text(code.title) },
+                title = { Text(code.title.value) },
                 text = {
                     Column {
                         labels.forEach { label ->

@@ -34,7 +34,7 @@ fun HomeQuickActionsScreen(
     val repository = remember { CatalogRepository(context) }
     val catalog = remember { repository.loadCatalog() }
     val homeCategory = remember { catalog.categories.firstOrNull { it.id == "home" } }
-    val balanceGroup = remember { homeCategory?.groups?.firstOrNull { it.name == "Saldo y Planes" } }
+    val balanceGroup = remember { homeCategory?.groups?.firstOrNull { it.name?.value == "Saldo y Planes" } }
     val onCodeClick = rememberCodeActionHandler()
 
     Scaffold(topBar = { TopAppBar(title = { Text("Qvacell") }) }) { padding ->

@@ -4,6 +4,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class LocalizedString(
+    val es: String,
+    val en: String
+) {
+    // App UI copy is Spanish-only for now (no locale switch wired up yet).
+    val value: String get() = es
+
+    override fun toString(): String = value
+}
+
+@Serializable
 data class UssdCatalog(
     val version: Int,
     val carrier: String,
@@ -13,14 +24,14 @@ data class UssdCatalog(
 @Serializable
 data class UssdCategory(
     val id: String,
-    val name: String,
+    val name: LocalizedString,
     val icon: String,
     val groups: List<UssdCodeGroup>
 )
 
 @Serializable
 data class UssdCodeGroup(
-    val name: String? = null,
+    val name: LocalizedString? = null,
     val codes: List<UssdCode>
 )
 
@@ -41,8 +52,8 @@ data class SmsVariant(
 data class UssdCode(
     val id: String,
     val code: String,
-    val title: String,
-    val details: String,
+    val title: LocalizedString,
+    val details: LocalizedString,
     val icon: String? = null,
     val price: String? = null,
     val compact: Boolean? = null,

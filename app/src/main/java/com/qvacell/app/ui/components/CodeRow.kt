@@ -37,9 +37,9 @@ fun CodeRow(code: UssdCode, onClick: () -> Unit, modifier: Modifier = Modifier) 
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(code.title, style = MaterialTheme.typography.bodyLarge)
+            Text(code.title.value, style = MaterialTheme.typography.bodyLarge)
             Text(
-                code.details,
+                code.details.value,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
