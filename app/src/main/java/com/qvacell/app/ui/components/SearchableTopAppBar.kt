@@ -1,5 +1,6 @@
 package com.qvacell.app.ui.components
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -34,7 +35,10 @@ fun SearchableTopAppBar(
     searching: Boolean,
     onSearchingChange: (Boolean) -> Unit,
     placeholder: String = "Buscar",
-    showSearchAction: Boolean = true
+    showSearchAction: Boolean = true,
+    // e.g. "Salas de Navegación" shown small above the province name — the section this
+    // screen's title belongs to, when that's worth spelling out separately from the title.
+    subtitle: String? = null
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -59,6 +63,11 @@ fun SearchableTopAppBar(
                         unfocusedIndicatorColor = Color.Transparent
                     )
                 )
+            } else if (subtitle != null) {
+                Column {
+                    Text(subtitle, style = MaterialTheme.typography.labelSmall)
+                    Text(title, style = MaterialTheme.typography.titleLarge)
+                }
             } else {
                 Text(title)
             }
