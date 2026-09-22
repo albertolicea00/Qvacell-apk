@@ -41,7 +41,7 @@ fun CategoryListScreen(categoryId: String, title: String) {
                 }
                 items(group.codes) { code ->
                     Column {
-                        CodeRow(code = code, onClick = { onCodeClick(code) })
+                        CodeRow(code = code, onClick = { onCodeClick(code) }, showIcon = categoryId != "purchase")
                         HorizontalDivider()
                     }
                 }

@@ -21,7 +21,7 @@ import com.qvacell.app.model.UssdCode
 import com.qvacell.app.ui.sfSymbolToMaterialIcon
 
 @Composable
-fun CodeRow(code: UssdCode, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CodeRow(code: UssdCode, onClick: () -> Unit, modifier: Modifier = Modifier, showIcon: Boolean = true) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -29,13 +29,15 @@ fun CodeRow(code: UssdCode, onClick: () -> Unit, modifier: Modifier = Modifier) 
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = sfSymbolToMaterialIcon(code.icon),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(28.dp)
-        )
-        Spacer(modifier = Modifier.width(16.dp))
+        if (showIcon) {
+            Icon(
+                imageVector = sfSymbolToMaterialIcon(code.icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(28.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+        }
         Column(modifier = Modifier.weight(1f)) {
             Text(code.title.value, style = MaterialTheme.typography.bodyLarge)
             Text(

@@ -2,12 +2,18 @@ package com.qvacell.app.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -56,11 +63,31 @@ fun ContactsListScreen(onContactSelected: (DeviceContact) -> Unit) {
     Scaffold(topBar = { TopAppBar(title = { Text("Contactos") }) }) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (!hasPermission) {
-                Button(
-                    onClick = { launcher.launch(Manifest.permission.READ_CONTACTS) },
-                    modifier = Modifier.align(Alignment.Center)
+                Column(
+                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Permitir acceso a contactos")
+                    Icon(
+                        imageVector = Icons.Filled.Contacts,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(56.dp)
+                    )
+                    Text(
+                        "Sin acceso a tus contactos",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        "Qvacell necesita acceso a tus contactos para identificar números cubanos y facilitar transferencias.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    Button(onClick = { launcher.launch(Manifest.permission.READ_CONTACTS) }) {
+                        Text("Permitir acceso a contactos")
+                    }
                 }
             } else if (contacts.isEmpty()) {
                 Text(
