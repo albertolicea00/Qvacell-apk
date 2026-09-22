@@ -29,19 +29,40 @@ import com.qvacell.app.ui.components.dialCodeOption
  * (Resultados/Posiciones) or "Horóscopo" (one row per sign) — each shown like a regular
  * CodeRow-style row with the parent code's price chip, instead of a plain AlertDialog picker.
  */
+private fun categoryShortLabel(categoryId: String): String = when (categoryId) {
+    "sms" -> "SMS"
+    "purchase" -> "Compras"
+    "helplines" -> "Ayuda"
+    else -> categoryId
+}
+
 @Composable
 fun CodeOptionsScreen(codeId: String) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
-    val code = remember(codeId) { repository.findCodeById(codeId) }
+    val categoryIdAndCode = remember(codeId) { repository.findCodeWithCategoryId(codeId) }
+    val code = categoryIdAndCode?.second
     val labels = remember(code) { code?.variants?.map { it.label.value } ?: code?.options.orEmpty() }
+    val title = if (categoryIdAndCode != null) {
+        "${categoryShortLabel(categoryIdAndCode.first)} / ${categoryIdAndCode.second.title.value}"
+    } else {
+        ""
+    }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(code?.title?.value ?: "") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text(title) }) }) { padding ->
         if (code != null) {
             LazyColumn(modifier = Modifier.padding(padding)) {
                 item {
+                    Text(
+                        code.details.value,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
+                    )
+                }
+                item {
                     Card(
-                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                     ) {
                         labels.forEachIndexed { index, label ->

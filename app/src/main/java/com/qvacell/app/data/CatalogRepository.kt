@@ -26,10 +26,16 @@ class CatalogRepository(private val context: Context) {
         return json.decodeFromString<List<WifiProvince>>(text).also { cachedWifi = it }
     }
 
-    fun findCodeById(id: String): UssdCode? =
-        loadCatalog().categories
-            .asSequence()
-            .flatMap { it.groups.asSequence() }
-            .flatMap { it.codes.asSequence() }
-            .firstOrNull { it.id == id }
+    fun findCodeById(id: String): UssdCode? = findCodeWithCategoryId(id)?.second
+
+    /** The code plus the id of the category it lives under (e.g. "sms", "purchase"). */
+    fun findCodeWithCategoryId(id: String): Pair<String, UssdCode>? {
+        for (category in loadCatalog().categories) {
+            for (group in category.groups) {
+                val code = group.codes.firstOrNull { it.id == id }
+                if (code != null) return category.id to code
+            }
+        }
+        return null
+    }
 }
