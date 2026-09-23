@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -134,7 +135,7 @@ fun ContactsListScreen() {
                     val q = query.trim()
                     if (q.isEmpty()) contacts else contacts.filter { it.name.contains(q, ignoreCase = true) }
                 }
-                LazyColumn {
+                LazyColumn(contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
                     items(filteredContacts) { contact ->
                         val number = contact.cubanNumbers.firstOrNull()
                         ContactRow(

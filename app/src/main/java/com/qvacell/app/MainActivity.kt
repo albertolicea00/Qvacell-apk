@@ -33,10 +33,14 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val themeMode by settings.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
+            val accentColor by settings.accentColor.collectAsStateWithLifecycle(
+                initialValue = SettingsDataStore.DEFAULT_ACCENT_COLOR
+            )
+            val defaultTab by settings.defaultTab.collectAsStateWithLifecycle(initialValue = "home")
 
-            QvacellTheme(themeMode = themeMode) {
+            QvacellTheme(themeMode = themeMode, accentColorHex = accentColor) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    QvacellNavHost()
+                    QvacellNavHost(startTabRoute = defaultTab)
                 }
             }
         }

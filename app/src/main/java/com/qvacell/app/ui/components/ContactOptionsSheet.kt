@@ -2,6 +2,7 @@ package com.qvacell.app.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -98,33 +99,41 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
 
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                TextButton(
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
                     onClick = { showTransferDialog = true },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text("Hacer Transferencia", modifier = Modifier.padding(start = 8.dp))
                 }
-                TextButton(
-                    onClick = {
-                        DialService.dial(context, "*133*4*2*1*$number#")
-                        onDismiss()
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Filled.GroupAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Agregar a mi Plan de Amigos", modifier = Modifier.padding(start = 8.dp))
-                }
-                TextButton(
-                    onClick = {
-                        DialService.dial(context, "*133*4*2*2*$number#")
-                        onDismiss()
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Filled.GroupRemove, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Eliminar de mi Plan de Amigos", modifier = Modifier.padding(start = 8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            DialService.dial(context, "*133*4*2*1*$number#")
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.GroupAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text("Agregar", modifier = Modifier.padding(start = 8.dp))
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            DialService.dial(context, "*133*4*2*2*$number#")
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(Icons.Filled.GroupRemove, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text("Eliminar", modifier = Modifier.padding(start = 8.dp))
+                    }
                 }
             }
         } else {

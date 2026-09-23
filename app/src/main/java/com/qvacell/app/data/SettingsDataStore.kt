@@ -23,7 +23,8 @@ class SettingsDataStore(private val context: Context) {
 
     val defaultTab = context.dataStore.data.map { it[defaultTabKey] ?: "home" }
 
-    val accentColor = context.dataStore.data.map { it[accentColorKey] ?: "blue" }
+    // Hex string, e.g. "#0099CC" — defaults to the brand cyan from the logo/iOS's Color.brandCyan.
+    val accentColor = context.dataStore.data.map { it[accentColorKey] ?: DEFAULT_ACCENT_COLOR }
 
     val debugDatabaseSearchEnabled = context.dataStore.data.map {
         (it[debugDbSearchKey] ?: "false").toBoolean()
@@ -43,5 +44,9 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setDebugDatabaseSearchEnabled(enabled: Boolean) {
         context.dataStore.edit { it[debugDbSearchKey] = enabled.toString() }
+    }
+
+    companion object {
+        const val DEFAULT_ACCENT_COLOR = "#0099CC"
     }
 }

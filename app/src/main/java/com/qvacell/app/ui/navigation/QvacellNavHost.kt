@@ -45,10 +45,13 @@ private val SETTINGS_NESTED_ROUTES = setOf(
 )
 
 @Composable
-fun QvacellNavHost() {
+fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
+    // A stale/unrecognized stored value (e.g. from a future version) falls back to Home rather
+    // than crashing NavHost with an unknown start destination.
+    val validStartRoute = if (bottomTabs.any { it.route == startTabRoute }) startTabRoute else BottomTab.Home.route
 
     // Used both to keep the Ajustes tab highlighted while inside one of its nested destinations,
     // and to know when tapping it should just pop back to its root instead of navigating like a
@@ -68,7 +71,7 @@ fun QvacellNavHost() {
                                 navController.popBackStack(BottomTab.Settings.route, inclusive = false)
                             } else {
                                 navController.navigate(tab.route) {
-                                    popUpTo(BottomTab.Home.route) { saveState = true }
+                                    popUpTo(validStartRoute) { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true
                                 }
@@ -83,7 +86,7 @@ fun QvacellNavHost() {
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = BottomTab.Home.route,
+            startDestination = validStartRoute,
             modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
         ) {
             composable(BottomTab.Helplines.route) {
