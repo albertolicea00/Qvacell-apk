@@ -94,10 +94,7 @@ fun QvacellNavHost() {
                 )
             }
             composable(BottomTab.Contacts.route) {
-                ContactsListScreen(onContactSelected = { contact ->
-                    val number = contact.cubanNumbers.firstOrNull() ?: return@ContactsListScreen
-                    navController.navigate("transfer/$number")
-                })
+                ContactsListScreen()
             }
             composable(BottomTab.Home.route) {
                 HomeQuickActionsScreen(

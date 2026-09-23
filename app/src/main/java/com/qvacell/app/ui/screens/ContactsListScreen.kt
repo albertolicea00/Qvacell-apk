@@ -33,13 +33,16 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.qvacell.app.service.ContactsRepository
 import com.qvacell.app.service.DeviceContact
+import com.qvacell.app.service.DialService
+import com.qvacell.app.ui.components.ContactOptionsSheet
 import com.qvacell.app.ui.components.ContactRow
 import com.qvacell.app.ui.components.SearchableTopAppBar
 
 @Composable
-fun ContactsListScreen(onContactSelected: (DeviceContact) -> Unit) {
+fun ContactsListScreen() {
     val context = LocalContext.current
     val repository = remember { ContactsRepository(context) }
+    var selectedContact by remember { mutableStateOf<DeviceContact?>(null) }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -133,10 +136,20 @@ fun ContactsListScreen(onContactSelected: (DeviceContact) -> Unit) {
                 }
                 LazyColumn {
                     items(filteredContacts) { contact ->
-                        ContactRow(contact = contact, onClick = { onContactSelected(contact) })
+                        val number = contact.cubanNumbers.firstOrNull()
+                        ContactRow(
+                            contact = contact,
+                            onClick = { selectedContact = contact },
+                            onCallCollect = { if (number != null) DialService.dial(context, "*99$number") },
+                            onCallAnonymous = { if (number != null) DialService.dial(context, "#31#$number") }
+                        )
                     }
                 }
             }
         }
+    }
+
+    selectedContact?.let { contact ->
+        ContactOptionsSheet(contact = contact, onDismiss = { selectedContact = null })
     }
 }
