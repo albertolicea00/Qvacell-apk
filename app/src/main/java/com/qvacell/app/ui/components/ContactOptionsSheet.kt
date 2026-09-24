@@ -122,7 +122,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Filled.GroupAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text("Agregar", modifier = Modifier.padding(start = 8.dp))
+                        Text("Agregar Amigo", modifier = Modifier.padding(start = 8.dp))
                     }
                     OutlinedButton(
                         onClick = {
@@ -132,7 +132,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                         modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Filled.GroupRemove, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Text("Eliminar", modifier = Modifier.padding(start = 8.dp))
+                        Text("Eliminar Amigo", modifier = Modifier.padding(start = 8.dp))
                     }
                 }
             }
