@@ -33,10 +33,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.UssdCode
+import com.qvacell.app.ui.components.DataUsageCard
+import com.qvacell.app.ui.components.MainBalanceCard
+import com.qvacell.app.ui.components.NationalBonusCard
 import com.qvacell.app.ui.components.QuickActionTileData
 import com.qvacell.app.ui.components.QuickActionTileGrid
 import com.qvacell.app.ui.components.RechargeBottomSheet
 import com.qvacell.app.ui.components.TransferBottomSheet
+import com.qvacell.app.ui.components.VoiceSmsRow
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 
 // Not stored in codes.json — same as iOS, which hardcodes these SF Symbols directly
@@ -82,6 +86,42 @@ fun HomeQuickActionsScreen() {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(vertical = 16.dp)
         ) {
+            item {
+                // Placeholder figures — wire to real computed values once available.
+                MainBalanceCard(
+                    balance = "15.01",
+                    currency = "CUP",
+                    lineActiveUntil = "20 Ago 2027",
+                    lineActiveDaysRemaining = 320,
+                    accountDueDate = "16 Feb 2028",
+                    rechargeLimitReached = true,
+                    rechargeLimitAmount = "360 CUP",
+                    rechargeAvailableFrom = "24-10-2026"
+                )
+            }
+            item {
+                VoiceSmsRow(
+                    voiceDaysRemaining = "35d",
+                    voiceDuration = "119h 55m",
+                    smsDaysRemaining = "35d",
+                    smsCount = "8,419"
+                )
+            }
+            item {
+                DataUsageCard(
+                    daysRemaining = "35 días restantes",
+                    packageGb = "6.00",
+                    dailyBagAmount = "86.00 MB",
+                    dailyBagExpiry = "Vence Hoy 23:59",
+                    tariffStatus = "No Activa (Protegido)"
+                )
+            }
+            item {
+                NationalBonusCard(
+                    amount = "3.00 GB",
+                    expiry = "Vence 30 días"
+                )
+            }
             item {
                 Text(
                     "Consultas",
