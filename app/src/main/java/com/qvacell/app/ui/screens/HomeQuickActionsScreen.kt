@@ -23,7 +23,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -32,6 +35,8 @@ import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.UssdCode
 import com.qvacell.app.ui.components.QuickActionTileData
 import com.qvacell.app.ui.components.QuickActionTileGrid
+import com.qvacell.app.ui.components.RechargeBottomSheet
+import com.qvacell.app.ui.components.TransferBottomSheet
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 
 // Not stored in codes.json — same as iOS, which hardcodes these SF Symbols directly
@@ -48,12 +53,11 @@ private val QUICK_ACTION_CODE_ICONS: List<Pair<String, ImageVector>> = listOf(
 )
 
 @Composable
-fun HomeQuickActionsScreen(
-    onOpenTransfer: () -> Unit,
-    onOpenRecharge: () -> Unit
-) {
+fun HomeQuickActionsScreen() {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
+    var showTransferSheet by remember { mutableStateOf(false) }
+    var showRechargeSheet by remember { mutableStateOf(false) }
     val catalog = remember { repository.loadCatalog() }
     val homeCategory = remember { catalog.categories.firstOrNull { it.id == "home" } }
     val balanceGroup = remember { homeCategory?.groups?.firstOrNull { it.name?.value == "Saldo y Planes" } }
@@ -89,7 +93,7 @@ fun HomeQuickActionsScreen(
                 QuickActionTileGrid(tiles = tiles)
             }
             item {
-                Card(onClick = onOpenTransfer, modifier = Modifier.fillMaxWidth()) {
+                Card(onClick = { showTransferSheet = true }, modifier = Modifier.fillMaxWidth()) {
                     ListItem(
                         headlineContent = { Text("Transferir") },
                         supportingContent = { Text("Envía saldo a otro número") },
@@ -98,7 +102,7 @@ fun HomeQuickActionsScreen(
                 }
             }
             item {
-                Card(onClick = onOpenRecharge, modifier = Modifier.fillMaxWidth()) {
+                Card(onClick = { showRechargeSheet = true }, modifier = Modifier.fillMaxWidth()) {
                     ListItem(
                         headlineContent = { Text("Recargar") },
                         supportingContent = { Text("Recarga con tarjeta prepago") },
@@ -107,5 +111,12 @@ fun HomeQuickActionsScreen(
                 }
             }
         }
+    }
+
+    if (showTransferSheet) {
+        TransferBottomSheet(onDismiss = { showTransferSheet = false })
+    }
+    if (showRechargeSheet) {
+        RechargeBottomSheet(onDismiss = { showRechargeSheet = false })
     }
 }

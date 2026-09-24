@@ -25,16 +25,12 @@ val bottomTabs = listOf(
 )
 
 object Routes {
-    const val TRANSFER = "transfer"
-    const val TRANSFER_WITH_NUMBER = "transfer/{number}"
-    const val RECHARGE = "recharge"
     const val REMINDERS = "settings/reminders"
     const val REMINDER_EDIT = "settings/reminders/edit"
     const val SMS_SERVICES = "sms"
     const val WIFI_PROVINCES = "settings/wifi"
     const val WIFI_PROVINCE_DETAIL = "settings/wifi/{province}"
     const val DIRECTORY_SEARCH = "settings/directory"
-    const val TRANSFER_PIN = "settings/pin"
     const val HELP = "settings/help"
     const val CODE_OPTIONS = "code-options/{codeId}"
     fun codeOptions(codeId: String) = "code-options/$codeId"

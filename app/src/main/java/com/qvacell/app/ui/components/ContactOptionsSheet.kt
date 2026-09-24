@@ -14,17 +14,14 @@ import androidx.compose.material.icons.filled.GroupRemove
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.service.DeviceContact
 import com.qvacell.app.service.DialService
-import com.qvacell.app.service.TransferPinStore
 
 /**
  * Bottom sheet shown when a contact row is tapped — call the contact (collect via `*99` or
@@ -147,8 +143,8 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
     }
 
     if (showTransferDialog && number != null) {
-        TransferToNumberDialog(
-            number = number,
+        TransferBottomSheet(
+            fixedNumber = number,
             onDismiss = { showTransferDialog = false },
             onDone = {
                 showTransferDialog = false
@@ -156,47 +152,4 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
             }
         )
     }
-}
-
-/** The Clave/Monto transfer form, prefilled with a fixed number — reused by [ContactOptionsSheet]. */
-@Composable
-private fun TransferToNumberDialog(number: String, onDismiss: () -> Unit, onDone: () -> Unit) {
-    val context = LocalContext.current
-    val pinStore = remember { TransferPinStore(context) }
-    var pin by remember { mutableStateOf(pinStore.load() ?: "") }
-    var amount by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Transferir a $number") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = pin,
-                    onValueChange = { pin = it },
-                    label = { Text("Clave") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = amount,
-                    onValueChange = { amount = it },
-                    label = { Text("Monto") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    pinStore.save(pin)
-                    DialService.dial(context, "*234*1*$number*$pin*$amount#")
-                    onDone()
-                },
-                enabled = pin.isNotBlank() && amount.isNotBlank()
-            ) { Text("Transferir") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        }
-    )
 }

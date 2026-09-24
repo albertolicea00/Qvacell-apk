@@ -21,13 +21,10 @@ import com.qvacell.app.ui.screens.ContactsListScreen
 import com.qvacell.app.ui.screens.DirectorySearchScreen
 import com.qvacell.app.ui.screens.HelpScreen
 import com.qvacell.app.ui.screens.HomeQuickActionsScreen
-import com.qvacell.app.ui.screens.RechargeFlowScreen
 import com.qvacell.app.ui.screens.ReminderEditScreen
 import com.qvacell.app.ui.screens.ReminderListScreen
 import com.qvacell.app.ui.screens.SettingsDestination
 import com.qvacell.app.ui.screens.SettingsScreen
-import com.qvacell.app.ui.screens.TransferFlowScreen
-import com.qvacell.app.ui.screens.TransferPinScreen
 import com.qvacell.app.ui.screens.WifiProvinceDetailScreen
 import com.qvacell.app.ui.screens.WifiProvinceListScreen
 
@@ -40,7 +37,6 @@ private val SETTINGS_NESTED_ROUTES = setOf(
     Routes.WIFI_PROVINCES,
     Routes.WIFI_PROVINCE_DETAIL,
     Routes.DIRECTORY_SEARCH,
-    Routes.TRANSFER_PIN,
     Routes.HELP
 )
 
@@ -100,10 +96,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 ContactsListScreen()
             }
             composable(BottomTab.Home.route) {
-                HomeQuickActionsScreen(
-                    onOpenTransfer = { navController.navigate(Routes.TRANSFER) },
-                    onOpenRecharge = { navController.navigate(Routes.RECHARGE) }
-                )
+                HomeQuickActionsScreen()
             }
             composable(BottomTab.Purchase.route) {
                 CategoryListScreen(
@@ -119,32 +112,12 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                         SettingsDestination.SmsServices -> Routes.SMS_SERVICES
                         SettingsDestination.WifiRooms -> Routes.WIFI_PROVINCES
                         SettingsDestination.DirectorySearch -> Routes.DIRECTORY_SEARCH
-                        SettingsDestination.TransferPin -> Routes.TRANSFER_PIN
                         SettingsDestination.Help -> Routes.HELP
                     }
                     navController.navigate(route)
                 })
             }
 
-            composable(Routes.TRANSFER) {
-                TransferFlowScreen(
-                    onPickContact = { navController.navigate(BottomTab.Contacts.route) },
-                    onDone = { navController.popBackStack() }
-                )
-            }
-            composable(
-                Routes.TRANSFER_WITH_NUMBER,
-                arguments = listOf(navArgument("number") { type = NavType.StringType })
-            ) { backStack ->
-                TransferFlowScreen(
-                    prefilledNumber = backStack.arguments?.getString("number"),
-                    onPickContact = { navController.navigate(BottomTab.Contacts.route) },
-                    onDone = { navController.popBackStack() }
-                )
-            }
-            composable(Routes.RECHARGE) {
-                RechargeFlowScreen(onDone = { navController.popBackStack() })
-            }
             composable(Routes.REMINDERS) {
                 ReminderListScreen(
                     onAdd = { navController.navigate(Routes.REMINDER_EDIT) },
@@ -180,7 +153,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 WifiProvinceDetailScreen(provinceName = java.net.URLDecoder.decode(encoded, "UTF-8"))
             }
             composable(Routes.DIRECTORY_SEARCH) { DirectorySearchScreen() }
-            composable(Routes.TRANSFER_PIN) { TransferPinScreen() }
             composable(Routes.HELP) { HelpScreen() }
         }
     }

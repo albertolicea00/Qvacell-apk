@@ -1,6 +1,7 @@
 package com.qvacell.app.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -16,6 +17,7 @@ class SettingsDataStore(private val context: Context) {
     private val defaultTabKey = stringPreferencesKey("default_tab")
     private val accentColorKey = stringPreferencesKey("accent_color")
     private val debugDbSearchKey = stringPreferencesKey("debug_db_search_enabled")
+    private val quickPurchaseNoConfirmKey = booleanPreferencesKey("quick_purchase_no_confirm_default")
 
     val themeMode = context.dataStore.data.map {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
@@ -29,6 +31,10 @@ class SettingsDataStore(private val context: Context) {
     val debugDatabaseSearchEnabled = context.dataStore.data.map {
         (it[debugDbSearchKey] ?: "false").toBoolean()
     }
+
+    // "Activar por Defecto..." — Compras' own "Acción sin Confirmación" toggle starts matching
+    // this every time that screen opens, same as iOS's AppStorage("quickPurchaseNoConfirmDefault").
+    val quickPurchaseNoConfirmDefault = context.dataStore.data.map { it[quickPurchaseNoConfirmKey] ?: false }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[themeModeKey] = mode.name }
@@ -44,6 +50,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setDebugDatabaseSearchEnabled(enabled: Boolean) {
         context.dataStore.edit { it[debugDbSearchKey] = enabled.toString() }
+    }
+
+    suspend fun setQuickPurchaseNoConfirmDefault(enabled: Boolean) {
+        context.dataStore.edit { it[quickPurchaseNoConfirmKey] = enabled }
     }
 
     companion object {

@@ -1,13 +1,9 @@
 package com.qvacell.app.ui.screens
 
-import android.Manifest
 import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,17 +16,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,12 +43,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.data.ThemeMode
-import com.qvacell.app.service.DialService
+import com.qvacell.app.service.TransferPinStore
+import com.qvacell.app.ui.components.RoundedTextField
 import com.qvacell.app.ui.navigation.bottomTabs
 import kotlinx.coroutines.launch
 
@@ -68,7 +66,6 @@ sealed class SettingsDestination {
     data object SmsServices : SettingsDestination()
     data object WifiRooms : SettingsDestination()
     data object DirectorySearch : SettingsDestination()
-    data object TransferPin : SettingsDestination()
     data object Help : SettingsDestination()
 }
 
@@ -83,23 +80,16 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     val accentColor by settings.accentColor.collectAsStateWithLifecycle(
         initialValue = SettingsDataStore.DEFAULT_ACCENT_COLOR
     )
+    val quickPurchaseNoConfirm by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
 
-    var showThemeDialog by remember { mutableStateOf(false) }
-    var showDefaultTabDialog by remember { mutableStateOf(false) }
-    var showAccentColorDialog by remember { mutableStateOf(false) }
+    var showThemeSheet by remember { mutableStateOf(false) }
+    var showDefaultTabSheet by remember { mutableStateOf(false) }
+    var showAccentColorSheet by remember { mutableStateOf(false) }
+    var showTransferPinSheet by remember { mutableStateOf(false) }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
     var debugDbSearchVisible by remember { mutableStateOf(false) }
-
-    var directDialEnabled by remember { mutableStateOf(DialService.isDirectDialEnabled(context)) }
-    val callPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        // Denied: leave the setting off rather than silently having no effect later.
-        DialService.setDirectDialEnabled(context, granted)
-        directDialEnabled = granted
-    }
 
     fun onVersionTap() {
         val now = System.currentTimeMillis()
@@ -128,14 +118,14 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                 ListItem(
                     headlineContent = { Text("Tema") },
                     supportingContent = { Text(themeModeLabel) },
-                    modifier = Modifier.clickable { showThemeDialog = true }
+                    modifier = Modifier.clickable { showThemeSheet = true }
                 )
             }
             item {
                 ListItem(
                     headlineContent = { Text("Pestaña predeterminada") },
                     supportingContent = { Text(defaultTabLabel) },
-                    modifier = Modifier.clickable { showDefaultTabDialog = true }
+                    modifier = Modifier.clickable { showDefaultTabSheet = true }
                 )
             }
             item {
@@ -150,7 +140,21 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                                 .background(runCatching { Color(android.graphics.Color.parseColor(accentColor)) }.getOrDefault(MaterialTheme.colorScheme.primary))
                         )
                     },
-                    modifier = Modifier.clickable { showAccentColorDialog = true }
+                    modifier = Modifier.clickable { showAccentColorSheet = true }
+                )
+            }
+            item {
+                ListItem(
+                    headlineContent = { Text("Acción sin Confirmación") },
+                    supportingContent = { Text("En Compras, marca el código saltando el paso de confirmación de ETECSA.") },
+                    trailingContent = {
+                        Switch(
+                            checked = quickPurchaseNoConfirm,
+                            onCheckedChange = { checked ->
+                                scope.launch { settings.setQuickPurchaseNoConfirmDefault(checked) }
+                            }
+                        )
+                    }
                 )
             }
             item { HorizontalDivider() }
@@ -189,7 +193,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
             item {
                 ListItem(
                     headlineContent = { Text("Clave de Transferencia") },
-                    modifier = Modifier.clickable { onNavigate(SettingsDestination.TransferPin) }
+                    modifier = Modifier.clickable { showTransferPinSheet = true }
                 )
             }
             item { HorizontalDivider() }
@@ -200,41 +204,6 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                     headlineContent = { Text("Identificador de Llamadas") },
                     supportingContent = { Text("Solicitar rol de selección de llamadas") },
                     modifier = Modifier.clickable { requestCallScreeningRole(context) }
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Marcar Directamente") },
-                    supportingContent = {
-                        Text(
-                            if (directDialEnabled) {
-                                "La app marca el número directamente, sin pasar por el marcador del teléfono."
-                            } else {
-                                "Los códigos se abren en el marcador del teléfono para confirmar antes de llamar."
-                            }
-                        )
-                    },
-                    trailingContent = {
-                        Switch(
-                            checked = directDialEnabled,
-                            onCheckedChange = { checked ->
-                                if (checked) {
-                                    val alreadyGranted = ContextCompat.checkSelfPermission(
-                                        context, Manifest.permission.CALL_PHONE
-                                    ) == PackageManager.PERMISSION_GRANTED
-                                    if (alreadyGranted) {
-                                        DialService.setDirectDialEnabled(context, true)
-                                        directDialEnabled = true
-                                    } else {
-                                        callPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
-                                    }
-                                } else {
-                                    DialService.setDirectDialEnabled(context, false)
-                                    directDialEnabled = false
-                                }
-                            }
-                        )
-                    }
                 )
             }
             item {
@@ -258,73 +227,71 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
         }
     }
 
-    if (showThemeDialog) {
-        AlertDialog(
-            onDismissRequest = { showThemeDialog = false },
-            title = { Text("Tema") },
-            text = {
-                Column {
-                    listOf(
-                        ThemeMode.SYSTEM to "Sistema",
-                        ThemeMode.LIGHT to "Claro",
-                        ThemeMode.DARK to "Oscuro"
-                    ).forEach { (mode, label) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    scope.launch { settings.setThemeMode(mode) }
-                                    showThemeDialog = false
-                                }
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(selected = themeMode == mode, onClick = null)
-                            Text(label, modifier = Modifier.padding(start = 8.dp))
-                        }
+    if (showThemeSheet) {
+        ModalBottomSheet(onDismissRequest = { showThemeSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text("Tema", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
+                listOf(
+                    ThemeMode.SYSTEM to "Sistema",
+                    ThemeMode.LIGHT to "Claro",
+                    ThemeMode.DARK to "Oscuro"
+                ).forEach { (mode, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { settings.setThemeMode(mode) }
+                                showThemeSheet = false
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = themeMode == mode, onClick = null)
+                        Text(label, modifier = Modifier.padding(start = 8.dp))
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showThemeDialog = false }) { Text("Cerrar") }
             }
-        )
+        }
     }
 
-    if (showDefaultTabDialog) {
-        AlertDialog(
-            onDismissRequest = { showDefaultTabDialog = false },
-            title = { Text("Pestaña predeterminada") },
-            text = {
-                Column {
-                    bottomTabs.forEach { tab ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    scope.launch { settings.setDefaultTab(tab.route) }
-                                    showDefaultTabDialog = false
-                                }
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(selected = defaultTab == tab.route, onClick = null)
-                            Text(tab.label, modifier = Modifier.padding(start = 8.dp))
-                        }
+    if (showDefaultTabSheet) {
+        ModalBottomSheet(onDismissRequest = { showDefaultTabSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "Pestaña predeterminada",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                bottomTabs.forEach { tab ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { settings.setDefaultTab(tab.route) }
+                                showDefaultTabSheet = false
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = defaultTab == tab.route, onClick = null)
+                        Text(tab.label, modifier = Modifier.padding(start = 8.dp))
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showDefaultTabDialog = false }) { Text("Cerrar") }
             }
-        )
+        }
     }
 
-    if (showAccentColorDialog) {
-        AlertDialog(
-            onDismissRequest = { showAccentColorDialog = false },
-            title = { Text("Color de acento") },
-            text = {
+    if (showAccentColorSheet) {
+        var showCustomColorInput by remember { mutableStateOf(false) }
+        var customHex by remember { mutableStateOf(accentColor) }
+
+        ModalBottomSheet(onDismissRequest = { showAccentColorSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "Color de acento",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -338,7 +305,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                                 .background(Color(android.graphics.Color.parseColor(hex)))
                                 .clickable {
                                     scope.launch { settings.setAccentColor(hex) }
-                                    showAccentColorDialog = false
+                                    showAccentColorSheet = false
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -347,12 +314,86 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             }
                         }
                     }
+                    // Personalizado — pick any hex color instead of the fixed palette above.
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .clickable { showCustomColorInput = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Filled.Add, contentDescription = "Personalizado")
+                    }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showAccentColorDialog = false }) { Text("Cerrar") }
+
+                if (showCustomColorInput) {
+                    Column(modifier = Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        val previewColor = runCatching { Color(android.graphics.Color.parseColor(customHex)) }.getOrNull()
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .background(previewColor ?: MaterialTheme.colorScheme.surfaceVariant)
+                            )
+                            RoundedTextField(
+                                value = customHex,
+                                onValueChange = { customHex = it },
+                                label = "Color personalizado (#RRGGBB)",
+                                modifier = Modifier.weight(1f).padding(start = 12.dp)
+                            )
+                        }
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = { showCustomColorInput = false },
+                                modifier = Modifier.weight(1f)
+                            ) { Text("Cancelar") }
+                            Button(
+                                onClick = {
+                                    scope.launch { settings.setAccentColor(customHex) }
+                                    showCustomColorInput = false
+                                    showAccentColorSheet = false
+                                },
+                                enabled = previewColor != null,
+                                modifier = Modifier.weight(1f)
+                            ) { Text("Aplicar") }
+                        }
+                    }
+                }
             }
-        )
+        }
+    }
+
+    if (showTransferPinSheet) {
+        val pinStore = remember { TransferPinStore(context) }
+        var pin by remember { mutableStateOf(pinStore.load() ?: "") }
+
+        ModalBottomSheet(onDismissRequest = { showTransferPinSheet = false }) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text("Clave de Transferencia", style = MaterialTheme.typography.titleLarge)
+                RoundedTextField(value = pin, onValueChange = { pin = it }, label = "Clave")
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            pinStore.delete()
+                            pin = ""
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Eliminar") }
+                    Button(
+                        onClick = {
+                            pinStore.save(pin)
+                            showTransferPinSheet = false
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Guardar") }
+                }
+            }
+        }
     }
 }
 

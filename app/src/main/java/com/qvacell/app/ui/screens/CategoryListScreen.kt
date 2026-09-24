@@ -1,23 +1,17 @@
 package com.qvacell.app.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,10 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.CatalogRepository
+import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.model.UssdCodeGroup
 import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.components.SearchableTopAppBar
@@ -43,10 +38,13 @@ fun CategoryListScreen(categoryId: String, title: String, onOpenCodeOptions: (St
     val catalog = remember { repository.loadCatalog() }
     val category = remember(categoryId) { catalog.categories.firstOrNull { it.id == categoryId } }
 
-    // Compras-only, and never persisted — it starts off on every fresh visit, same as iOS.
-    var isQuickActionEnabled by remember { mutableStateOf(false) }
+    // Persisted in Ajustes › Preferencias › "Acción sin Confirmación" — no more per-visit
+    // override here, it just follows that setting.
+    val settings = remember { SettingsDataStore(context) }
+    val quickActionEnabled by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
     val onCodeClick = rememberCodeActionHandler(
-        useNoConfirmCode = categoryId == "purchase" && isQuickActionEnabled,
+        useNoConfirmCode = categoryId == "purchase" && quickActionEnabled,
+        isPurchaseCategory = categoryId == "purchase",
         onOpenCodeOptions = { code -> onOpenCodeOptions(code.id) }
     )
 
@@ -80,25 +78,16 @@ fun CategoryListScreen(categoryId: String, title: String, onOpenCodeOptions: (St
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            if (categoryId == "purchase" && isQuickActionEnabled) {
+            if (categoryId == "purchase" && quickActionEnabled) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFFFF3E0))
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.WarningAmber,
-                        contentDescription = null,
-                        tint = Color(0xFFE65100),
-                        modifier = Modifier.size(18.dp)
-                    )
                     Text(
-                        "Acción sin Confirmación activada — las compras se marcan de una vez, sin pedir confirmación",
+                        "Acción sin Confirmación activada en Ajustes — las compras se marcan de una vez, sin pedir confirmación.",
                         style = MaterialTheme.typography.labelMedium,
-                        color = Color(0xFFE65100),
-                        modifier = Modifier.padding(start = 8.dp)
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -106,29 +95,6 @@ fun CategoryListScreen(categoryId: String, title: String, onOpenCodeOptions: (St
                 contentPadding = PaddingValues(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (categoryId == "purchase") {
-                    item {
-                        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                            Card {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                                ) {
-                                    Text("Acción sin Confirmación", modifier = Modifier.weight(1f))
-                                    Switch(checked = isQuickActionEnabled, onCheckedChange = { isQuickActionEnabled = it })
-                                }
-                            }
-                            Text(
-                                "Marca el código saltando el paso de confirmación de ETECSA, por si acaso confías en la selección y quieres ahorrarte un paso.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
                 filteredGroups.forEach { group ->
                     item {
                         Column {
