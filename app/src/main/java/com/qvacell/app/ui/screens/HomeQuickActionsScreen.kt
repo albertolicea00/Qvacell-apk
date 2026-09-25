@@ -10,15 +10,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apartment
-import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CreditCard
-import androidx.compose.material.icons.filled.NetworkCell
-import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -32,58 +25,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.qvacell.app.data.CatalogRepository
-import com.qvacell.app.model.UssdCode
+import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
 import com.qvacell.app.ui.components.NationalBonusCard
-import com.qvacell.app.ui.components.QuickActionTileData
-import com.qvacell.app.ui.components.QuickActionTileGrid
 import com.qvacell.app.ui.components.RechargeBottomSheet
 import com.qvacell.app.ui.components.RechargeLimitCard
 import com.qvacell.app.ui.components.TransferBottomSheet
 import com.qvacell.app.ui.components.VoiceSmsRow
-import com.qvacell.app.ui.components.rememberCodeActionHandler
-
-// Not stored in codes.json — same as iOS, which hardcodes these SF Symbols directly
-// in HomeQuickActionsView's tile array instead of reading them from the catalog.
-private val QUICK_ACTION_CODE_ICONS: List<Pair<String, ImageVector>> = listOf(
-    "main-balance" to Icons.Filled.CreditCard,
-    "data-plan" to Icons.Filled.NetworkCell,
-    "voice-balance" to Icons.Filled.Call,
-    "sms-balance" to Icons.Filled.Sms,
-    "national-recharge-limit" to Icons.Filled.Warning,
-    "friends-plan" to Icons.Filled.People,
-    "bonus-usd-plans" to Icons.Filled.CardGiftcard,
-    "postpaid-balance" to Icons.Filled.Apartment
-)
 
 @Composable
 fun HomeQuickActionsScreen() {
-    val context = LocalContext.current
-    val repository = remember { CatalogRepository(context) }
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
-    val catalog = remember { repository.loadCatalog() }
-    val homeCategory = remember { catalog.categories.firstOrNull { it.id == "home" } }
-    val balanceGroup = remember { homeCategory?.groups?.firstOrNull { it.name?.value == "Saldo y Planes" } }
-    val codesById = remember(balanceGroup) { balanceGroup?.codes.orEmpty().associateBy(UssdCode::id) }
-    val onCodeClick = rememberCodeActionHandler()
-
-    val tiles = remember(codesById) {
-        QUICK_ACTION_CODE_ICONS.mapNotNull { (id, icon) ->
-            codesById[id]?.let { code ->
-                QuickActionTileData(
-                    label = code.title.value,
-                    icon = icon,
-                    onClick = { onCodeClick(code) }
-                )
-            }
-        }
-    }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Qvacell") }) }) { padding ->
         // A fixed handful of cards, not an open-ended list — Column+verticalScroll sizes to the
@@ -124,12 +79,7 @@ fun HomeQuickActionsScreen() {
                 amount = "3.00 GB",
                 expiry = "Vence 30 días"
             )
-            Text(
-                "Consultas",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            QuickActionTileGrid(tiles = tiles)
+            ConsultCardsRow()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)

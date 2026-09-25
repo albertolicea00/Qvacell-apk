@@ -1,5 +1,6 @@
 package com.qvacell.app.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,9 +10,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.NetworkCell
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Warning
@@ -26,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -196,9 +201,6 @@ fun RechargeLimitCard(reached: Boolean, limitAmount: String, availableFrom: Stri
             if (daysUntilAvailable != null) {
                 Text(
                     buildAnnotatedString {
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-                            append("Faltan ")
-                        }
                         withStyle(
                             SpanStyle(
                                 color = MaterialTheme.colorScheme.primary,
@@ -303,17 +305,17 @@ fun DataUsageCard(
                     Icons.Filled.VerifiedUser,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(13.dp)
                 )
                 Text(
                     "Tarifa por consumo: ",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp)
                 )
                 Text(
                     tariffStatus,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -510,3 +512,81 @@ private val SPANISH_MONTH_ABBREVIATIONS = listOf(
 /** "20 Ago 2027" — matches the date style already used in [MainBalanceCard]. */
 private fun formatSpanishDate(date: LocalDate): String =
     "${date.dayOfMonth} ${SPANISH_MONTH_ABBREVIATIONS[date.monthValue - 1]} ${date.year}"
+
+/** Two side-by-side placeholder cards — pulled out of the request to sit below [NationalBonusCard]. */
+@Composable
+fun ConsultCardsRow(onPlanAmigoClick: () -> Unit = {}, onSaldoPrepagadoClick: () -> Unit = {}) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        ConsultCard(
+            title = "PLAN AMIGO",
+            icon = Icons.Filled.People,
+            modifier = Modifier.weight(1f),
+            onClick = onPlanAmigoClick
+        )
+        ConsultCard(
+            title = "SALDO PREPAGO",
+            icon = Icons.Filled.CreditCard,
+            modifier = Modifier.weight(1f),
+            onClick = onSaldoPrepagadoClick
+        )
+    }
+}
+
+@Composable
+private fun ConsultCard(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = modifier.clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    title,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 6.dp)
+                )
+            }
+            Text(
+                "Presiona para consultar",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 2.dp)
+            ) {
+                Text(
+                    "UI Próximamente",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 9.sp,
+                        fontStyle = FontStyle.Italic
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+                Icon(
+                    Icons.Filled.ArrowOutward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .size(11.dp)
+                )
+            }
+        }
+    }
+}
