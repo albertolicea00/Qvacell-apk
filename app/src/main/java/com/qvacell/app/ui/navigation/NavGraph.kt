@@ -32,6 +32,4 @@ object Routes {
     const val WIFI_PROVINCE_DETAIL = "settings/wifi/{province}"
     const val DIRECTORY_SEARCH = "settings/directory"
     const val HELP = "settings/help"
-    const val CODE_OPTIONS = "code-options/{codeId}"
-    fun codeOptions(codeId: String) = "code-options/$codeId"
 }

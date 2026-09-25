@@ -218,7 +218,7 @@ fun rememberCodeActionHandler(
     }
 }
 
-/** The SMS/dial action for one option or variant label — shared with `CodeOptionsScreen`. */
+/** The SMS/dial action for one option or variant label — shared with `CodeOptionsSheet`. */
 fun dialCodeOption(context: android.content.Context, code: UssdCode, label: String) {
     val body = code.variants?.firstOrNull { it.label.value == label }?.smsBody
         ?: code.resolvedSmsBody(label)

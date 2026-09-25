@@ -25,14 +25,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
+import com.qvacell.app.model.UssdCode
 import com.qvacell.app.model.UssdCodeGroup
+import com.qvacell.app.ui.components.CodeOptionsSheet
 import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.components.SearchableTopAppBar
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 // import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
 
 @Composable
-fun CategoryListScreen(categoryId: String, title: String, onOpenCodeOptions: (String) -> Unit = {}) {
+fun CategoryListScreen(categoryId: String, title: String) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
     val catalog = remember { repository.loadCatalog() }
@@ -42,10 +44,11 @@ fun CategoryListScreen(categoryId: String, title: String, onOpenCodeOptions: (St
     // override here, it just follows that setting.
     val settings = remember { SettingsDataStore(context) }
     val quickActionEnabled by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
+    var codeForOptionsSheet by remember { mutableStateOf<UssdCode?>(null) }
     val onCodeClick = rememberCodeActionHandler(
         useNoConfirmCode = categoryId == "purchase" && quickActionEnabled,
         isPurchaseCategory = categoryId == "purchase",
-        onOpenCodeOptions = { code -> onOpenCodeOptions(code.id) }
+        onOpenCodeOptions = { code -> codeForOptionsSheet = code }
     )
 
     var query by remember { mutableStateOf("") }
@@ -128,7 +131,9 @@ fun CategoryListScreen(categoryId: String, title: String, onOpenCodeOptions: (St
                                     CodeRow(
                                         code = code,
                                         onClick = { onCodeClick(code) },
-                                        showIcon = categoryId !in setOf("purchase", "sms")
+                                        showIcon = categoryId !in setOf("purchase", "sms"),
+                                        showDescription = categoryId != "purchase",
+                                        plainPrice = categoryId in setOf("purchase", "sms")
                                     )
                                     if (index != group.codes.lastIndex) {
                                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -140,5 +145,9 @@ fun CategoryListScreen(categoryId: String, title: String, onOpenCodeOptions: (St
                 }
             }
         }
+    }
+
+    codeForOptionsSheet?.let { code ->
+        CodeOptionsSheet(code = code, onDismiss = { codeForOptionsSheet = null })
     }
 }
