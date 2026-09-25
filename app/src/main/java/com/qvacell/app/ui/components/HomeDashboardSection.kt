@@ -32,6 +32,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -111,8 +112,19 @@ fun MainBalanceCard(
                     )
                 }
                 Row(verticalAlignment = Alignment.Bottom) {
+                    val (wholePart, centsPart) = balance.split(".", limit = 2)
+                        .let { it[0] to it.getOrElse(1) { "" } }
                     Text(
-                        balance,
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(fontSize = 36.sp)) {
+                                append(wholePart)
+                            }
+                            if (centsPart.isNotEmpty()) {
+                                withStyle(SpanStyle(fontSize = 20.sp)) {
+                                    append(".$centsPart")
+                                }
+                            }
+                        },
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -205,7 +217,7 @@ fun RechargeLimitCard(reached: Boolean, limitAmount: String, availableFrom: Stri
                             SpanStyle(
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp
+                                fontSize = 26.sp
                             )
                         ) {
                             append("$daysUntilAvailable")
@@ -283,7 +295,7 @@ fun DataUsageCard(
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         packageGb,
-                        style = MaterialTheme.typography.headlineLarge,
+                        style = MaterialTheme.typography.headlineLarge.copy(fontSize = 40.sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -381,7 +393,7 @@ fun NationalBonusCard(amount: String, expiry: String) {
                     val (number, unit) = amount.split(" ", limit = 2).let { it[0] to it.getOrElse(1) { "" } }
                     Text(
                         number,
-                        style = MaterialTheme.typography.headlineLarge,
+                        style = MaterialTheme.typography.headlineLarge.copy(fontSize = 40.sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -395,6 +407,30 @@ fun NationalBonusCard(amount: String, expiry: String) {
                         )
                     }
                 }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Filled.VerifiedUser,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(13.dp)
+                )
+                Text(
+                    "Datos Ilimitados (Nocturnos): ",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+                Text(
+                    "No Disponible",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -559,34 +595,37 @@ private fun ConsultCard(
                     modifier = Modifier.padding(start = 6.dp)
                 )
             }
-            Text(
-                "Presiona para consultar",
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 8.dp)
-            )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 2.dp)
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
             ) {
                 Text(
-                    "UI Próximamente",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 9.sp,
-                        fontStyle = FontStyle.Italic
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    "Presiona para consultar",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 Icon(
                     Icons.Filled.ArrowOutward,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .padding(start = 4.dp)
-                        .size(11.dp)
+                        .size(14.dp)
                 )
             }
+            Text(
+                "UI Próximamente",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 9.sp,
+                    fontStyle = FontStyle.Italic
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.padding(top = 2.dp)
+            )
         }
     }
 }

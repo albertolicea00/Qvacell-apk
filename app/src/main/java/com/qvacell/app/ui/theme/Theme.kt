@@ -54,11 +54,11 @@ private val DarkColors = darkColorScheme(
     onSecondaryContainer = Color(0xFFD6EFF7),
     background = Color(0xFF1C1C1E),
     surface = Color(0xFF1C1C1E),
-    surfaceContainerLowest = Color(0xFF0A0A0B),
-    surfaceContainerLow = Color(0xFF0A0A0B),
-    surfaceContainer = Color(0xFF0A0A0B),
-    surfaceContainerHigh = Color(0xFF0A0A0B),
-    surfaceContainerHighest = Color(0xFF0A0A0B)
+    surfaceContainerLowest = Color(0xFF232326),
+    surfaceContainerLow = Color(0xFF232326),
+    surfaceContainer = Color(0xFF232326),
+    surfaceContainerHigh = Color(0xFF232326),
+    surfaceContainerHighest = Color(0xFF232326)
 )
 
 /** Builds a full color scheme from a single user-picked accent color (Ajustes › Color de acento). */

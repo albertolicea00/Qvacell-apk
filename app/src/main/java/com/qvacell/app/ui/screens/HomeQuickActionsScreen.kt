@@ -55,12 +55,12 @@ fun HomeQuickActionsScreen() {
             // Placeholder figures — wire to real computed values once available.
             RechargeLimitCard(
                 reached = true,
-                limitAmount = "360 CUP",
+                limitAmount = "360 cup",
                 availableFrom = "24-10-2026"
             )
             MainBalanceCard(
-                balance = "15.01",
-                currency = "CUP",
+                balance = "1520.21",
+                currency = "",
                 lineActiveUntil = "20 Ago 2027",
                 accountDueDate = "16 Feb 2028"
             )
