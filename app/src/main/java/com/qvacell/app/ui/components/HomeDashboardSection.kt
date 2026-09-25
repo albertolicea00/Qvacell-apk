@@ -1,8 +1,6 @@
 package com.qvacell.app.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.NetworkCell
 import androidx.compose.material.icons.filled.Sms
@@ -22,12 +19,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -36,6 +31,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 /**
  * Placeholder home dashboard — layout/structure ported from the ui-android-home-view.html
@@ -48,10 +44,7 @@ fun MainBalanceCard(
     balance: String,
     currency: String,
     lineActiveUntil: String,
-    accountDueDate: String,
-    rechargeLimitReached: Boolean,
-    rechargeLimitAmount: String,
-    rechargeAvailableFrom: String
+    accountDueDate: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -123,41 +116,104 @@ fun MainBalanceCard(
                         currency,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
                     )
                 }
             }
+        }
+    }
+}
 
-            if (rechargeLimitReached) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                        .padding(12.dp)
-                ) {
+/** "24-10-2026" (dd-MM-yyyy) — the format Ajustes/backend hand us for this date; ⊥ on parse failure. */
+private fun parseDmyDate(value: String): LocalDate? {
+    val parts = value.split("-")
+    if (parts.size != 3) return null
+    val day = parts[0].toIntOrNull() ?: return null
+    val month = parts[1].toIntOrNull() ?: return null
+    val year = parts[2].toIntOrNull() ?: return null
+    return runCatching { LocalDate.of(year, month, day) }.getOrNull()
+}
+
+/** Standalone card — shown above [MainBalanceCard] only while the monthly recharge limit is hit. */
+@Composable
+fun RechargeLimitCard(reached: Boolean, limitAmount: String, availableFrom: String) {
+    if (!reached) return
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            val parsedAvailableDate = parseDmyDate(availableFrom)
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Filled.Warning,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(20.dp)
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
                     )
-                    Column(modifier = Modifier.padding(start = 10.dp)) {
-                        Text(
-                            "LÍMITE ALCANZADO ($rechargeLimitAmount)",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                        Text(
-                            "Podrás recargar nuevamente a partir del $rechargeAvailableFrom",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp)
-                        )
-                    }
+                    Text(
+                        "Límite Mensual ($limitAmount)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
                 }
+                if (parsedAvailableDate != null) {
+                    Text(
+                        "Puede Recargar el ${formatSpanishDate(parsedAvailableDate)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+                // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
+                val lastUpdateDaysAgo = 1
+                Text(
+                    if (lastUpdateDaysAgo == 0) {
+                        "Actualizado hoy"
+                    } else if (lastUpdateDaysAgo == 1) {
+                        "Actualizado hace 1 día"
+                    } else {
+                        "Actualizado hace $lastUpdateDaysAgo días"
+                    },
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+            val daysUntilAvailable = parsedAvailableDate?.let {
+                ChronoUnit.DAYS.between(LocalDate.now(), it)
+            }
+            if (daysUntilAvailable != null) {
+                Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                            append("Faltan ")
+                        }
+                        withStyle(
+                            SpanStyle(
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 18.sp
+                            )
+                        ) {
+                            append("$daysUntilAvailable")
+                        }
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                            append("d")
+                        }
+                    },
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -233,109 +289,35 @@ fun DataUsageCard(
                         "GB",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.Black,
+                        color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
                     )
                 }
             }
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.VerifiedUser,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(
-                        "Tarifa por consumo:",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-                }
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = MaterialTheme.colorScheme.surfaceContainer
-                ) {
-                    Text(
-                        tariffStatus,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun MiniUsageBanner(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    amount: String,
-    expiry: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainer),
-                contentAlignment = Alignment.Center
-            ) {
                 Icon(
-                    icon,
+                    Icons.Filled.VerifiedUser,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(16.dp)
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp)
                 )
-            }
-            Column(modifier = Modifier.padding(start = 10.dp)) {
-                Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
-                    amount,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.tertiary
+                    "Tarifa por consumo: ",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+                Text(
+                    tariffStatus,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
-            Icon(
-                Icons.Filled.HourglassTop,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.size(14.dp)
-            )
-            Text(
-                expiry,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.padding(start = 4.dp)
-            )
         }
     }
 }
@@ -349,12 +331,69 @@ fun NationalBonusCard(amount: String, expiry: String) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            MiniUsageBanner(
-                icon = Icons.Filled.CardGiftcard,
-                label = "Bonos Nacionales",
-                amount = amount,
-                expiry = expiry
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.CardGiftcard,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            "BONOS",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 6.dp)
+                        )
+                    }
+                    val expiryDays = expiry.filter { it.isDigit() }.toIntOrNull()
+                    if (expiryDays != null) {
+                        Text(
+                            "Vence el ${formatSpanishDate(LocalDate.now().plusDays(expiryDays.toLong()))}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                    // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
+                    val lastUpdateDaysAgo = 1
+                    Text(
+                        if (lastUpdateDaysAgo == 0) {
+                            "Actualizado hoy"
+                        } else if (lastUpdateDaysAgo == 1) {
+                            "Actualizado hace 1 día"
+                        } else {
+                            "Actualizado hace $lastUpdateDaysAgo días"
+                        },
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+                Row(verticalAlignment = Alignment.Bottom) {
+                    val (number, unit) = amount.split(" ", limit = 2).let { it[0] to it.getOrElse(1) { "" } }
+                    Text(
+                        number,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    if (unit.isNotEmpty()) {
+                        Text(
+                            unit,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -420,11 +459,12 @@ private fun UsageStatCard(
                         modifier = Modifier.padding(start = 6.dp)
                     )
                 }
+                val unitColor = MaterialTheme.colorScheme.onSurface
                 Text(
                     buildAnnotatedString {
                         value.forEach { char ->
                             val style = if (char.isLetter()) {
-                                SpanStyle(color = Color.Black, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                SpanStyle(color = unitColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             } else {
                                 SpanStyle(color = accentColor)
                             }

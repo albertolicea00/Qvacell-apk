@@ -1,10 +1,14 @@
 package com.qvacell.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apartment
 import androidx.compose.material.icons.filled.CardGiftcard
@@ -15,9 +19,9 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Card
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -39,6 +43,7 @@ import com.qvacell.app.ui.components.NationalBonusCard
 import com.qvacell.app.ui.components.QuickActionTileData
 import com.qvacell.app.ui.components.QuickActionTileGrid
 import com.qvacell.app.ui.components.RechargeBottomSheet
+import com.qvacell.app.ui.components.RechargeLimitCard
 import com.qvacell.app.ui.components.TransferBottomSheet
 import com.qvacell.app.ui.components.VoiceSmsRow
 import com.qvacell.app.ui.components.rememberCodeActionHandler
@@ -81,70 +86,77 @@ fun HomeQuickActionsScreen() {
     }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Qvacell") }) }) { padding ->
-        LazyColumn(
-            modifier = Modifier.padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(top = 16.dp, bottom = 8.dp)
+        // A fixed handful of cards, not an open-ended list — Column+verticalScroll sizes to the
+        // actual content height. LazyColumn always stretches to fill the viewport, which left a
+        // permanent blank gap above the bottom nav bar whenever the cards didn't fill the screen.
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(top = 16.dp, bottom = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            item {
-                // Placeholder figures — wire to real computed values once available.
-                MainBalanceCard(
-                    balance = "15.01",
-                    currency = "CUP",
-                    lineActiveUntil = "20 Ago 2027",
-                    accountDueDate = "16 Feb 2028",
-                    rechargeLimitReached = true,
-                    rechargeLimitAmount = "360 CUP",
-                    rechargeAvailableFrom = "24-10-2026"
-                )
-            }
-            item {
-                VoiceSmsRow(
-                    voiceDaysRemaining = "35d",
-                    voiceDuration = "119h 55m",
-                    smsDaysRemaining = "35d",
-                    smsCount = "8,419"
-                )
-            }
-            item {
-                DataUsageCard(
-                    daysRemaining = "35 días restantes",
-                    packageGb = "6.00",
-                    tariffStatus = "No Activa"
-                )
-            }
-            item {
-                NationalBonusCard(
-                    amount = "3.00 GB",
-                    expiry = "Vence 30 días"
-                )
-            }
-            item {
-                Text(
-                    "Consultas",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            item {
-                QuickActionTileGrid(tiles = tiles)
-            }
-            item {
-                Card(onClick = { showTransferSheet = true }, modifier = Modifier.fillMaxWidth()) {
-                    ListItem(
-                        headlineContent = { Text("Transferir") },
-                        supportingContent = { Text("Envía saldo a otro número") },
-                        leadingContent = { Icon(Icons.Filled.SwapHoriz, contentDescription = null) }
+            // Placeholder figures — wire to real computed values once available.
+            RechargeLimitCard(
+                reached = true,
+                limitAmount = "360 CUP",
+                availableFrom = "24-10-2026"
+            )
+            MainBalanceCard(
+                balance = "15.01",
+                currency = "CUP",
+                lineActiveUntil = "20 Ago 2027",
+                accountDueDate = "16 Feb 2028"
+            )
+            VoiceSmsRow(
+                voiceDaysRemaining = "35d",
+                voiceDuration = "119h 55m",
+                smsDaysRemaining = "35d",
+                smsCount = "8,419"
+            )
+            DataUsageCard(
+                daysRemaining = "35 días restantes",
+                packageGb = "6.00",
+                tariffStatus = "No Activa"
+            )
+            NationalBonusCard(
+                amount = "3.00 GB",
+                expiry = "Vence 30 días"
+            )
+            Text(
+                "Consultas",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+            QuickActionTileGrid(tiles = tiles)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { showTransferSheet = true },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
+                ) {
+                    Icon(Icons.Filled.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text("Transferir Saldo", modifier = Modifier.padding(start = 8.dp))
                 }
-            }
-            item {
-                Card(onClick = { showRechargeSheet = true }, modifier = Modifier.fillMaxWidth()) {
-                    ListItem(
-                        headlineContent = { Text("Recargar") },
-                        supportingContent = { Text("Recarga con tarjeta prepago") },
-                        leadingContent = { Icon(Icons.Filled.CreditCard, contentDescription = null) }
+                Button(
+                    onClick = { showRechargeSheet = true },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(50),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
                     )
+                ) {
+                    Icon(Icons.Filled.CreditCard, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Text("Recargar Saldo", modifier = Modifier.padding(start = 8.dp))
                 }
             }
         }
