@@ -2,13 +2,16 @@ package com.qvacell.app.ui.navigation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -56,7 +59,13 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
 
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                // Unstyled NavigationBar picks up Material3's default 3dp tonalElevation, which
+                // renders as a visible tonal seam/stripe above the bar. Pin it flat against the
+                // theme's surface instead.
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 0.dp
+            ) {
                 bottomTabs.forEach { tab ->
                     val selected = currentRoute == tab.route ||
                         (tab is BottomTab.Settings && isInSettingsSection)
@@ -74,7 +83,18 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                             }
                         },
                         icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) }
+                        label = { Text(tab.label) },
+                        // Theme.kt only overrides primary/primaryContainer roles, so the M3 default
+                        // selected color (derived from onSecondaryContainer) barely differs from the
+                        // unselected onSurfaceVariant gray. Tie the active state to the brand color
+                        // explicitly so the selected tab is unambiguous.
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedTextColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     )
                 }
             }
