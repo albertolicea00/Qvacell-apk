@@ -38,7 +38,9 @@ fun SearchableTopAppBar(
     showSearchAction: Boolean = true,
     // e.g. "Salas de Navegación" shown small above the province name — the section this
     // screen's title belongs to, when that's worth spelling out separately from the title.
-    subtitle: String? = null
+    subtitle: String? = null,
+    // Non-null only for screens pushed on top of another (never the bottom-tab roots).
+    onBack: (() -> Unit)? = null
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -71,6 +73,9 @@ fun SearchableTopAppBar(
             } else {
                 Text(title)
             }
+        },
+        navigationIcon = {
+            if (onBack != null) BackNavigationIcon(onBack)
         },
         actions = {
             if (showSearchAction || searching) {

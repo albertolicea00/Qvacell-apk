@@ -11,10 +11,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.ui.components.BackNavigationIcon
 
 @Composable
-fun HelpScreen() {
-    Scaffold(topBar = { TopAppBar(title = { Text("Ayuda") }) }) { padding ->
+fun HelpScreen(onBack: (() -> Unit)? = null) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Ayuda") },
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .padding(padding)

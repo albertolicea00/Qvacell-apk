@@ -3,8 +3,8 @@ package com.qvacell.app.ui.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Headset
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -13,7 +13,7 @@ sealed class BottomTab(val route: String, val label: String, val icon: ImageVect
     data object Contacts : BottomTab("contacts", "Contactos", Icons.Filled.Person)
     data object Home : BottomTab("home", "Inicio", Icons.Filled.Home)
     data object Purchase : BottomTab("purchase", "Compras", Icons.Filled.ShoppingCart)
-    data object Settings : BottomTab("settings", "Ajustes", Icons.Filled.Settings)
+    data object Settings : BottomTab("settings", "Ajustes", Icons.Filled.Menu)
 }
 
 val bottomTabs = listOf(

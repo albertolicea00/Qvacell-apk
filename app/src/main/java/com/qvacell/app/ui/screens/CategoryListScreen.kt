@@ -2,11 +2,11 @@ package com.qvacell.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -34,7 +34,7 @@ import com.qvacell.app.ui.components.rememberCodeActionHandler
 // import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
 
 @Composable
-fun CategoryListScreen(categoryId: String, title: String) {
+fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
     val catalog = remember { repository.loadCatalog() }
@@ -76,7 +76,8 @@ fun CategoryListScreen(categoryId: String, title: String) {
                 query = query,
                 onQueryChange = { query = it },
                 searching = searching,
-                onSearchingChange = { searching = it }
+                onSearchingChange = { searching = it },
+                onBack = onBack
             )
         }
     ) { padding ->
@@ -94,50 +95,54 @@ fun CategoryListScreen(categoryId: String, title: String) {
                     )
                 }
             }
-            LazyColumn(
-                contentPadding = PaddingValues(vertical = 8.dp),
+            // Column+verticalScroll instead of LazyColumn: a LazyColumn always stretches to fill
+            // the viewport, leaving a permanent blank gap below the last group whenever the
+            // filtered content doesn't fill the screen — catalogs here are small enough that
+            // virtualization isn't worth that tradeoff.
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 filteredGroups.forEach { group ->
-                    item {
-                        Column {
-                            if (group.name != null) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                                ) {
-                                    // Temporarily disabled to compare the look without a group icon — codes.json still has it.
-                                    // if (group.icon != null) {
-                                    //     Icon(
-                                    //         imageVector = resolveAndroidIcon(group.icon),
-                                    //         contentDescription = null,
-                                    //         tint = MaterialTheme.colorScheme.primary,
-                                    //         modifier = Modifier.padding(end = 8.dp)
-                                    //     )
-                                    // }
-                                    Text(
-                                        group.name.value,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(start = 2.dp)
-                                    )
-                                }
-                            }
-                            Card(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                    Column {
+                        if (group.name != null) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             ) {
-                                group.codes.forEachIndexed { index, code ->
-                                    CodeRow(
-                                        code = code,
-                                        onClick = { onCodeClick(code) },
-                                        showIcon = categoryId !in setOf("purchase", "sms"),
-                                        showDescription = categoryId != "purchase",
-                                        plainPrice = categoryId in setOf("purchase", "sms")
-                                    )
-                                    if (index != group.codes.lastIndex) {
-                                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                                    }
+                                // Temporarily disabled to compare the look without a group icon — codes.json still has it.
+                                // if (group.icon != null) {
+                                //     Icon(
+                                //         imageVector = resolveAndroidIcon(group.icon),
+                                //         contentDescription = null,
+                                //         tint = MaterialTheme.colorScheme.primary,
+                                //         modifier = Modifier.padding(end = 8.dp)
+                                //     )
+                                // }
+                                Text(
+                                    group.name.value,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(start = 2.dp)
+                                )
+                            }
+                        }
+                        Card(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                        ) {
+                            group.codes.forEachIndexed { index, code ->
+                                CodeRow(
+                                    code = code,
+                                    onClick = { onCodeClick(code) },
+                                    showIcon = categoryId !in setOf("purchase", "sms"),
+                                    showDescription = categoryId != "purchase",
+                                    plainPrice = categoryId in setOf("purchase", "sms")
+                                )
+                                if (index != group.codes.lastIndex) {
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                                 }
                             }
                         }

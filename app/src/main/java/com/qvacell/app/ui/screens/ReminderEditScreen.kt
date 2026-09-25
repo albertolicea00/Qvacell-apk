@@ -27,6 +27,7 @@ import com.qvacell.app.model.Reminder
 import com.qvacell.app.model.ReminderRecurrence
 import com.qvacell.app.service.ReminderRepository
 import com.qvacell.app.service.ReminderScheduler
+import com.qvacell.app.ui.components.BackNavigationIcon
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -40,7 +41,7 @@ private val templates = listOf(
 )
 
 @Composable
-fun ReminderEditScreen(onDone: () -> Unit) {
+fun ReminderEditScreen(onDone: () -> Unit, onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
     val repository = remember { ReminderRepository(context) }
     val scheduler = remember { ReminderScheduler(context) }
@@ -54,7 +55,14 @@ fun ReminderEditScreen(onDone: () -> Unit) {
     var customDays by remember { mutableStateOf("1") }
     var daysFromNow by remember { mutableStateOf("1") }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Nuevo Recordatorio") }) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Nuevo Recordatorio") },
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+            )
+        }
+    ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()

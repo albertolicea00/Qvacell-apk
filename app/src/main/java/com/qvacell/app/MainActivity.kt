@@ -9,9 +9,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.SettingsDataStore
@@ -39,6 +42,15 @@ class MainActivity : ComponentActivity() {
             val defaultTab by settings.defaultTab.collectAsStateWithLifecycle(initialValue = "home")
 
             QvacellTheme(themeMode = themeMode, accentColorHex = accentColor) {
+                // enableEdgeToEdge() already makes the system navigation bar transparent on
+                // modern Android, letting our own background show through — but pre-API-29
+                // devices draw a scrim over that transparency instead of a true match. Setting
+                // this explicitly (like WhatsApp does) guarantees the 3-button/gesture bar is
+                // always the exact same color as our own bottom bar, on every Android version.
+                val navigationBarColor = MaterialTheme.colorScheme.surface
+                SideEffect {
+                    window.navigationBarColor = navigationBarColor.toArgb()
+                }
                 Surface(modifier = Modifier.fillMaxSize()) {
                     QvacellNavHost(startTabRoute = defaultTab)
                 }

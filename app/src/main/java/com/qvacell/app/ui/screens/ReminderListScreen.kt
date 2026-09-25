@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.model.Reminder
 import com.qvacell.app.service.ReminderRepository
 import com.qvacell.app.service.ReminderScheduler
+import com.qvacell.app.ui.components.BackNavigationIcon
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 import java.text.SimpleDateFormat
@@ -33,7 +34,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun ReminderListScreen(onAdd: () -> Unit, onEdit: (Reminder) -> Unit) {
+fun ReminderListScreen(onAdd: () -> Unit, onEdit: (Reminder) -> Unit, onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
     val repository = remember { ReminderRepository(context) }
     val scheduler = remember { ReminderScheduler(context) }
@@ -42,7 +43,12 @@ fun ReminderListScreen(onAdd: () -> Unit, onEdit: (Reminder) -> Unit) {
     val formatter = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Recordatorios") }) },
+        topBar = {
+            TopAppBar(
+                title = { Text("Recordatorios") },
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = onAdd) { Icon(Icons.Filled.Add, contentDescription = "Agregar") }
         }

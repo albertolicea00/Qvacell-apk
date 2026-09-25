@@ -9,6 +9,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -18,10 +20,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -41,6 +49,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,6 +58,7 @@ import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.service.TransferPinStore
+import com.qvacell.app.ui.components.ColorWheelPicker
 import com.qvacell.app.ui.components.RoundedTextField
 import com.qvacell.app.ui.navigation.bottomTabs
 import kotlinx.coroutines.launch
@@ -112,117 +123,111 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
         ?: accentColor
 
     Scaffold(topBar = { TopAppBar(title = { Text("Ajustes") }) }) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item { SectionHeader("Preferencias") }
+        LazyColumn(
+            modifier = Modifier.padding(padding),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             item {
-                ListItem(
-                    headlineContent = { Text("Tema") },
-                    supportingContent = { Text(themeModeLabel) },
-                    modifier = Modifier.clickable { showThemeSheet = true }
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Pestaña predeterminada") },
-                    supportingContent = { Text(defaultTabLabel) },
-                    modifier = Modifier.clickable { showDefaultTabSheet = true }
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Color de acento") },
-                    supportingContent = { Text(accentColorLabel) },
-                    trailingContent = {
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clip(CircleShape)
-                                .background(runCatching { Color(android.graphics.Color.parseColor(accentColor)) }.getOrDefault(MaterialTheme.colorScheme.primary))
-                        )
-                    },
-                    modifier = Modifier.clickable { showAccentColorSheet = true }
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Acción sin Confirmación") },
-                    supportingContent = { Text("En Compras, marca el código saltando el paso de confirmación de ETECSA.") },
-                    trailingContent = {
-                        Switch(
-                            checked = quickPurchaseNoConfirm,
-                            onCheckedChange = { checked ->
-                                scope.launch { settings.setQuickPurchaseNoConfirmDefault(checked) }
-                            }
-                        )
-                    }
-                )
-            }
-            item { HorizontalDivider() }
-
-            item { SectionHeader("Utilidades") }
-            item {
-                ListItem(
-                    headlineContent = { Text("Recordatorios") },
-                    modifier = Modifier.clickable { onNavigate(SettingsDestination.Reminders) }
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Servicios por SMS") },
-                    modifier = Modifier.clickable { onNavigate(SettingsDestination.SmsServices) }
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Salas de Navegación WiFi") },
-                    modifier = Modifier.clickable { onNavigate(SettingsDestination.WifiRooms) }
-                )
-            }
-            if (debugDbSearchVisible) {
-                item {
-                    ListItem(
-                        headlineContent = { Text("Búsqueda en Base de Datos") },
-                        supportingContent = { Text("Función de depuración") },
-                        modifier = Modifier.clickable { onNavigate(SettingsDestination.DirectorySearch) }
+                SettingsSection(header = "Preferencias") {
+                    SettingsRow(
+                        headline = "Tema",
+                        supporting = themeModeLabel,
+                        onClick = { showThemeSheet = true }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Pestaña predeterminada",
+                        supporting = defaultTabLabel,
+                        onClick = { showDefaultTabSheet = true }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Color de acento",
+                        supporting = accentColorLabel,
+                        onClick = { showAccentColorSheet = true },
+                        trailingContent = {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .background(runCatching { Color(android.graphics.Color.parseColor(accentColor)) }.getOrDefault(MaterialTheme.colorScheme.primary))
+                            )
+                        }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Acción sin Confirmación",
+                        supporting = "En Compras, marca el código saltando el paso de confirmación de ETECSA.",
+                        trailingContent = {
+                            Switch(
+                                checked = quickPurchaseNoConfirm,
+                                onCheckedChange = { checked ->
+                                    scope.launch { settings.setQuickPurchaseNoConfirmDefault(checked) }
+                                }
+                            )
+                        }
                     )
                 }
             }
-            item { HorizontalDivider() }
 
-            item { SectionHeader("Cuenta") }
             item {
-                ListItem(
-                    headlineContent = { Text("Clave de Transferencia") },
-                    modifier = Modifier.clickable { showTransferPinSheet = true }
-                )
+                SettingsSection(header = "Utilidades") {
+                    SettingsRow(
+                        headline = "Recordatorios",
+                        supporting = "Avisos para recargar o comprar paquetes",
+                        icon = Icons.Filled.Notifications,
+                        onClick = { onNavigate(SettingsDestination.Reminders) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Servicios por SMS",
+                        supporting = "Horóscopos, noticias, recetas y más por SMS",
+                        icon = Icons.Filled.Sms,
+                        onClick = { onNavigate(SettingsDestination.SmsServices) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Salas de Navegación WiFi",
+                        supporting = "Ubica salas y puntos de acceso por provincia",
+                        icon = Icons.Filled.Wifi,
+                        onClick = { onNavigate(SettingsDestination.WifiRooms) }
+                    )
+                    if (debugDbSearchVisible) {
+                        SettingsDivider()
+                        SettingsRow(
+                            headline = "Búsqueda en Base de Datos",
+                            supporting = "Función de depuración",
+                            onClick = { onNavigate(SettingsDestination.DirectorySearch) }
+                        )
+                    }
+                }
             }
-            item { HorizontalDivider() }
 
-            item { SectionHeader("Acerca de") }
             item {
-                ListItem(
-                    headlineContent = { Text("Identificador de Llamadas") },
-                    supportingContent = { Text("Solicitar rol de selección de llamadas") },
-                    modifier = Modifier.clickable { requestCallScreeningRole(context) }
-                )
+                SettingsSection(header = "Cuenta") {
+                    SettingsRow(headline = "Clave de Transferencia", onClick = { showTransferPinSheet = true })
+                }
             }
+
             item {
-                ListItem(
-                    headlineContent = { Text("Ayuda") },
-                    modifier = Modifier.clickable { onNavigate(SettingsDestination.Help) }
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Código fuente en GitHub") }
-                )
-            }
-            item {
-                ListItem(
-                    headlineContent = { Text("Versión") },
-                    supportingContent = { Text(BuildConfig.VERSION_NAME) },
-                    modifier = Modifier.clickable { onVersionTap() }
-                )
+                SettingsSection(header = "Acerca de") {
+                    SettingsRow(
+                        headline = "Identificador de Llamadas",
+                        supporting = "Solicitar rol de selección de llamadas",
+                        onClick = { requestCallScreeningRole(context) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(headline = "Ayuda", onClick = { onNavigate(SettingsDestination.Help) })
+                    SettingsDivider()
+                    SettingsRow(headline = "Código fuente en GitHub")
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Versión",
+                        supporting = BuildConfig.VERSION_NAME,
+                        onClick = { onVersionTap() }
+                    )
+                }
             }
         }
     }
@@ -283,7 +288,13 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
 
     if (showAccentColorSheet) {
         var showCustomColorInput by remember { mutableStateOf(false) }
-        var customHex by remember { mutableStateOf(accentColor) }
+        val fallbackAccent = MaterialTheme.colorScheme.primary
+        var customColor by remember {
+            mutableStateOf(
+                runCatching { Color(android.graphics.Color.parseColor(accentColor)) }
+                    .getOrDefault(fallbackAccent)
+            )
+        }
 
         ModalBottomSheet(onDismissRequest = { showAccentColorSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -329,21 +340,24 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
 
                 if (showCustomColorInput) {
                     Column(modifier = Modifier.padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        val previewColor = runCatching { Color(android.graphics.Color.parseColor(customHex)) }.getOrNull()
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .clip(CircleShape)
-                                    .background(previewColor ?: MaterialTheme.colorScheme.surfaceVariant)
+                                    .background(customColor)
                             )
-                            RoundedTextField(
-                                value = customHex,
-                                onValueChange = { customHex = it },
-                                label = "Color personalizado (#RRGGBB)",
-                                modifier = Modifier.weight(1f).padding(start = 12.dp)
+                            Text(
+                                "#%06X".format(0xFFFFFF and customColor.toArgb()),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(start = 12.dp)
                             )
                         }
+                        ColorWheelPicker(
+                            color = customColor,
+                            onColorChange = { customColor = it },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+                        )
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(
                                 onClick = { showCustomColorInput = false },
@@ -351,11 +365,11 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             ) { Text("Cancelar") }
                             Button(
                                 onClick = {
-                                    scope.launch { settings.setAccentColor(customHex) }
+                                    val hex = "#%06X".format(0xFFFFFF and customColor.toArgb())
+                                    scope.launch { settings.setAccentColor(hex) }
                                     showCustomColorInput = false
                                     showAccentColorSheet = false
                                 },
-                                enabled = previewColor != null,
                                 modifier = Modifier.weight(1f)
                             ) { Text("Aplicar") }
                         }
@@ -397,14 +411,46 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     }
 }
 
+/** Section header + surrounding card — same grouping style as Compras/Servicios por SMS. */
 @Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+private fun SettingsSection(header: String, content: @Composable ColumnScope.() -> Unit) {
+    Column {
+        Text(
+            header,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        Card(
+            modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            Column(content = content)
+        }
+    }
+}
+
+@Composable
+private fun SettingsRow(
+    headline: String,
+    supporting: String? = null,
+    icon: ImageVector? = null,
+    onClick: (() -> Unit)? = null,
+    trailingContent: (@Composable () -> Unit)? = null
+) {
+    ListItem(
+        headlineContent = { Text(headline) },
+        supportingContent = supporting?.let { { Text(it) } },
+        leadingContent = icon?.let { { Icon(it, contentDescription = null, tint = MaterialTheme.colorScheme.primary) } },
+        trailingContent = trailingContent,
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     )
+}
+
+@Composable
+private fun SettingsDivider() {
+    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }
 
 private fun requestCallScreeningRole(context: Context) {

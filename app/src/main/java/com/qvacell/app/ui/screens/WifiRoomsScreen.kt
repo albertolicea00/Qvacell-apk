@@ -35,7 +35,7 @@ import com.qvacell.app.service.DialService
 import com.qvacell.app.ui.components.SearchableTopAppBar
 
 @Composable
-fun WifiProvinceListScreen(onProvinceSelected: (String) -> Unit) {
+fun WifiProvinceListScreen(onProvinceSelected: (String) -> Unit, onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
     val provinces = remember { repository.loadWifiProvinces() }
@@ -54,7 +54,8 @@ fun WifiProvinceListScreen(onProvinceSelected: (String) -> Unit) {
                 query = query,
                 onQueryChange = { query = it },
                 searching = searching,
-                onSearchingChange = { searching = it }
+                onSearchingChange = { searching = it },
+                onBack = onBack
             )
         }
     ) { padding ->
@@ -95,7 +96,7 @@ fun WifiProvinceListScreen(onProvinceSelected: (String) -> Unit) {
 }
 
 @Composable
-fun WifiProvinceDetailScreen(provinceName: String) {
+fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
     val province = remember { repository.loadWifiProvinces().firstOrNull { it.province == provinceName } }
@@ -133,7 +134,8 @@ fun WifiProvinceDetailScreen(provinceName: String) {
                 query = query,
                 onQueryChange = { query = it },
                 searching = searching,
-                onSearchingChange = { searching = it }
+                onSearchingChange = { searching = it },
+                onBack = onBack
             )
         }
     ) { padding ->

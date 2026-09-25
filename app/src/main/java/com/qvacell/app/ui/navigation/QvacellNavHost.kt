@@ -3,11 +3,13 @@ package com.qvacell.app.ui.navigation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -73,13 +75,18 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 0.dp
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    bottomTabs.forEach { tab ->
+                Column {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        bottomTabs.forEach { tab ->
                         val selected = currentRoute == tab.route ||
                             (tab is BottomTab.Settings && isInSettingsSection)
                         val tint = if (selected) {
@@ -125,11 +132,18 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 }
             }
         }
+        }
     ) { padding ->
         NavHost(
             navController = navController,
             startDestination = validStartRoute,
-            modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
+            // consumeWindowInsets tells Compose the bottom inset this padding represents is
+            // already accounted for — without it, every nested screen's own Scaffold (topBar
+            // only, no bottomBar) reserves that same system navigation-bar inset again on its
+            // own, adding a phantom gap above this bottom bar on every single screen.
+            modifier = Modifier
+                .padding(bottom = padding.calculateBottomPadding())
+                .consumeWindowInsets(padding)
         ) {
             composable(BottomTab.Helplines.route) {
                 CategoryListScreen(categoryId = "helplines", title = "Líneas de Ayuda")
@@ -159,29 +173,47 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             composable(Routes.REMINDERS) {
                 ReminderListScreen(
                     onAdd = { navController.navigate(Routes.REMINDER_EDIT) },
-                    onEdit = {}
+                    onEdit = {},
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable(Routes.REMINDER_EDIT) {
-                ReminderEditScreen(onDone = { navController.popBackStack() })
+                ReminderEditScreen(
+                    onDone = { navController.popBackStack() },
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(Routes.SMS_SERVICES) {
-                CategoryListScreen(categoryId = "sms", title = "Servicios por SMS")
+                CategoryListScreen(
+                    categoryId = "sms",
+                    title = "Servicios por SMS",
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(Routes.WIFI_PROVINCES) {
-                WifiProvinceListScreen(onProvinceSelected = { province ->
-                    navController.navigate("settings/wifi/${java.net.URLEncoder.encode(province, "UTF-8")}")
-                })
+                WifiProvinceListScreen(
+                    onProvinceSelected = { province ->
+                        navController.navigate("settings/wifi/${java.net.URLEncoder.encode(province, "UTF-8")}")
+                    },
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(
                 Routes.WIFI_PROVINCE_DETAIL,
                 arguments = listOf(navArgument("province") { type = NavType.StringType })
             ) { backStack ->
                 val encoded = backStack.arguments?.getString("province") ?: ""
-                WifiProvinceDetailScreen(provinceName = java.net.URLDecoder.decode(encoded, "UTF-8"))
+                WifiProvinceDetailScreen(
+                    provinceName = java.net.URLDecoder.decode(encoded, "UTF-8"),
+                    onBack = { navController.popBackStack() }
+                )
             }
-            composable(Routes.DIRECTORY_SEARCH) { DirectorySearchScreen() }
-            composable(Routes.HELP) { HelpScreen() }
+            composable(Routes.DIRECTORY_SEARCH) {
+                DirectorySearchScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.HELP) {
+                HelpScreen(onBack = { navController.popBackStack() })
+            }
         }
     }
 }

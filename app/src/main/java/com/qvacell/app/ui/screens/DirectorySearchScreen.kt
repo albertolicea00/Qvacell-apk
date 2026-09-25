@@ -25,11 +25,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.service.DirectoryDatabase
 import com.qvacell.app.service.DirectoryEntry
+import com.qvacell.app.ui.components.BackNavigationIcon
 import com.qvacell.app.ui.components.DirectoryEntryRow
 import kotlinx.coroutines.launch
 
 @Composable
-fun DirectorySearchScreen() {
+fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
     val database = remember { DirectoryDatabase(context) }
     val scope = rememberCoroutineScope()
@@ -47,7 +48,14 @@ fun DirectorySearchScreen() {
         results = if (imported && query.isNotBlank()) database.search(query) else emptyList()
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Búsqueda en Base de Datos") }) }) { padding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Búsqueda en Base de Datos") },
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+            )
+        }
+    ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             if (!imported) {
                 Text("Importa un archivo .db para buscar números.")
