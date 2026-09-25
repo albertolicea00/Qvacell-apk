@@ -1,16 +1,23 @@
 package com.qvacell.app.ui.navigation
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -59,43 +66,63 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                // Unstyled NavigationBar picks up Material3's default 3dp tonalElevation, which
-                // renders as a visible tonal seam/stripe above the bar. Pin it flat against the
-                // theme's surface instead.
-                containerColor = MaterialTheme.colorScheme.surface,
+            // Custom bar instead of Material3 NavigationBar: that component has a fixed 80dp
+            // height with no public override, and its selected-item indicator draws a filled
+            // pill behind the icon — both unwanted here. This gives full control over height
+            // and drops the indicator, using tint color alone to show the active tab.
+            Surface(
+                color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 0.dp
             ) {
-                bottomTabs.forEach { tab ->
-                    val selected = currentRoute == tab.route ||
-                        (tab is BottomTab.Settings && isInSettingsSection)
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            if (tab is BottomTab.Settings && isInSettingsSection) {
-                                navController.popBackStack(BottomTab.Settings.route, inclusive = false)
-                            } else {
-                                navController.navigate(tab.route) {
-                                    popUpTo(validStartRoute) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        },
-                        icon = { Icon(tab.icon, contentDescription = tab.label) },
-                        label = { Text(tab.label) },
-                        // Theme.kt only overrides primary/primaryContainer roles, so the M3 default
-                        // selected color (derived from onSecondaryContainer) barely differs from the
-                        // unselected onSurfaceVariant gray. Tie the active state to the brand color
-                        // explicitly so the selected tab is unambiguous.
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    bottomTabs.forEach { tab ->
+                        val selected = currentRoute == tab.route ||
+                            (tab is BottomTab.Settings && isInSettingsSection)
+                        val tint = if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .selectable(
+                                    selected = selected,
+                                    role = Role.Tab,
+                                    onClick = {
+                                        if (tab is BottomTab.Settings && isInSettingsSection) {
+                                            navController.popBackStack(BottomTab.Settings.route, inclusive = false)
+                                        } else {
+                                            navController.navigate(tab.route) {
+                                                popUpTo(validStartRoute) { saveState = true }
+                                                launchSingleTop = true
+                                                restoreState = true
+                                            }
+                                        }
+                                    }
+                                )
+                                .padding(vertical = 6.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                tab.icon,
+                                contentDescription = tab.label,
+                                tint = tint,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Text(
+                                tab.label,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = tint,
+                                modifier = Modifier.padding(top = 1.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

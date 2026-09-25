@@ -8,14 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.HourglassTop
-import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.NetworkCell
 import androidx.compose.material.icons.filled.Sms
@@ -51,7 +48,6 @@ fun MainBalanceCard(
     balance: String,
     currency: String,
     lineActiveUntil: String,
-    lineActiveDaysRemaining: Int,
     accountDueDate: String,
     rechargeLimitReached: Boolean,
     rechargeLimitAmount: String,
@@ -80,75 +76,57 @@ fun MainBalanceCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            "SALDO PRINCIPAL",
+                            "SALDO",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 6.dp)
                         )
                     }
-                    Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(top = 4.dp)) {
-                        Text(
-                            balance,
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            currency,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.Black,
-                            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-                        )
-                    }
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
-                    )
                     Text(
-                        "Línea Activa - ${lineActiveDaysRemaining}d",
+                        "Activa hasta $lineActiveUntil",
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         softWrap = false,
-                        modifier = Modifier.padding(start = 6.dp)
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                    Text(
+                        "Vence el $accountDueDate",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                    // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
+                    val lastUpdateDaysAgo = 1
+                    Text(
+                        if (lastUpdateDaysAgo == 0) {
+                            "Actualizado hoy"
+                        } else if (lastUpdateDaysAgo == 1) {
+                            "Actualizado hace 1 día"
+                        } else {
+                            "Actualizado hace $lastUpdateDaysAgo días"
+                        },
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
-            }
-
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    "Activa hasta $lineActiveUntil · Vence el $accountDueDate",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    softWrap = false
-                )
-                // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                val lastUpdateDaysAgo = 1
-                Text(
-                    if (lastUpdateDaysAgo == 0) {
-                        "Actualizado hoy"
-                    } else if (lastUpdateDaysAgo == 1) {
-                        "Actualizado hace 1 día"
-                    } else {
-                        "Actualizado hace $lastUpdateDaysAgo días"
-                    },
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(top = 2.dp)
-                )
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        balance,
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        currency,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black,
+                        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                    )
+                }
             }
 
             if (rechargeLimitReached) {
@@ -189,8 +167,6 @@ fun MainBalanceCard(
 fun DataUsageCard(
     daysRemaining: String,
     packageGb: String,
-    dailyBagAmount: String,
-    dailyBagExpiry: String,
     tariffStatus: String
 ) {
     Card(
@@ -205,48 +181,47 @@ fun DataUsageCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Filled.NetworkCell,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(14.dp)
-                    )
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.NetworkCell,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            "DATOS",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 6.dp)
+                        )
+                    }
+                    val expiryDays = daysRemaining.filter { it.isDigit() }.toIntOrNull()
+                    if (expiryDays != null) {
+                        Text(
+                            "Vence el ${formatSpanishDate(LocalDate.now().plusDays(expiryDays.toLong()))}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
+                    }
+                    // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
+                    val lastUpdateDaysAgo = 1
                     Text(
-                        "DATOS INTERNACIONALES",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 6.dp)
+                        if (lastUpdateDaysAgo == 0) {
+                            "Actualizado hoy"
+                        } else if (lastUpdateDaysAgo == 1) {
+                            "Actualizado hace 1 día"
+                        } else {
+                            "Actualizado hace $lastUpdateDaysAgo días"
+                        },
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.EventAvailable,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        daysRemaining,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-            ) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
                         packageGb,
@@ -262,37 +237,7 @@ fun DataUsageCard(
                         modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
                     )
                 }
-                val expiryDays = daysRemaining.filter { it.isDigit() }.toIntOrNull()
-                if (expiryDays != null) {
-                    Text(
-                        "Vence el ${formatSpanishDate(LocalDate.now().plusDays(expiryDays.toLong()))}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 6.dp)
-                    )
-                }
-                // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                val lastUpdateDaysAgo = 1
-                Text(
-                    if (lastUpdateDaysAgo == 0) {
-                        "Actualizado hoy"
-                    } else if (lastUpdateDaysAgo == 1) {
-                        "Actualizado hace 1 día"
-                    } else {
-                        "Actualizado hace $lastUpdateDaysAgo días"
-                    },
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(top = 2.dp)
-                )
             }
-
-            MiniUsageBanner(
-                icon = Icons.Filled.Inventory2,
-                label = "Bolsa Diaria",
-                amount = dailyBagAmount,
-                expiry = dailyBagExpiry
-            )
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
@@ -512,14 +457,6 @@ private fun UsageStatCard(
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier.padding(top = 2.dp)
-                )
-            }
-            Surface(shape = RoundedCornerShape(4.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
-                Text(
-                    badge,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = accentColor,
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                 )
             }
         }

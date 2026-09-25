@@ -84,7 +84,7 @@ fun HomeQuickActionsScreen() {
         LazyColumn(
             modifier = Modifier.padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
+            contentPadding = PaddingValues(top = 16.dp, bottom = 8.dp)
         ) {
             item {
                 // Placeholder figures — wire to real computed values once available.
@@ -92,7 +92,6 @@ fun HomeQuickActionsScreen() {
                     balance = "15.01",
                     currency = "CUP",
                     lineActiveUntil = "20 Ago 2027",
-                    lineActiveDaysRemaining = 320,
                     accountDueDate = "16 Feb 2028",
                     rechargeLimitReached = true,
                     rechargeLimitAmount = "360 CUP",
@@ -111,9 +110,7 @@ fun HomeQuickActionsScreen() {
                 DataUsageCard(
                     daysRemaining = "35 días restantes",
                     packageGb = "6.00",
-                    dailyBagAmount = "86.00 MB",
-                    dailyBagExpiry = "Vence Hoy 23:59",
-                    tariffStatus = "No Activa (Protegido)"
+                    tariffStatus = "No Activa"
                 )
             }
             item {
