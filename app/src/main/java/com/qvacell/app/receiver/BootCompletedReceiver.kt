@@ -3,10 +3,13 @@ package com.qvacell.app.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.qvacell.app.data.SettingsDataStore
+import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.ReminderRepository
 import com.qvacell.app.service.ReminderScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -23,6 +26,12 @@ class BootCompletedReceiver : BroadcastReceiver() {
                 val repository = ReminderRepository(context)
                 val scheduler = ReminderScheduler(context)
                 repository.getEnabled().forEach { scheduler.schedule(it) }
+
+                // AlarmManager alarms are cleared on reboot the same way reminders are — re-arm
+                // the estimation engine's alarm too if the user has it enabled (full flavor only;
+                // a no-op on the play flavor).
+                val smsCaptureEnabled = SettingsDataStore(context).smsCaptureEnabled.first()
+                DashboardCapture.scheduleEstimationIfEnabled(context, smsCaptureEnabled)
             } finally {
                 pendingResult.finish()
             }
