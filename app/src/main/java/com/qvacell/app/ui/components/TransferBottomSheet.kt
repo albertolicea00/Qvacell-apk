@@ -11,13 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -104,19 +102,17 @@ fun TransferBottomSheet(
                     modifier = Modifier.weight(1f)
                 )
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text("Cancelar") }
-                Button(
-                    onClick = {
-                        pinStore.save(pin)
-                        DialService.dial(context, "*234*1*$number*$pin*$amount#")
-                        onDone()
-                    },
-                    enabled = number.isNotBlank() && pin.isNotBlank() && amount.isNotBlank(),
-                    modifier = Modifier.weight(1f)
-                ) { Text("Transferir") }
-            }
         }
+        DialogActionRow(
+            cancelText = "Cancelar",
+            confirmText = "Transferir",
+            onCancel = onDismiss,
+            onConfirm = {
+                pinStore.save(pin)
+                DialService.dial(context, "*234*1*$number*$pin*$amount#")
+                onDone()
+            },
+            confirmEnabled = number.isNotBlank() && pin.isNotBlank() && amount.isNotBlank()
+        )
     }
 }

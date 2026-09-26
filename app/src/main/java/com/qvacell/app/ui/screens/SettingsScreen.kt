@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -34,7 +33,6 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -61,6 +59,7 @@ import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.ui.components.ColorWheelPicker
+import com.qvacell.app.ui.components.DialogActionRow
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 import com.qvacell.app.ui.navigation.bottomTabs
 import com.qvacell.app.ui.resolveAndroidIcon
@@ -426,23 +425,21 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             onColorChange = { customColor = it },
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
                         )
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            OutlinedButton(
-                                onClick = { showCustomColorInput = false },
-                                modifier = Modifier.weight(1f)
-                            ) { Text("Cancelar") }
-                            Button(
-                                onClick = {
-                                    val hex = "#%06X".format(0xFFFFFF and customColor.toArgb())
-                                    scope.launch { settings.setAccentColor(hex) }
-                                    showCustomColorInput = false
-                                    showAccentColorSheet = false
-                                },
-                                modifier = Modifier.weight(1f)
-                            ) { Text("Aplicar") }
-                        }
                     }
                 }
+            }
+            if (showCustomColorInput) {
+                DialogActionRow(
+                    cancelText = "Cancelar",
+                    confirmText = "Aplicar",
+                    onCancel = { showCustomColorInput = false },
+                    onConfirm = {
+                        val hex = "#%06X".format(0xFFFFFF and customColor.toArgb())
+                        scope.launch { settings.setAccentColor(hex) }
+                        showCustomColorInput = false
+                        showAccentColorSheet = false
+                    }
+                )
             }
         }
     }

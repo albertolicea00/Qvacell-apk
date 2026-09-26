@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -74,21 +72,17 @@ fun rememberCodeActionHandler(
                         onValueChange = { inputText = it },
                         label = code.inputPlaceholder ?: "Valor"
                     )
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(
-                            onClick = { activeCode = null; inputText = "" },
-                            modifier = Modifier.weight(1f)
-                        ) { Text("Cancelar") }
-                        Button(
-                            onClick = {
-                                performAction(context, code, inputText.ifBlank { null }, useNoConfirmCode = false)
-                                activeCode = null
-                                inputText = ""
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) { Text("Aceptar") }
-                    }
                 }
+                DialogActionRow(
+                    cancelText = "Cancelar",
+                    confirmText = "Aceptar",
+                    onCancel = { activeCode = null; inputText = "" },
+                    onConfirm = {
+                        performAction(context, code, inputText.ifBlank { null }, useNoConfirmCode = false)
+                        activeCode = null
+                        inputText = ""
+                    }
+                )
             }
         } else if (hasOptionsOrVariants) {
             // Only reached when the caller didn't supply onOpenCodeOptions — the returned lambda
@@ -150,28 +144,10 @@ fun rememberCodeActionHandler(
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(
-                        onClick = { pendingConfirmCode = null },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Cancelar") }
-                    Button(
-                        onClick = {
-                            if (DialService.hasCallPermission(context)) {
-                                DialService.dialDirect(context, dialCode)
-                                pendingConfirmCode = null
-                            } else {
-                                callPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
-                            }
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Aceptar") }
-                }
                 // Acción sin Confirmación already tells the user this dials straight through
                 // (Ajustes' own row explains it) — repeating it here on every purchase is noise.
                 if (!useNoConfirmCode) {
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     // Footnote — same discreet, low-opacity style as the dashboard's "Actualizado
                     // hace X días" timestamps, so the raw dial code reads as fine print, not an action.
                     Text(
@@ -190,6 +166,19 @@ fun rememberCodeActionHandler(
                     )
                 }
             }
+            DialogActionRow(
+                cancelText = "Cancelar",
+                confirmText = "Aceptar",
+                onCancel = { pendingConfirmCode = null },
+                onConfirm = {
+                    if (DialService.hasCallPermission(context)) {
+                        DialService.dialDirect(context, dialCode)
+                        pendingConfirmCode = null
+                    } else {
+                        callPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
+                    }
+                }
+            )
         }
     }
 

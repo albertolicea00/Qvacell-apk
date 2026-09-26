@@ -9,6 +9,17 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -17,8 +28,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavType
@@ -59,14 +72,36 @@ private val SETTINGS_NESTED_ROUTES = setOf(
     Routes.VOICE_SHORTCUTS
 )
 
+// Shown on the bottom bar's Ajustes tab instead of the generic hamburger icon while inside one of
+// these nested screens, so the tab reflects where you actually are (Recordatorios, SMS, WiFi...).
+private val SETTINGS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
+    Routes.REMINDERS to Icons.Filled.Notifications,
+    Routes.REMINDER_EDIT to Icons.Filled.Notifications,
+    Routes.SMS_SERVICES to Icons.Filled.Sms,
+    Routes.WIFI_PROVINCES to Icons.Filled.Wifi,
+    Routes.WIFI_PROVINCE_DETAIL to Icons.Filled.Wifi,
+    Routes.DIRECTORY_SEARCH to Icons.Filled.Storage,
+    Routes.HELP to Icons.AutoMirrored.Filled.Help,
+    Routes.YELLOW_PAGES_SEARCH to Icons.Filled.Search,
+    Routes.FRIENDS_PLAN_MANAGE to Icons.Filled.People,
+    Routes.TRANSFER_PIN_MANAGE to Icons.Filled.Key,
+    Routes.HOME_WIDGETS to Icons.Filled.Widgets,
+    Routes.VOICE_SHORTCUTS to Icons.Filled.Mic
+)
+
 @Composable
 fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     // A stale/unrecognized stored value (e.g. from a future version) falls back to Home rather
-    // than crashing NavHost with an unknown start destination.
-    val validStartRoute = if (bottomTabs.any { it.route == startTabRoute }) startTabRoute else BottomTab.Home.route
+    // than crashing NavHost with an unknown start destination. Captured once (no recompute key) —
+    // NavHost's startDestination must never change after first composition, or it force-navigates
+    // there immediately, which used to yank the user out of Ajustes the moment `startTabRoute`
+    // changed (e.g. picking a new "Pestaña predeterminada" while sitting in Ajustes).
+    val validStartRoute = remember {
+        if (bottomTabs.any { it.route == startTabRoute }) startTabRoute else BottomTab.Home.route
+    }
 
     // Used both to keep the Ajustes tab highlighted while inside one of its nested destinations,
     // and to know when tapping it should just pop back to its root instead of navigating like a
@@ -123,8 +158,13 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                 .padding(vertical = 6.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            val icon = if (tab is BottomTab.Settings && isInSettingsSection) {
+                                SETTINGS_ROUTE_ICONS[currentRoute] ?: tab.icon
+                            } else {
+                                tab.icon
+                            }
                             Icon(
-                                tab.icon,
+                                icon,
                                 contentDescription = tab.label,
                                 tint = tint,
                                 modifier = Modifier.size(22.dp)
