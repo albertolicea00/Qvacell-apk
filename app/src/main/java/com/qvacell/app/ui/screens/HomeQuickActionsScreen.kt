@@ -27,8 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.CatalogRepository
+import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DialService
+import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
@@ -42,23 +45,28 @@ import com.qvacell.app.ui.components.VoiceSmsRow
 fun HomeQuickActionsScreen() {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
+    val settings = remember { SettingsDataStore(context) }
+    val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
 
     Scaffold(topBar = { TopAppBar(title = { Text("Qvacell") }) }) { padding ->
-        // A fixed handful of cards, not an open-ended list — Column+verticalScroll sizes to the
-        // actual content height. LazyColumn always stretches to fill the viewport, which left a
-        // permanent blank gap above the bottom nav bar whenever the cards didn't fill the screen.
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(top = 16.dp, bottom = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Placeholder figures — wire to real computed values once available.
-            RechargeLimitCard(
+        Column(modifier = Modifier.padding(padding)) {
+            if (showNetworkStatus) {
+                ConnectionBanner()
+            }
+            // A fixed handful of cards, not an open-ended list — Column+verticalScroll sizes to the
+            // actual content height. LazyColumn always stretches to fill the viewport, which left a
+            // permanent blank gap above the bottom nav bar whenever the cards didn't fill the screen.
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 16.dp, bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Placeholder figures — wire to real computed values once available.
+                RechargeLimitCard(
                 reached = true,
                 limitAmount = "360 cup",
                 availableFrom = "24-10-2026"
@@ -124,6 +132,7 @@ fun HomeQuickActionsScreen() {
                     Icon(Icons.Filled.CreditCard, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text("Recargar Saldo", modifier = Modifier.padding(start = 8.dp))
                 }
+            }
             }
         }
     }

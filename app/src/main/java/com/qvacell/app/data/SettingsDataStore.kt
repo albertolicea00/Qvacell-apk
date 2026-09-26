@@ -18,6 +18,7 @@ class SettingsDataStore(private val context: Context) {
     private val accentColorKey = stringPreferencesKey("accent_color")
     private val debugDbSearchKey = stringPreferencesKey("debug_db_search_enabled")
     private val quickPurchaseNoConfirmKey = booleanPreferencesKey("quick_purchase_no_confirm_default")
+    private val showNetworkStatusKey = booleanPreferencesKey("show_network_status")
 
     val themeMode = context.dataStore.data.map {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
@@ -35,6 +36,10 @@ class SettingsDataStore(private val context: Context) {
     // "Activar por Defecto..." — Compras' own "Acción sin Confirmación" toggle starts matching
     // this every time that screen opens, same as iOS's AppStorage("quickPurchaseNoConfirmDefault").
     val quickPurchaseNoConfirmDefault = context.dataStore.data.map { it[quickPurchaseNoConfirmKey] ?: false }
+
+    // "Aviso de señal celular" — shows a banner on Home/Compras/Ayuda/SMS warning about weak
+    // cellular signal before a USSD dial, same AppStorage flag as iOS's showNetworkStatus.
+    val showNetworkStatus = context.dataStore.data.map { it[showNetworkStatusKey] ?: false }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[themeModeKey] = mode.name }
@@ -54,6 +59,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setQuickPurchaseNoConfirmDefault(enabled: Boolean) {
         context.dataStore.edit { it[quickPurchaseNoConfirmKey] = enabled }
+    }
+
+    suspend fun setShowNetworkStatus(enabled: Boolean) {
+        context.dataStore.edit { it[showNetworkStatusKey] = enabled }
     }
 
     companion object {

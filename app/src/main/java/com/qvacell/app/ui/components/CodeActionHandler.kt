@@ -168,23 +168,27 @@ fun rememberCodeActionHandler(
                         modifier = Modifier.weight(1f)
                     ) { Text("Aceptar") }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                // Footnote — same discreet, low-opacity style as the dashboard's "Actualizado hace
-                // X días" timestamps, so the raw dial code reads as fine print, not an action.
-                Text(
-                    "Se marcará directamente, sin abrir el marcador del teléfono.",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    dialCode,
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    fontFamily = FontFamily.Monospace,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(top = 2.dp)
-                )
+                // Acción sin Confirmación already tells the user this dials straight through
+                // (Ajustes' own row explains it) — repeating it here on every purchase is noise.
+                if (!useNoConfirmCode) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    // Footnote — same discreet, low-opacity style as the dashboard's "Actualizado
+                    // hace X días" timestamps, so the raw dial code reads as fine print, not an action.
+                    Text(
+                        "Se marcará directamente, sin abrir el marcador del teléfono.",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center
+                    )
+                    Text(
+                        dialCode,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        fontFamily = FontFamily.Monospace,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
             }
         }
     }

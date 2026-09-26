@@ -102,6 +102,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
         initialValue = SettingsDataStore.DEFAULT_ACCENT_COLOR
     )
     val quickPurchaseNoConfirm by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
+    val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     // Persisted (not local @State) so the unlock survives across launches, and one-way only —
     // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
@@ -187,6 +188,19 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                                 checked = quickPurchaseNoConfirm,
                                 onCheckedChange = { checked ->
                                     scope.launch { settings.setQuickPurchaseNoConfirmDefault(checked) }
+                                }
+                            )
+                        }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Aviso de señal celular",
+                        supporting = "Muestra un banner con la calidad de la señal antes de marcar",
+                        trailingContent = {
+                            Switch(
+                                checked = showNetworkStatus,
+                                onCheckedChange = { checked ->
+                                    scope.launch { settings.setShowNetworkStatus(checked) }
                                 }
                             )
                         }
@@ -463,7 +477,15 @@ private fun SettingsRow(
 ) {
     ListItem(
         headlineContent = { Text(headline) },
-        supportingContent = supporting?.let { { Text(it) } },
+        supportingContent = supporting?.let {
+            {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                )
+            }
+        },
         leadingContent = icon?.let { { Icon(it, contentDescription = null, tint = MaterialTheme.colorScheme.primary) } },
         trailingContent = trailingContent,
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),

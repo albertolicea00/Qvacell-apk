@@ -29,6 +29,8 @@ import com.qvacell.app.model.UssdCode
 import com.qvacell.app.model.UssdCodeGroup
 import com.qvacell.app.ui.components.CodeOptionsSheet
 import com.qvacell.app.ui.components.CodeRow
+import com.qvacell.app.ui.components.ConnectionBanner
+import com.qvacell.app.ui.components.QuickPurchaseWarningBanner
 import com.qvacell.app.ui.components.SearchableTopAppBar
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 // import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
@@ -44,6 +46,7 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
     // override here, it just follows that setting.
     val settings = remember { SettingsDataStore(context) }
     val quickActionEnabled by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
+    val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     var codeForOptionsSheet by remember { mutableStateOf<UssdCode?>(null) }
     val onCodeClick = rememberCodeActionHandler(
         useNoConfirmCode = categoryId == "purchase" && quickActionEnabled,
@@ -82,18 +85,11 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
+            if (showNetworkStatus) {
+                ConnectionBanner()
+            }
             if (categoryId == "purchase" && quickActionEnabled) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        "Acción sin Confirmación activada en Ajustes — las compras se marcan de una vez, sin pedir confirmación.",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
+                QuickPurchaseWarningBanner()
             }
             // Column+verticalScroll instead of LazyColumn: a LazyColumn always stretches to fill
             // the viewport, leaving a permanent blank gap below the last group whenever the

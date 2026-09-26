@@ -39,11 +39,11 @@ private val LightColors = lightColorScheme(
     onSecondaryContainer = Color(0xFF10404D),
     background = Color(0xFFEDEEF1),
     surface = Color(0xFFEDEEF1),
-    surfaceContainerLowest = Color.White,
-    surfaceContainerLow = Color.White,
-    surfaceContainer = Color.White,
-    surfaceContainerHigh = Color.White,
-    surfaceContainerHighest = Color.White
+    surfaceContainerLowest = Color(0xFFF3F3F5),
+    surfaceContainerLow = Color(0xFFF3F3F5),
+    surfaceContainer = Color(0xFFF3F3F5),
+    surfaceContainerHigh = Color(0xFFF3F3F5),
+    surfaceContainerHighest = Color(0xFFF3F3F5)
 )
 private val DarkColors = darkColorScheme(
     primary = QvacellCyanDark,
@@ -54,11 +54,11 @@ private val DarkColors = darkColorScheme(
     onSecondaryContainer = Color(0xFFD6EFF7),
     background = Color(0xFF1C1C1E),
     surface = Color(0xFF1C1C1E),
-    surfaceContainerLowest = Color(0xFF232326),
-    surfaceContainerLow = Color(0xFF232326),
-    surfaceContainer = Color(0xFF232326),
-    surfaceContainerHigh = Color(0xFF232326),
-    surfaceContainerHighest = Color(0xFF232326)
+    surfaceContainerLowest = Color(0xFF2A2A2D),
+    surfaceContainerLow = Color(0xFF2A2A2D),
+    surfaceContainer = Color(0xFF2A2A2D),
+    surfaceContainerHigh = Color(0xFF2A2A2D),
+    surfaceContainerHighest = Color(0xFF2A2A2D)
 )
 
 /** Builds a full color scheme from a single user-picked accent color (Ajustes › Color de acento). */
@@ -74,11 +74,11 @@ private fun accentColorScheme(accent: Color, dark: Boolean): ColorScheme {
             onSecondaryContainer = lerp(accent, Color.White, 0.85f),
             background = Color(0xFF1C1C1E),
             surface = Color(0xFF1C1C1E),
-            surfaceContainerLowest = Color(0xFF0A0A0B),
-            surfaceContainerLow = Color(0xFF0A0A0B),
-            surfaceContainer = Color(0xFF0A0A0B),
-            surfaceContainerHigh = Color(0xFF0A0A0B),
-            surfaceContainerHighest = Color(0xFF0A0A0B)
+            surfaceContainerLowest = Color(0xFF2A2A2D),
+            surfaceContainerLow = Color(0xFF2A2A2D),
+            surfaceContainer = Color(0xFF2A2A2D),
+            surfaceContainerHigh = Color(0xFF2A2A2D),
+            surfaceContainerHighest = Color(0xFF2A2A2D)
         )
     } else {
         lightColorScheme(
@@ -90,11 +90,11 @@ private fun accentColorScheme(accent: Color, dark: Boolean): ColorScheme {
             onSecondaryContainer = lerp(accent, Color.Black, 0.7f),
             background = Color(0xFFEDEEF1),
             surface = Color(0xFFEDEEF1),
-            surfaceContainerLowest = Color.White,
-            surfaceContainerLow = Color.White,
-            surfaceContainer = Color.White,
-            surfaceContainerHigh = Color.White,
-            surfaceContainerHighest = Color.White
+            surfaceContainerLowest = Color(0xFFF3F3F5),
+            surfaceContainerLow = Color(0xFFF3F3F5),
+            surfaceContainer = Color(0xFFF3F3F5),
+            surfaceContainerHigh = Color(0xFFF3F3F5),
+            surfaceContainerHighest = Color(0xFFF3F3F5)
         )
     }
 }
