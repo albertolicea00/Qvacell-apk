@@ -4,6 +4,7 @@ import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Button
@@ -55,12 +57,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.BuildConfig
+import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.data.ThemeMode
-import com.qvacell.app.service.TransferPinStore
 import com.qvacell.app.ui.components.ColorWheelPicker
-import com.qvacell.app.ui.components.RoundedTextField
+import com.qvacell.app.ui.components.rememberCodeActionHandler
 import com.qvacell.app.ui.navigation.bottomTabs
+import com.qvacell.app.ui.resolveAndroidIcon
 import kotlinx.coroutines.launch
 
 private val ACCENT_COLOR_OPTIONS = listOf(
@@ -78,6 +81,11 @@ sealed class SettingsDestination {
     data object WifiRooms : SettingsDestination()
     data object DirectorySearch : SettingsDestination()
     data object Help : SettingsDestination()
+    data object YellowPagesSearch : SettingsDestination()
+    data object FriendsPlanManage : SettingsDestination()
+    data object TransferPinManage : SettingsDestination()
+    data object HomeWidgets : SettingsDestination()
+    data object VoiceShortcuts : SettingsDestination()
 }
 
 @Composable
@@ -85,6 +93,8 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
+    val repository = remember { CatalogRepository(context) }
+    val onCodeClick = rememberCodeActionHandler()
 
     val themeMode by settings.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
     val defaultTab by settings.defaultTab.collectAsStateWithLifecycle(initialValue = "home")
@@ -92,15 +102,25 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
         initialValue = SettingsDataStore.DEFAULT_ACCENT_COLOR
     )
     val quickPurchaseNoConfirm by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
+    // Persisted (not local @State) so the unlock survives across launches, and one-way only —
+    // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
+    val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
 
     var showThemeSheet by remember { mutableStateOf(false) }
     var showDefaultTabSheet by remember { mutableStateOf(false) }
     var showAccentColorSheet by remember { mutableStateOf(false) }
-    var showTransferPinSheet by remember { mutableStateOf(false) }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
-    var debugDbSearchVisible by remember { mutableStateOf(false) }
+
+    val configuracionesCodes = remember {
+        repository.loadCatalog().categories
+            .firstOrNull { it.id == "home" }
+            ?.groups
+            ?.firstOrNull { it.name?.value == "Configuraciones" }
+            ?.codes
+            .orEmpty()
+    }
 
     fun onVersionTap() {
         val now = System.currentTimeMillis()
@@ -108,8 +128,11 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
         lastTapTime = now
         versionTapCount++
         if (versionTapCount >= 5) {
-            debugDbSearchVisible = true
             versionTapCount = 0
+            if (!dbSearchUnlocked) {
+                scope.launch { settings.setDebugDatabaseSearchEnabled(true) }
+                Toast.makeText(context, "Buscar en BBDD desbloqueada", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -193,11 +216,18 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                         icon = Icons.Filled.Wifi,
                         onClick = { onNavigate(SettingsDestination.WifiRooms) }
                     )
-                    if (debugDbSearchVisible) {
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Buscar en Directorio",
+                        supporting = "Directorio telefónico de ETECSA (en desarrollo)",
+                        icon = Icons.Filled.Search,
+                        onClick = { onNavigate(SettingsDestination.YellowPagesSearch) }
+                    )
+                    if (dbSearchUnlocked) {
                         SettingsDivider()
                         SettingsRow(
-                            headline = "Búsqueda en Base de Datos",
-                            supporting = "Función de depuración",
+                            headline = "Buscar en BBDD",
+                            supporting = "Búsqueda inversa por número en una base de datos local",
                             onClick = { onNavigate(SettingsDestination.DirectorySearch) }
                         )
                     }
@@ -206,7 +236,23 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
 
             item {
                 SettingsSection(header = "Cuenta") {
-                    SettingsRow(headline = "Clave de Transferencia", onClick = { showTransferPinSheet = true })
+                    configuracionesCodes.forEach { code ->
+                        SettingsRow(
+                            headline = code.title.value,
+                            icon = resolveAndroidIcon(code.icon),
+                            onClick = { onCodeClick(code) }
+                        )
+                        SettingsDivider()
+                    }
+                    SettingsRow(
+                        headline = "Gestionar Plan Amigo",
+                        onClick = { onNavigate(SettingsDestination.FriendsPlanManage) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Gestionar PIN de Transferencia",
+                        onClick = { onNavigate(SettingsDestination.TransferPinManage) }
+                    )
                 }
             }
 
@@ -218,9 +264,17 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                         onClick = { requestCallScreeningRole(context) }
                     )
                     SettingsDivider()
-                    SettingsRow(headline = "Ayuda", onClick = { onNavigate(SettingsDestination.Help) })
+                    SettingsRow(
+                        headline = "Widgets de Inicio",
+                        onClick = { onNavigate(SettingsDestination.HomeWidgets) }
+                    )
                     SettingsDivider()
-                    SettingsRow(headline = "Código fuente en GitHub")
+                    SettingsRow(
+                        headline = "Atajos de Voz (Gemini)",
+                        onClick = { onNavigate(SettingsDestination.VoiceShortcuts) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(headline = "Ayuda", onClick = { onNavigate(SettingsDestination.Help) })
                     SettingsDivider()
                     SettingsRow(
                         headline = "Versión",
@@ -374,37 +428,6 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             ) { Text("Aplicar") }
                         }
                     }
-                }
-            }
-        }
-    }
-
-    if (showTransferPinSheet) {
-        val pinStore = remember { TransferPinStore(context) }
-        var pin by remember { mutableStateOf(pinStore.load() ?: "") }
-
-        ModalBottomSheet(onDismissRequest = { showTransferPinSheet = false }) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text("Clave de Transferencia", style = MaterialTheme.typography.titleLarge)
-                RoundedTextField(value = pin, onValueChange = { pin = it }, label = "Clave")
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = {
-                            pinStore.delete()
-                            pin = ""
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Eliminar") }
-                    Button(
-                        onClick = {
-                            pinStore.save(pin)
-                            showTransferPinSheet = false
-                        },
-                        modifier = Modifier.weight(1f)
-                    ) { Text("Guardar") }
                 }
             }
         }

@@ -30,12 +30,15 @@ import androidx.navigation.navArgument
 import com.qvacell.app.ui.screens.CategoryListScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
 import com.qvacell.app.ui.screens.DirectorySearchScreen
+import com.qvacell.app.ui.screens.FriendsPlanManageScreen
 import com.qvacell.app.ui.screens.HelpScreen
 import com.qvacell.app.ui.screens.HomeQuickActionsScreen
+import com.qvacell.app.ui.screens.PlaceholderScreen
 import com.qvacell.app.ui.screens.ReminderEditScreen
 import com.qvacell.app.ui.screens.ReminderListScreen
 import com.qvacell.app.ui.screens.SettingsDestination
 import com.qvacell.app.ui.screens.SettingsScreen
+import com.qvacell.app.ui.screens.TransferPinManageScreen
 import com.qvacell.app.ui.screens.WifiProvinceDetailScreen
 import com.qvacell.app.ui.screens.WifiProvinceListScreen
 
@@ -48,7 +51,12 @@ private val SETTINGS_NESTED_ROUTES = setOf(
     Routes.WIFI_PROVINCES,
     Routes.WIFI_PROVINCE_DETAIL,
     Routes.DIRECTORY_SEARCH,
-    Routes.HELP
+    Routes.HELP,
+    Routes.YELLOW_PAGES_SEARCH,
+    Routes.FRIENDS_PLAN_MANAGE,
+    Routes.TRANSFER_PIN_MANAGE,
+    Routes.HOME_WIDGETS,
+    Routes.VOICE_SHORTCUTS
 )
 
 @Composable
@@ -165,6 +173,11 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                         SettingsDestination.WifiRooms -> Routes.WIFI_PROVINCES
                         SettingsDestination.DirectorySearch -> Routes.DIRECTORY_SEARCH
                         SettingsDestination.Help -> Routes.HELP
+                        SettingsDestination.YellowPagesSearch -> Routes.YELLOW_PAGES_SEARCH
+                        SettingsDestination.FriendsPlanManage -> Routes.FRIENDS_PLAN_MANAGE
+                        SettingsDestination.TransferPinManage -> Routes.TRANSFER_PIN_MANAGE
+                        SettingsDestination.HomeWidgets -> Routes.HOME_WIDGETS
+                        SettingsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
                     }
                     navController.navigate(route)
                 })
@@ -213,6 +226,33 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             }
             composable(Routes.HELP) {
                 HelpScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.YELLOW_PAGES_SEARCH) {
+                PlaceholderScreen(
+                    title = "Buscar en Directorio",
+                    description = "Búsqueda en el directorio telefónico de ETECSA — función en desarrollo.",
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(Routes.FRIENDS_PLAN_MANAGE) {
+                FriendsPlanManageScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.TRANSFER_PIN_MANAGE) {
+                TransferPinManageScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.HOME_WIDGETS) {
+                PlaceholderScreen(
+                    title = "Widgets de Inicio",
+                    description = "Widgets para la pantalla de inicio de tu teléfono — función en desarrollo.",
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(Routes.VOICE_SHORTCUTS) {
+                PlaceholderScreen(
+                    title = "Atajos de Voz (Gemini)",
+                    description = "Controla Qvacell con tu voz mediante Gemini — función en desarrollo.",
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }

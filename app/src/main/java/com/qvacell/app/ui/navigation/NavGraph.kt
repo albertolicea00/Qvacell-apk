@@ -32,4 +32,9 @@ object Routes {
     const val WIFI_PROVINCE_DETAIL = "settings/wifi/{province}"
     const val DIRECTORY_SEARCH = "settings/directory"
     const val HELP = "settings/help"
+    const val YELLOW_PAGES_SEARCH = "settings/yellow-pages"
+    const val FRIENDS_PLAN_MANAGE = "settings/friends-plan"
+    const val TRANSFER_PIN_MANAGE = "settings/transfer-pin"
+    const val HOME_WIDGETS = "settings/widgets"
+    const val VOICE_SHORTCUTS = "settings/voice-shortcuts"
 }
