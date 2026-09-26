@@ -1,6 +1,6 @@
 package com.qvacell.app.ui.components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,7 +32,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -120,7 +120,9 @@ fun MainBalanceCard(
                                 append(wholePart)
                             }
                             if (centsPart.isNotEmpty()) {
-                                withStyle(SpanStyle(fontSize = 20.sp)) {
+                                withStyle(
+                                    SpanStyle(fontSize = 20.sp, baselineShift = BaselineShift.Superscript)
+                                ) {
                                     append(".$centsPart")
                                 }
                             }
@@ -223,7 +225,7 @@ fun RechargeLimitCard(reached: Boolean, limitAmount: String, availableFrom: Stri
                             append("$daysUntilAvailable")
                         }
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-                            append("d")
+                            append(if (daysUntilAvailable == 1L) " día" else " días")
                         }
                     },
                     style = MaterialTheme.typography.bodySmall
@@ -551,32 +553,33 @@ private fun formatSpanishDate(date: LocalDate): String =
 
 /** Two side-by-side placeholder cards — pulled out of the request to sit below [NationalBonusCard]. */
 @Composable
-fun ConsultCardsRow(onPlanAmigoClick: () -> Unit = {}, onSaldoPrepagadoClick: () -> Unit = {}) {
+fun ConsultCardsRow(onPlanAmigoQuery: () -> Unit = {}, onPrepagoQuery: () -> Unit = {}) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         ConsultCard(
             title = "PLAN AMIGO",
             icon = Icons.Filled.People,
             modifier = Modifier.weight(1f),
-            onClick = onPlanAmigoClick
+            onDoubleTap = onPlanAmigoQuery
         )
         ConsultCard(
-            title = "SALDO PREPAGO",
+            title = "PREPAGO",
             icon = Icons.Filled.CreditCard,
             modifier = Modifier.weight(1f),
-            onClick = onSaldoPrepagadoClick
+            onDoubleTap = onPrepagoQuery
         )
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun ConsultCard(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onDoubleTap: () -> Unit
 ) {
     Card(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier.combinedClickable(onClick = {}, onDoubleClick = onDoubleTap),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
@@ -595,37 +598,28 @@ private fun ConsultCard(
                     modifier = Modifier.padding(start = 6.dp)
                 )
             }
+            // Doble tap para consultar — sin acción de un solo toque que confundiría con esto.
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                modifier = Modifier.padding(top = 8.dp)
             ) {
                 Text(
-                    "Presiona para consultar",
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false)
+                    "UI Próximamente",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 9.sp,
+                        fontStyle = FontStyle.Italic
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
                 Icon(
                     Icons.Filled.ArrowOutward,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier
                         .padding(start = 4.dp)
-                        .size(14.dp)
+                        .size(11.dp)
                 )
             }
-            Text(
-                "UI Próximamente",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 9.sp,
-                    fontStyle = FontStyle.Italic
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.padding(top = 2.dp)
-            )
         }
     }
 }

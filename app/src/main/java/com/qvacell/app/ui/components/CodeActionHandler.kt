@@ -11,12 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -30,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.qvacell.app.model.UssdActionType
 import com.qvacell.app.model.UssdCode
 import com.qvacell.app.service.DialService
@@ -152,40 +150,6 @@ fun rememberCodeActionHandler(
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                Spacer(modifier = Modifier.height(12.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            "Incluye",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(code.details.value, style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Surface(
-                    color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(
-                        dialCode,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Se marcará directamente, sin abrir el marcador del teléfono.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
                 Spacer(modifier = Modifier.height(20.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedButton(
@@ -204,6 +168,23 @@ fun rememberCodeActionHandler(
                         modifier = Modifier.weight(1f)
                     ) { Text("Aceptar") }
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+                // Footnote — same discreet, low-opacity style as the dashboard's "Actualizado hace
+                // X días" timestamps, so the raw dial code reads as fine print, not an action.
+                Text(
+                    "Se marcará directamente, sin abrir el marcador del teléfono.",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    dialCode,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    fontFamily = FontFamily.Monospace,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
             }
         }
     }

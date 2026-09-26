@@ -25,7 +25,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.data.CatalogRepository
+import com.qvacell.app.service.DialService
 import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
@@ -37,6 +40,8 @@ import com.qvacell.app.ui.components.VoiceSmsRow
 
 @Composable
 fun HomeQuickActionsScreen() {
+    val context = LocalContext.current
+    val repository = remember { CatalogRepository(context) }
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
 
@@ -66,7 +71,7 @@ fun HomeQuickActionsScreen() {
             )
             VoiceSmsRow(
                 voiceDaysRemaining = "35d",
-                voiceDuration = "119h 55m",
+                voiceDuration = "4d 23h 55m",
                 smsDaysRemaining = "35d",
                 smsCount = "8,419"
             )
@@ -76,10 +81,21 @@ fun HomeQuickActionsScreen() {
                 tariffStatus = "No Activa"
             )
             NationalBonusCard(
-                amount = "3.00 GB",
+                amount = "300 MB",
                 expiry = "Vence 30 días"
             )
-            ConsultCardsRow()
+            ConsultCardsRow(
+                onPlanAmigoQuery = {
+                    repository.findCodeById("friends-plan")?.let { code ->
+                        DialService.dial(context, code.resolvedCode())
+                    }
+                },
+                onPrepagoQuery = {
+                    repository.findCodeById("postpaid-balance")?.let { code ->
+                        DialService.dial(context, code.resolvedCode())
+                    }
+                }
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
