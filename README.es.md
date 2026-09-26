@@ -32,11 +32,22 @@ Una aplicación para Android para acceder rápidamente a los **códigos de servi
 - 🔍 **Búsqueda Offline en Directorio** — Búsqueda inversa por número sobre una base de datos SQLite suministrada por el usuario (oculta por defecto, ver abajo).
 - 🌗 **Personalización y Ajustes** — Soporte para tema Claro/Oscuro, color de acento personalizado y pestaña de inicio configurable.
 
+> [!NOTE]
+> **App Nativa de Android**
+> Esta aplicación está construida de forma nativa para Android con el fin de aprovechar funciones exclusivas de la plataforma (como servicios en segundo plano, identificación de llamadas e integración con SMS) que no se podían replicar completamente en iOS. Por esta razón, existe como un repositorio nativo dedicado e independiente.
+
 ## 🛠️ Requisitos
 
 - 🤖 Android Studio (última versión estable)
 - 📱 Android 8.0+ (API 26)
 - Kotlin 2.0+, Jetpack Compose
+
+## 📦 Variantes de Compilación (Flavors) y Permisos
+
+**Dos Versiones Disponibles**
+Este proyecto utiliza "flavors" de compilación para ofrecer dos versiones distintas de la aplicación:
+- **Versión de App Store**: Una versión restringida diseñada para cumplir con las estrictas políticas de la tienda respecto a permisos sensibles (como SMS y Accesibilidad).
+- **Versión Independiente (Instalación Manual)**: La experiencia completa y sin restricciones. Esta versión utiliza permisos de SMS y Accesibilidad para leer automáticamente los mensajes del operador y las respuestas USSD en segundo plano. Esto permite mantener el panel (dashboard) de saldo y datos actualizado casi en tiempo real.
 
 ## 🚀 Primeros Pasos
 

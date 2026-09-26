@@ -32,11 +32,22 @@ An Android app to quickly access the **USSD service codes of ETECSA (Cubacel)**:
 - 🔍 **Offline Directory Search** — Reverse phone lookup over a user-supplied SQLite dump (hidden by default, see below).
 - 🌗 **Customization & Settings** — Light/Dark theme support, custom accent color, and configurable launch tab.
 
+> [!NOTE]
+> **Native Android App**
+> This app is built natively for Android to leverage platform-specific capabilities (like advanced background services, call screening, and SMS integration) that could not be fully replicated on iOS. This is why it exists as a separate, dedicated native repository.
+
 ## 🛠️ Requirements
 
 - 🤖 Android Studio (latest stable)
 - 📱 Android 8.0+ (API 26)
 - Kotlin 2.0+, Jetpack Compose
+
+## 📦 Build Flavors & Permissions
+
+**Two Versions Available**
+This project uses build flavors to offer two distinct versions of the app:
+- **App Store Version**: A restricted build designed to comply with strict store policies regarding sensitive permissions (such as SMS and Accessibility).
+- **Standalone Version (Manual Install)**: The full, unrestricted experience. This version utilizes SMS and Accessibility permissions to automatically read carrier messages and USSD responses in the background. This allows the app to keep your data and balance dashboard updated in near real-time.
 
 ## 🚀 Getting Started
 
