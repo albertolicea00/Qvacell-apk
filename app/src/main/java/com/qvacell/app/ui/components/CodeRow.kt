@@ -1,5 +1,8 @@
 package com.qvacell.app.ui.components
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowOutward
@@ -18,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.model.UssdCode
@@ -30,22 +35,49 @@ fun CodeRow(
     modifier: Modifier = Modifier,
     showIcon: Boolean = true,
     showDescription: Boolean = true,
-    plainPrice: Boolean = false
+    plainPrice: Boolean = false,
+    // Bordered card row with a circled icon avatar, like the native Contacts app — used for Ayuda
+    // instead of the default flat row + shared group Card the other categories still use.
+    contactStyle: Boolean = false
 ) {
     Row(
         modifier = modifier
+            .let {
+                if (contactStyle) {
+                    it.padding(horizontal = 12.dp, vertical = 3.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                        .border(
+                            BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                            RoundedCornerShape(14.dp)
+                        )
+                } else {
+                    it
+                }
+            }
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (showIcon) {
-            Icon(
-                imageVector = resolveAndroidIcon(code.icon),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
-            )
+            if (contactStyle) {
+                Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
+                    Icon(
+                        imageVector = resolveAndroidIcon(code.icon),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(8.dp).size(24.dp)
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector = resolveAndroidIcon(code.icon),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
             Spacer(modifier = Modifier.width(16.dp))
         }
         Column(modifier = Modifier.weight(1f)) {

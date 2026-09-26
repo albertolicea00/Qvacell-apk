@@ -1,10 +1,14 @@
 package com.qvacell.app.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -30,11 +34,13 @@ import com.qvacell.app.model.UssdCodeGroup
 import com.qvacell.app.ui.components.CodeOptionsSheet
 import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.components.ConnectionBanner
+import com.qvacell.app.ui.components.GroupHeader
 import com.qvacell.app.ui.components.QuickPurchaseWarningBanner
 import com.qvacell.app.ui.components.SearchableTopAppBar
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 // import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
@@ -91,54 +97,67 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
             if (categoryId == "purchase" && quickActionEnabled) {
                 QuickPurchaseWarningBanner()
             }
-            // Column+verticalScroll instead of LazyColumn: a LazyColumn always stretches to fill
-            // the viewport, leaving a permanent blank gap below the last group whenever the
-            // filtered content doesn't fill the screen — catalogs here are small enough that
-            // virtualization isn't worth that tradeoff.
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                filteredGroups.forEach { group ->
-                    Column {
+            if (categoryId == "helplines") {
+                // Native Contacts-app look: individual bordered rows with a circled icon avatar,
+                // grouped under sticky headers by codes.json's existing groups (instead of
+                // by letter, since these aren't people — they're already organized by topic).
+                LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
+                    filteredGroups.forEach { group ->
                         if (group.name != null) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                // Temporarily disabled to compare the look without a group icon — codes.json still has it.
-                                // if (group.icon != null) {
-                                //     Icon(
-                                //         imageVector = resolveAndroidIcon(group.icon),
-                                //         contentDescription = null,
-                                //         tint = MaterialTheme.colorScheme.primary,
-                                //         modifier = Modifier.padding(end = 8.dp)
-                                //     )
-                                // }
-                                Text(
-                                    group.name.value,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.padding(start = 2.dp)
-                                )
+                            stickyHeader(key = "header_${group.name.value}") {
+                                GroupHeader(group.name.value)
                             }
                         }
-                        Card(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-                        ) {
-                            group.codes.forEachIndexed { index, code ->
-                                CodeRow(
-                                    code = code,
-                                    onClick = { onCodeClick(code) },
-                                    showIcon = categoryId !in setOf("purchase", "sms"),
-                                    showDescription = categoryId != "purchase",
-                                    plainPrice = categoryId in setOf("purchase", "sms")
-                                )
-                                if (index != group.codes.lastIndex) {
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        items(group.codes, key = { it.id }) { code ->
+                            CodeRow(
+                                code = code,
+                                onClick = { onCodeClick(code) },
+                                contactStyle = true
+                            )
+                        }
+                    }
+                }
+            } else {
+                // Column+verticalScroll instead of LazyColumn: a LazyColumn always stretches to
+                // fill the viewport, leaving a permanent blank gap below the last group whenever
+                // the filtered content doesn't fill the screen — catalogs here are small enough
+                // that virtualization isn't worth that tradeoff.
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    filteredGroups.forEach { group ->
+                        Column {
+                            if (group.name != null) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        group.name.value,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(start = 2.dp)
+                                    )
+                                }
+                            }
+                            Card(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                group.codes.forEachIndexed { index, code ->
+                                    CodeRow(
+                                        code = code,
+                                        onClick = { onCodeClick(code) },
+                                        showIcon = categoryId !in setOf("purchase", "sms"),
+                                        showDescription = categoryId != "purchase",
+                                        plainPrice = categoryId in setOf("purchase", "sms")
+                                    )
+                                    if (index != group.codes.lastIndex) {
+                                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                    }
                                 }
                             }
                         }
