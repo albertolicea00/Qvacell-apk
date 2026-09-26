@@ -30,7 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
-import com.qvacell.app.service.DialService
+import com.qvacell.app.service.DashboardCapture
+import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.DataUsageCard
@@ -46,7 +47,9 @@ fun HomeQuickActionsScreen() {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
     val settings = remember { SettingsDataStore(context) }
+    val dashboardRepository = remember { DashboardDataRepository(context) }
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
+    val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
 
@@ -95,12 +98,12 @@ fun HomeQuickActionsScreen() {
             ConsultCardsRow(
                 onPlanAmigoQuery = {
                     repository.findCodeById("friends-plan")?.let { code ->
-                        DialService.dial(context, code.resolvedCode())
+                        DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
                     }
                 },
                 onPrepagoQuery = {
                     repository.findCodeById("postpaid-balance")?.let { code ->
-                        DialService.dial(context, code.resolvedCode())
+                        DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
                     }
                 }
             )
