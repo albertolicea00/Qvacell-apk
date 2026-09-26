@@ -91,7 +91,7 @@ fun ReminderEditScreen(onDone: () -> Unit, onBack: (() -> Unit)? = null) {
             )
             Text("Repetición")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ReminderRecurrence.values().forEach { option ->
+                ReminderRecurrence.entries.forEach { option ->
                     FilterChip(
                         selected = recurrence == option,
                         onClick = { recurrence = option },

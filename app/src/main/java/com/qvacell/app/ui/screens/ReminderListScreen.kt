@@ -77,8 +77,9 @@ fun ReminderListScreen(onAdd: () -> Unit, onEdit: (Reminder) -> Unit, onBack: ((
                                         }
                                     }
                                 )
-                            },
-                            modifier = Modifier.padding(horizontal = 4.dp)
+                            modifier = Modifier
+                                .clickable { onEdit(reminder) }
+                                .padding(horizontal = 4.dp)
                         )
                     }
                 }

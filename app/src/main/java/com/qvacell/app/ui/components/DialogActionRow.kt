@@ -25,8 +25,8 @@ fun DialogActionRow(
     confirmText: String,
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
-    confirmEnabled: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    confirmEnabled: Boolean = true
 ) {
     HorizontalDivider()
     Row(modifier = modifier.fillMaxWidth().height(48.dp)) {

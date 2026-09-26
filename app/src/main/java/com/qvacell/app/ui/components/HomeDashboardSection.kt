@@ -97,7 +97,7 @@ fun MainBalanceCard(
                         softWrap = false
                     )
                     // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                    val lastUpdateDaysAgo = 1
+                    val lastUpdateDaysAgo = "1".toInt()
                     Text(
                         if (lastUpdateDaysAgo == 0) {
                             "Actualizado hoy"
@@ -195,7 +195,7 @@ fun RechargeLimitCard(reached: Boolean, limitAmount: String, availableFrom: Stri
                     )
                 }
                 // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                val lastUpdateDaysAgo = 1
+                val lastUpdateDaysAgo = "1".toInt()
                 Text(
                     if (lastUpdateDaysAgo == 0) {
                         "Actualizado hoy"
@@ -280,7 +280,7 @@ fun DataUsageCard(
                         )
                     }
                     // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                    val lastUpdateDaysAgo = 1
+                    val lastUpdateDaysAgo = "1".toInt()
                     Text(
                         if (lastUpdateDaysAgo == 0) {
                             "Actualizado hoy"
@@ -377,7 +377,7 @@ fun NationalBonusCard(amount: String, expiry: String) {
                         )
                     }
                     // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                    val lastUpdateDaysAgo = 1
+                    val lastUpdateDaysAgo = "1".toInt()
                     Text(
                         if (lastUpdateDaysAgo == 0) {
                             "Actualizado hoy"
@@ -525,7 +525,7 @@ private fun UsageStatCard(
                     )
                 }
                 // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                val lastUpdateDaysAgo = 1
+                val lastUpdateDaysAgo = "1".toInt()
                 Text(
                     if (lastUpdateDaysAgo == 0) {
                         "Actualizado hoy"

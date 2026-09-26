@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.graphics.toColorInt
 import com.qvacell.app.data.ThemeMode
 
 // Matches the logo mark and iOS's `Color.brandCyan` (rgb(0,153,204)) — the app's actual
@@ -120,7 +121,7 @@ fun QvacellTheme(
     val context = LocalContext.current
     val accent = accentColorHex?.let {
         try {
-            Color(android.graphics.Color.parseColor(it))
+            Color(it.toColorInt())
         } catch (e: IllegalArgumentException) {
             null
         }

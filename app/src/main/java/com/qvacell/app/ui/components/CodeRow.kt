@@ -119,16 +119,14 @@ fun CodeRow(
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
-                    if (!hasOptionsOrVariants) {
-                        Icon(
-                            Icons.Filled.ArrowOutward,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .padding(start = if (showPrice) 4.dp else 0.dp)
-                                .size(14.dp)
-                        )
-                    }
+                    Icon(
+                        Icons.Filled.ArrowOutward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .padding(start = if (showPrice) 4.dp else 0.dp)
+                            .size(14.dp)
+                    )
                 }
             }
         } else if (showPrice) {
