@@ -1,6 +1,5 @@
 plugins {
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
@@ -8,14 +7,30 @@ plugins {
 
 android {
     namespace = "com.qvacell.app"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.qvacell.app"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0.0"
+    }
+
+    // "full" (GitHub/sideload) gets the dashboard data-capture pipeline — silent USSD capture,
+    // SMS reading, call-log estimation — and the sensitive permissions/receivers it needs.
+    // "play" (Google Play) ships without any of that, so the store build never has to clear
+    // Play's restricted-permissions review for RECEIVE_SMS/READ_SMS/READ_CALL_LOG.
+    flavorDimensions += "distribution"
+    productFlavors {
+        create("full") {
+            dimension = "distribution"
+            buildConfigField("boolean", "DASHBOARD_CAPTURE_ENABLED", "true")
+        }
+        create("play") {
+            dimension = "distribution"
+            buildConfigField("boolean", "DASHBOARD_CAPTURE_ENABLED", "false")
+        }
     }
 
     buildTypes {
@@ -48,14 +63,14 @@ android {
         }
     }
 
-    applicationVariants.all {
-        val variant = this
-        outputs.all {
-            val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            outputImpl.outputFileName = "qvacell-${variant.name}-v${variant.versionName}.apk"
-        }
-    }
 }
+
+// TODO: the legacy `applicationVariants`/`BaseVariantOutputImpl` API this used to rename output
+// APKs to "qvacell-<variant>-v<versionName>.apk" is gone under AGP 9's variant API, and the
+// direct outputFileName-mutation replacement doesn't compile against this AGP/AGP-recipes'
+// current shape either — needs AGP 9's "listenToArtifacts" recipe, not a mechanical port.
+// Dropped for now (default AGP output naming applies) rather than block this build; unrelated
+// to the AGP bump's actual goal (unblocking compilation for the new dashboard-pipeline code).
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.09.03")
@@ -92,4 +107,12 @@ dependencies {
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+
+    // First-ever test infra for this project (dashboard-pipeline parser/DAO/repository tests).
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.13")
+    testImplementation("androidx.test:core:1.6.1")
+    testImplementation("androidx.room:room-testing:2.8.5")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 }
