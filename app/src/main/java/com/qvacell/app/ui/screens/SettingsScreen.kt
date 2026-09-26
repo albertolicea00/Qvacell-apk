@@ -1,10 +1,13 @@
 package com.qvacell.app.ui.screens
 
+import android.Manifest
 import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -58,6 +61,9 @@ import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.data.ThemeMode
+import com.qvacell.app.service.DashboardCapture
+import com.qvacell.app.service.DashboardDataRepository
+import com.qvacell.app.service.DialService
 import com.qvacell.app.ui.components.ColorWheelPicker
 import com.qvacell.app.ui.components.DialogActionRow
 import com.qvacell.app.ui.components.rememberCodeActionHandler
@@ -93,6 +99,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
     val repository = remember { CatalogRepository(context) }
+    val dashboardRepository = remember { DashboardDataRepository(context) }
     val onCodeClick = rememberCodeActionHandler()
 
     val themeMode by settings.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
@@ -105,6 +112,27 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     // Persisted (not local @State) so the unlock survives across launches, and one-way only —
     // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val smsCaptureEnabled by settings.smsCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val hasRunSmsBackfill by settings.hasRunSmsBackfill.collectAsStateWithLifecycle(initialValue = false)
+
+    val ussdCapturePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        scope.launch { settings.setUssdCaptureEnabled(granted) }
+    }
+
+    val smsCallLogPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        val granted = results.values.all { it }
+        scope.launch { settings.setSmsCaptureEnabled(granted) }
+        DashboardCapture.scheduleEstimationIfEnabled(context, granted)
+        if (granted && !hasRunSmsBackfill) {
+            DashboardCapture.triggerSmsBackfill(context, dashboardRepository)
+            scope.launch { settings.setHasRunSmsBackfill(true) }
+        }
+    }
 
     var showThemeSheet by remember { mutableStateOf(false) }
     var showDefaultTabSheet by remember { mutableStateOf(false) }
@@ -204,6 +232,52 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             )
                         }
                     )
+                }
+            }
+
+            if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                item {
+                    SettingsSection(header = "Datos del Dashboard (experimental)") {
+                        SettingsRow(
+                            headline = "Consulta automática de saldo",
+                            supporting = "Lee la respuesta USSD sin abrir el marcador, usando el mismo permiso de Compras.",
+                            trailingContent = {
+                                Switch(
+                                    checked = ussdCaptureEnabled,
+                                    onCheckedChange = { checked ->
+                                        if (checked && !DialService.hasCallPermission(context)) {
+                                            ussdCapturePermissionLauncher.launch(Manifest.permission.CALL_PHONE)
+                                        } else {
+                                            scope.launch { settings.setUssdCaptureEnabled(checked) }
+                                        }
+                                    }
+                                )
+                            }
+                        )
+                        SettingsDivider()
+                        SettingsRow(
+                            headline = "Detección automática por SMS",
+                            supporting = "Lee los SMS de saldo de ETECSA (nuevos e historial) y el registro de llamadas para estimar tu consumo.",
+                            trailingContent = {
+                                Switch(
+                                    checked = smsCaptureEnabled,
+                                    onCheckedChange = { checked ->
+                                        if (checked) {
+                                            smsCallLogPermissionLauncher.launch(
+                                                arrayOf(
+                                                    Manifest.permission.RECEIVE_SMS,
+                                                    Manifest.permission.READ_SMS,
+                                                    Manifest.permission.READ_CALL_LOG
+                                                )
+                                            )
+                                        } else {
+                                            scope.launch { settings.setSmsCaptureEnabled(false) }
+                                        }
+                                    }
+                                )
+                            }
+                        )
+                    }
                 }
             }
 
