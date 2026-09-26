@@ -5,7 +5,6 @@
 [![Platform](https://img.shields.io/badge/platform-Android%208.0%2B-blue.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0%2B-orange.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202024.09-blue.svg)](https://developer.android.com/jetpack/compose)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)
 [![iOS sync](https://github.com/albertolicea00/Qvacell-apk/actions/workflows/cross-platform-sync-check.yml/badge.svg)](https://github.com/albertolicea00/Qvacell-apk/actions/workflows/cross-platform-sync-check.yml)
 
@@ -76,11 +75,11 @@ app/src/main/java/com/qvacell/app/
 └── ui/                          # Compose screens, navigation, shared components
 
 app/src/main/assets/
-├── codes.json                   # Bundled USSD code catalog (shared with the iOS app)
+├── codes.json                   # Bundled USSD code catalog
 └── wifi_navigation_rooms.json   # Bundled ETECSA navigation-room/hotspot directory
 ```
 
-_The full USSD code catalog is loaded from the bundled [`codes.json`](app/src/main/assets/codes.json), the same file the iOS app ships, keeping both platforms in sync._ 📁
+_The full USSD code catalog is loaded from the bundled [`codes.json`](app/src/main/assets/codes.json)._ 📁
 
 ## ☎️ Direct Dial vs. Confirmation
 
@@ -94,7 +93,7 @@ Under **Ajustes › Utilidades**:
 
 ## 🛜 Navigation Rooms & Public Wi-Fi
 
-Includes an offline directory of official ETECSA navigation rooms and public Wi-Fi hotspots by province, bundled the same way as the iOS app.
+Includes an offline directory of official ETECSA navigation rooms and public Wi-Fi hotspots by province.
 
 ## 🔄 Cross-Platform Catalog Sync
 
@@ -103,8 +102,6 @@ Includes an offline directory of official ETECSA navigation rooms and public Wi-
 ## 🚧 Known Limitations
 
 - **Caller ID cannot show a custom name in the system in-call UI.** Unlike iOS's CallKit Call Directory Extension, Android's `CallScreeningService` API does not let a non-default-dialer app inject a caller name into the system's own incoming-call screen. This app instead surfaces the resolved name via a heads-up notification when a wrapped `*99` collect call rings. Becoming the user's default dialer app to get full name injection was deliberately not pursued — it's a much larger commitment (replacing core phone UI) for one feature.
-- **Offline database not integrated with Caller ID (`*99`).** Same reasoning as the iOS app: the user-imported database (`Buscar en Database`) is kept separate from the wrapped-caller lookup table, which only ever loads from the device's own Contacts.
-- **No real-time balance tracking.** Neither platform can read the USSD response shown by the carrier's own dialer session — dialing a code hands off execution to the system dialer, where the user sees the carrier's response directly.
 - **Carrier/OEM dialer apps may intercept USSD codes** before this app's `ACTION_DIAL` intent reaches the modem, depending on device and ROM. This is an Android platform/OEM behavior outside the app's control.
 
 ## 🤝 Contributing

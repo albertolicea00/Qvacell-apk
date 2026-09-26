@@ -5,7 +5,6 @@
 [![Plataforma](https://img.shields.io/badge/plataforma-Android%208.0%2B-blue.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0%2B-orange.svg)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/Jetpack%20Compose-BOM%202024.09-blue.svg)](https://developer.android.com/jetpack/compose)
-[![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 ![PRs Bienvenidos](https://img.shields.io/badge/PRs-bienvenidos-brightgreen)
 [![Sincronización iOS](https://github.com/albertolicea00/Qvacell-apk/actions/workflows/cross-platform-sync-check.yml/badge.svg)](https://github.com/albertolicea00/Qvacell-apk/actions/workflows/cross-platform-sync-check.yml)
 
@@ -76,11 +75,11 @@ app/src/main/java/com/qvacell/app/
 └── ui/                          # Pantallas Compose, navegación, componentes compartidos
 
 app/src/main/assets/
-├── codes.json                   # Catálogo de códigos USSD incluido (compartido con la app iOS)
+├── codes.json                   # Catálogo de códigos USSD incluido
 └── wifi_navigation_rooms.json   # Directorio de salas de navegación/puntos Wi-Fi de ETECSA incluido
 ```
 
-_El catálogo completo de códigos USSD se carga desde [`codes.json`](app/src/main/assets/codes.json), el mismo archivo que usa la app iOS, manteniendo ambas plataformas sincronizadas._ 📁
+_El catálogo completo de códigos USSD se carga desde [`codes.json`](app/src/main/assets/codes.json)._ 📁
 
 ## ☎️ Marcado Directo vs. Confirmación
 
@@ -94,7 +93,7 @@ En **Ajustes › Utilidades**:
 
 ## 🛜 Salas de Navegación y Wi-Fi Público
 
-Incluye un directorio offline de salas de navegación oficiales de ETECSA y puntos Wi-Fi públicos por provincia, empaquetado igual que en la app iOS.
+Incluye un directorio offline de salas de navegación oficiales de ETECSA y puntos Wi-Fi públicos por provincia.
 
 ## 🔄 Sincronización entre Plataformas
 
@@ -103,8 +102,6 @@ Incluye un directorio offline de salas de navegación oficiales de ETECSA y punt
 ## 🚧 Limitaciones Conocidas
 
 - **El Identificador de Llamadas no puede mostrar un nombre personalizado en la interfaz del sistema.** A diferencia de la extensión CallKit Call Directory de iOS, la API `CallScreeningService` de Android no permite que una app que no sea el marcador predeterminado inyecte un nombre en la pantalla de llamada entrante del propio sistema. Esta app en su lugar muestra el nombre resuelto mediante una notificación emergente cuando suena una llamada `*99` envuelta. Convertir la app en el marcador predeterminado del usuario para lograr la inyección completa del nombre se descartó deliberadamente — es un compromiso mucho mayor (reemplazar la interfaz principal del teléfono) por una sola función.
-- **La base de datos offline no está integrada con el Identificador de Llamadas (`*99`).** Mismo razonamiento que en la app iOS: la base de datos importada por el usuario (`Buscar en Database`) se mantiene separada de la tabla de búsqueda de números envueltos, que solo se carga desde los Contactos propios del dispositivo.
-- **Sin seguimiento de saldo en tiempo real.** Ninguna de las dos plataformas puede leer la respuesta USSD que muestra el propio marcador del operador — marcar un código transfiere la ejecución al marcador del sistema, donde el usuario ve la respuesta del operador directamente.
 - **Los marcadores de operador/fabricante pueden interceptar los códigos USSD** antes de que el intent `ACTION_DIAL` de esta app llegue al módem, según el dispositivo y la ROM. Este es un comportamiento de la plataforma/fabricante de Android fuera del control de la app.
 
 ## 🤝 Contribuir
