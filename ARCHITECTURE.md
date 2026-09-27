@@ -361,7 +361,7 @@ app/src/unlocked/.../DashboardCapture.kt — real capture-or-dial decision (§15
 
 First-ever test infrastructure for this project (`app/src/test/java/com/qvacell/app/{parsing,data,service}/`) — JUnit4 + Robolectric (in-memory Room) + Turbine for `Flow` assertions. Notable environment caveats hit while setting this up, in case they resurface:
 - Robolectric 4.13's bundled ASM cannot parse class files compiled for JDK 25 ("Unsupported class file major version 69") — unit tests are pinned to JDK 17 via a `javaLauncher` toolchain override in `app/build.gradle.kts`'s `tasks.withType<Test>`, independent of whatever JDK invokes Gradle itself.
-- `UssdParserCoverageTest` reads `codes.json` directly off disk (`File("src/main/assets/codes.json")`) rather than through Robolectric's `AssetManager` shadow — this project's `compileSdk 37` is newer than Robolectric 4.13's resource-parsing support, so the plain-file read sidesteps a shaky compatibility path for a test that only needs the JSON content anyway.
+- `UssdParserCoverageTest` reads `codes.json` directly off disk (`File("src/main/assets/codes.json")`) rather than through Robolectric's `AssetManager` shadow — this test only needs the JSON content, not real Android asset-resolution behavior, so a plain file read sidesteps Robolectric's resource/asset shadow layer entirely for a case that doesn't need it.
 
 Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX(id)` grouping correctness under out-of-order backfill inserts, anchor `lastSeenAt`/`lastSuccessfulParseAt` independence (the regression test for "no single global last-known-date"), and the real-vs-estimate reconciliation precedence rule (§15.4).
 

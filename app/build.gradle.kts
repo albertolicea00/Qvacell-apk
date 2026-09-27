@@ -80,11 +80,15 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
-    implementation("androidx.core:core-ktx:1.19.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.11.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.11.0")
-    implementation("androidx.activity:activity-compose:1.13.0")
+    // Pinned below their latest releases: androidx.core 1.19.x / lifecycle 2.11.x /
+    // activity-compose 1.13.x / navigation-compose 2.10.x all bake an AAR-metadata requirement of
+    // compileSdk 37 + AGP 9.1.0+/9.2.0+ — incompatible with the AGP 8.11.0 ceiling the installed
+    // Android Studio (2025.1 Meerkat) supports. These versions predate that requirement.
+    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.0")
+    implementation("androidx.activity:activity-compose:1.10.1")
 
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -92,7 +96,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.material3:material3")
 
-    implementation("androidx.navigation:navigation-compose:2.10.2")
+    implementation("androidx.navigation:navigation-compose:2.9.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0")

@@ -6,8 +6,13 @@ plugins {
     // AGP 8.x has no built-in Kotlin support (unlike AGP 9+), so `org.jetbrains.kotlin.android`
     // is applied explicitly again here.
     id("com.android.application") version "8.11.0" apply false
-    id("org.jetbrains.kotlin.android") version "2.1.20" apply false
-    id("org.jetbrains.kotlin.plugin.compose") version "2.1.20" apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.20" apply false
-    id("com.google.devtools.ksp") version "2.1.20-2.0.1" apply false
+    // Kotlin 2.2.10 (not the 2.1.20 AGP 8.11's own release notes mention) — kotlinx-serialization-json
+    // 1.11.0 and Room 2.8.5's KSP-generated code expect a newer Kotlin stdlib metadata version than
+    // 2.1.20 provides ("Module was compiled with an incompatible version of Kotlin" / Room-generated
+    // DAO impls failing to resolve stdlib functions). Kotlin/AGP compatibility is forward-tolerant —
+    // this combo already compiled clean earlier this session, unrelated to the AGP 8.x/9.x split.
+    id("org.jetbrains.kotlin.android") version "2.2.10" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.10" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10" apply false
+    id("com.google.devtools.ksp") version "2.2.10-2.0.2" apply false
 }
