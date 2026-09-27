@@ -116,3 +116,16 @@ dependencies {
     testImplementation("app.cash.turbine:turbine:1.1.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 }
+
+// Robolectric 4.13's bundled ASM can't parse class files compiled for newer JDKs ("Unsupported
+// class file major version 69" = JDK 25) — it crashes instrumenting android.webkit.RoboCookieManager
+// during test teardown even when the test body itself passed. Force unit tests onto JDK 17
+// (already required by compileOptions/kotlin.jvmTarget above) regardless of which JDK launched
+// Gradle, so this doesn't depend on the invoking machine's default `java`.
+tasks.withType<Test>().configureEach {
+    javaLauncher.set(
+        project.extensions.getByType<JavaToolchainService>().launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    )
+}
