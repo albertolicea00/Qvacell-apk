@@ -301,3 +301,86 @@ This file has no cosmetic fields — every field is data (province name, room na
 ### 14.4 Relationship to `wifi-rooms-sync-check.yml` (iOS repo)
 
 The iOS repo also has a separate, unrelated workflow (`wifi-rooms-sync-check.yml`) that checks the bundled WiFi directory against ETECSA's _own_ website for source-data drift. This cross-platform check answers a different question — "do the two apps still agree with each other" — not "is the data still accurate against ETECSA."
+
+---
+
+## 15. Dashboard Dynamic Data Pipeline
+
+### 15.1 Why this exists
+
+The Home dashboard cards (`MainBalanceCard`, `RechargeLimitCard`, `DataUsageCard`, `NationalBonusCard`, `VoiceSmsRow`, in `ui/components/HomeDashboardSection.kt`) started as pure display components fed 100% hardcoded placeholder strings from `HomeQuickActionsScreen.kt` — there was no data source at all. This pipeline replaces those placeholders with real, persisted, dynamically-updated values, sourced from three places: (1) parsing a USSD dial response for a dashboard-relevant code, (2) parsing ETECSA SMS messages (both new incoming and the user's existing SMS history), and (3) a background estimate that fills the gap between real readings by measuring calls/minutes/SMS sent since the last confirmed anchor (Cuban numbers only). All history is kept forever (never pruned) for future in-app trend graphs — this is a deliberate design constraint, not an oversight.
+
+Because two of those three sources need genuinely sensitive Android permissions (`READ_SMS`, `RECEIVE_SMS`, `READ_CALL_LOG`), and because a companion app that isn't the user's default SMS/dialer handler is a real Play Store restricted-permissions review risk, the whole capture layer is split out behind product flavors (§15.6) rather than shipped unconditionally.
+
+### 15.2 Data model (Room)
+
+Two new tables, added in `data/QvacellDatabase.kt` via a hand-written `Migration(1, 2)` (version bumped 1→2, no destructive fallback — existing `reminders`/`wrapped_callers` data is preserved):
+
+- **`dashboard_value_snapshots`** (`model/DashboardValueSnapshot.kt`, `data/DashboardValueSnapshotDao.kt`) — append-only fact table, one row per reading. `fieldType` (a plain string key, see `data/FieldTypes.kt`), `numericValue`/`textValue`/`dateValue` (sparse — only the relevant one is set per field), `unit`, `capturedAt`, `sourceSignalId`, `sourceKind` (`USSD_REAL` / `SMS_REAL` / `ESTIMATED`, `model/SourceKind`). No `@Update`/`@Delete` are exposed on the DAO — append-only is enforced at the DAO surface, not just by convention.
+- **`source_anchors`** (`model/SourceAnchor.kt`, `data/SourceAnchorDao.kt`) — one row per independent signal (e.g. `ussd:main-balance`, `sms:<parser-id>`), **not** a single global "last known date". `lastSeenAt`/`lastSeenRawText` update whenever raw text arrives for that signal; `lastSuccessfulParseAt`/`lastSuccessfulRawText` only update once a parse actually succeeds. This split is what lets the estimation engine recover a correct anchor even if the user clears their call log or SMS history — the anchor lives in Room, not derived from a live device query with no fallback.
+
+`DashboardValueSnapshotDao.observeAllLatestPerField()` groups by `(fieldType, isReal)`, not `fieldType` alone, and by `MAX(capturedAt)`, not `MAX(id)` — two easy-to-miss correctness details:
+- Grouping by `fieldType` alone would return only the single most-recent row overall; if an `ESTIMATED` row happened to be newer than the last `*_REAL` one, the real row would never reach the repository at all, silently breaking "real always wins" (§15.4). Grouping by `(fieldType, isReal)` returns up to two rows per field — latest real *and* latest estimated — so the repository can choose correctly.
+- Grouping by `MAX(id)` instead of `MAX(capturedAt)` would break under SMS historical backfill: an old message gets inserted (with a higher `id`) *after* a real-time capture that already exists with an earlier `id`, so `MAX(id)` would wrongly surface the backfilled row as "latest."
+
+### 15.3 Parser contracts (deliberately stubbed)
+
+`parsing/ParseResult.kt` (`Success<T>` / `Unresolved` / `Unrecognized`), plus `UssdParsers`/`SmsParsers` registry objects keyed by catalog code id. **Every parser implementation currently returns `Unresolved`/never-matches** — the real USSD response text and SMS body formats from ETECSA are not yet known; these are placeholders that unblock the surrounding repository/persistence/capture code without guessing at a format that would likely be wrong. Swapping in a real parser later touches exactly one registry entry, nothing else. `UssdParserCoverageTest` guards against catalog/registry drift (a renamed catalog code id silently going unparsed forever) by asserting every no-input `type: "ussd"` entry in `codes.json` has a matching registry key.
+
+### 15.4 Repository & reconciliation
+
+`service/DashboardDataRepository.kt` — constructed the same way every other repository in this app is (`remember { DashboardDataRepository(context) }`, no DI framework, matching §9's established pattern). `observeCurrentValues(): Flow<Map<String, DashboardValueSnapshot>>` is what the dashboard UI will eventually collect from; `recordUssdParse`/`recordSmsBody` are the confirmed-data write paths, `recordEstimate` is a distinctly-named separate write path so a caller can never mistake an estimate for a confirmed reading.
+
+**Reconciliation rule**: a real (`USSD_REAL`/`SMS_REAL`) value always wins over an `ESTIMATED` one, **regardless of which is newer** — an estimate only fills a field that has no real value at all yet. This is a deliberate simplification over "most-recent-wins across both": estimates are heuristic (call-log/SMS-log deltas), so a confirmed reading should never be silently displaced by a guess just because the guess is newer.
+
+`recordSmsBody`'s `capturedAt` parameter must be the SMS's own timestamp (e.g. `Telephony.Sms.DATE`), never wall-clock "now" — a historical backfill import would otherwise collapse all imported history onto the import date, corrupting both the reconciliation comparison above and any future trend graph.
+
+### 15.5 Capture mechanism (flavor-gated, `unlocked` only)
+
+- **`UssdCaptureService`** (`app/src/unlocked/`) — wraps `TelephonyManager.sendUssdRequest` (API 26+) to capture a USSD response's text programmatically, instead of the `ACTION_DIAL`-only path every other code in the app uses. Falls back to the normal `DialService.dial()` (system dialer, today's exact UX) on any failure, timeout, or when the user hasn't opted in — this is not on by default (see below).
+- **`EtecsaSmsReceiver`**/**`EtecsaSmsFilter`** (`app/src/unlocked/`) — live incoming-SMS capture plus a historical backfill query, filtered by a stub "is this an ETECSA message" heuristic pending real sender/format examples.
+- **`EstimationEngine`**/**`EstimationScheduler`**/**`EstimationAlarmReceiver`** (`app/src/unlocked/`) — the background estimate: queries `CallLog.Calls` and (once live) `Telephony.Sms.Sent` since the last confirmed anchor, filtered to Cuban numbers via the existing `model/CubanPhoneNumber.kt` (no new heuristic written — reused what already existed), and writes the delta via `recordEstimate`. Scheduled via `AlarmManager.setExactAndAllowWhileIdle`, mirroring `ReminderScheduler`'s existing pattern (§6) rather than introducing WorkManager as a second background-work paradigm in the same app.
+- **Ajustes toggles** — "Consulta automática de saldo (experimental)" (silent USSD) and "Detección automática por SMS" (SMS + call-log estimation) in `SettingsScreen.kt`, both **default OFF**. Silent USSD capture reuses the same `CALL_PHONE` permission already granted for Compras, but its blast radius is now wider (silent background use vs. an explicit in-app confirm-then-call), so it's opt-in behind an explainer rather than silently repurposing an existing grant. The reliability of `sendUssdRequest` against ETECSA's actual gateway is unverified — this is a real spike/validate-early risk, not just a formality, since some carriers route USSD replies as an OS-level dialog the app's callback never sees.
+
+### 15.6 `store`/`unlocked` flavor split
+
+The entire §15.5 capture layer, and only that layer, lives in flavor-specific source sets — `app/src/main` (both flavors) has the inert Room persistence/parser/repository half, which requests no permissions on its own:
+
+```
+app/src/main/AndroidManifest.xml     — shared baseline, none of the new permissions
+app/src/store/AndroidManifest.xml    — no additions (Play Store build)
+app/src/unlocked/AndroidManifest.xml — adds RECEIVE_SMS, READ_SMS, READ_CALL_LOG,
+                                        registers EtecsaSmsReceiver + EstimationAlarmReceiver
+app/src/store/.../DashboardCapture.kt    — no-op: always falls back to plain DialService.dial
+app/src/unlocked/.../DashboardCapture.kt — real capture-or-dial decision (§15.5)
+```
+
+`BuildConfig.DASHBOARD_CAPTURE_ENABLED` (a per-flavor `buildConfigField`) gates whether the two Ajustes toggles render at all — the `store` flavor never shows a UI affordance for a feature it can't perform. See [README.md § Build Flavors & Permissions](README.md#-build-flavors--permissions) for the actual `./gradlew` commands to build/install/test each flavor.
+
+### 15.7 Testing
+
+First-ever test infrastructure for this project (`app/src/test/java/com/qvacell/app/{parsing,data,service}/`) — JUnit4 + Robolectric (in-memory Room) + Turbine for `Flow` assertions. Notable environment caveats hit while setting this up, in case they resurface:
+- Robolectric 4.13's bundled ASM cannot parse class files compiled for JDK 25 ("Unsupported class file major version 69") — unit tests are pinned to JDK 17 via a `javaLauncher` toolchain override in `app/build.gradle.kts`'s `tasks.withType<Test>`, independent of whatever JDK invokes Gradle itself.
+- `UssdParserCoverageTest` reads `codes.json` directly off disk (`File("src/main/assets/codes.json")`) rather than through Robolectric's `AssetManager` shadow — this project's `compileSdk 37` is newer than Robolectric 4.13's resource-parsing support, so the plain-file read sidesteps a shaky compatibility path for a test that only needs the JSON content anyway.
+
+Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX(id)` grouping correctness under out-of-order backfill inserts, anchor `lastSeenAt`/`lastSuccessfulParseAt` independence (the regression test for "no single global last-known-date"), and the real-vs-estimate reconciliation precedence rule (§15.4).
+
+### 15.8 Status — done vs. planned
+
+**Done and verified** (both flavors compile, full test suite green, merged-manifest permission split confirmed):
+- Room schema, migration, DAOs, append-only enforcement.
+- Parser contract/registry scaffolding (stubbed, see below).
+- `DashboardDataRepository` with the real-beats-estimate reconciliation rule.
+- Capture services, estimation engine, AlarmManager scheduling (`unlocked` flavor).
+- `store`/`unlocked` flavor split, manifest/permission separation, `BuildConfig`-gated Ajustes UI.
+- First-ever test suite for this project.
+
+**Explicitly stubbed, pending real-world examples from the maintainer**:
+- Every `UssdResponseParser`/`SmsBodyParser` implementation — real USSD response text and SMS body formats from ETECSA haven't been supplied yet, so every parser currently returns `Unresolved`/never-matches by design.
+- `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — placeholder pending real sender-ID/short-code examples.
+
+**Not yet done / open before this ships to real users**:
+- The `HomeDashboardSection.kt` cards themselves still render hardcoded placeholder strings — nothing yet collects from `DashboardDataRepository.observeCurrentValues()` and feeds the cards. Wiring that up is the natural next step once real parser rules land (no point wiring a UI to data that's permanently `Unresolved`).
+- The `sendUssdRequest` reliability spike against a real ETECSA SIM (§15.5) — a go/no-go gate for whether silent USSD capture works at all on this carrier, not yet run.
+- A Play Store restricted-permissions business decision for the `unlocked` flavor's distribution (moot for `store`, which never requests them) — flagged, not resolved, since it's a business/policy call rather than a code one.
+- The six dashboard-section codes (`main-balance`, `bonus-usd-plans`, `data-plan`, `voice-balance`, `sms-balance`, `national-recharge-limit`) have no tap-to-refresh affordance in the dashboard UI yet — only the separate "PLAN AMIGO"/"PREPAGO" `ConsultCardsRow` double-tap is wired to `DashboardCapture.captureOrDial` today.

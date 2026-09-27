@@ -43,10 +43,36 @@ An Android app to quickly access the **USSD service codes of ETECSA (Cubacel)**:
 
 ## 📦 Build Flavors & Permissions
 
-**Two Versions Available**
-This project uses build flavors to offer two distinct versions of the app:
-- **App Store Version**: A restricted build designed to comply with strict store policies regarding sensitive permissions (such as SMS and Accessibility).
-- **Standalone Version (Manual Install)**: The full, unrestricted experience. This version utilizes SMS and Accessibility permissions to automatically read carrier messages and USSD responses in the background. This allows the app to keep your data and balance dashboard updated in near real-time.
+This project uses two Gradle product flavors (dimension `distribution`) to ship two distinct versions from the same codebase:
+
+| Flavor | Distribution | Sensitive permissions | Dashboard auto-refresh |
+| --- | --- | --- | --- |
+| **`store`** | Google Play | None of the three below | Off — manual dial only, exactly like every other code in the app |
+| **`unlocked`** | GitHub / manual APK sideload | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (plus the existing `CALL_PHONE`, now also used for silent USSD capture) | On (opt-in toggles in Ajustes) — reads ETECSA SMS and USSD responses in the background and estimates usage since the last confirmed reading, to keep the balance/data/voice/SMS dashboard fresh between manual checks |
+
+`store` exists specifically so the Play Store build never has to clear Google's restricted-permissions review for `READ_SMS`/`READ_CALL_LOG` — it's built from the exact same source, just missing the capture source sets (`app/src/store/`) instead of `unlocked`'s (`app/src/unlocked/`). See [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) for how the split works and what each flavor's capture layer does.
+
+**Build & run:**
+
+```bash
+# Debug builds
+./gradlew :app:assembleStoreDebug       # Play-Store-safe build, no sensitive permissions
+./gradlew :app:assembleUnlockedDebug    # full build with the dashboard capture pipeline
+
+# Install straight to a connected device/emulator
+./gradlew :app:installStoreDebug
+./gradlew :app:installUnlockedDebug
+
+# Release builds (unsigned unless a signing config is set up)
+./gradlew :app:assembleStoreRelease
+./gradlew :app:assembleUnlockedRelease
+
+# Run the test suite for a given flavor
+./gradlew :app:testStoreDebugUnitTest
+./gradlew :app:testUnlockedDebugUnitTest
+```
+
+In Android Studio, use the **Build Variants** panel (bottom-left) to switch between `storeDebug`/`unlockedDebug`/etc. before running ▶️.
 
 ## 🚀 Getting Started
 

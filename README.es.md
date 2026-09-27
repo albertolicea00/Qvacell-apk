@@ -43,10 +43,36 @@ Una aplicación para Android para acceder rápidamente a los **códigos de servi
 
 ## 📦 Variantes de Compilación (Flavors) y Permisos
 
-**Dos Versiones Disponibles**
-Este proyecto utiliza "flavors" de compilación para ofrecer dos versiones distintas de la aplicación:
-- **Versión de App Store**: Una versión restringida diseñada para cumplir con las estrictas políticas de la tienda respecto a permisos sensibles (como SMS y Accesibilidad).
-- **Versión Independiente (Instalación Manual)**: La experiencia completa y sin restricciones. Esta versión utiliza permisos de SMS y Accesibilidad para leer automáticamente los mensajes del operador y las respuestas USSD en segundo plano. Esto permite mantener el panel (dashboard) de saldo y datos actualizado casi en tiempo real.
+Este proyecto usa dos "product flavors" de Gradle (dimensión `distribution`) para publicar dos versiones distintas desde el mismo código:
+
+| Flavor | Distribución | Permisos sensibles | Auto-actualización del dashboard |
+| --- | --- | --- | --- |
+| **`store`** | Google Play | Ninguno de los tres siguientes | Desactivada — solo marcado manual, igual que cualquier otro código de la app |
+| **`unlocked`** | GitHub / APK manual | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (más el `CALL_PHONE` ya existente, ahora también usado para captura silenciosa de USSD) | Activada (interruptores opcionales en Ajustes) — lee SMS de ETECSA y respuestas USSD en segundo plano y estima el consumo desde la última lectura confirmada, para mantener el dashboard de saldo/datos/voz/SMS actualizado entre consultas manuales |
+
+`store` existe específicamente para que la versión de Play Store nunca tenga que pasar la revisión de permisos restringidos de Google para `READ_SMS`/`READ_CALL_LOG` — se compila del mismo código exacto, solo que sin los source sets de captura (`app/src/store/`) que sí tiene `unlocked` (`app/src/unlocked/`). Ver [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) para cómo funciona la separación y qué hace la capa de captura de cada flavor.
+
+**Compilar y correr:**
+
+```bash
+# Builds de debug
+./gradlew :app:assembleStoreDebug       # build seguro para Play Store, sin permisos sensibles
+./gradlew :app:assembleUnlockedDebug    # build completo con el pipeline de captura del dashboard
+
+# Instalar directo en un dispositivo/emulador conectado
+./gradlew :app:installStoreDebug
+./gradlew :app:installUnlockedDebug
+
+# Builds de release (sin firmar a menos que haya un signing config configurado)
+./gradlew :app:assembleStoreRelease
+./gradlew :app:assembleUnlockedRelease
+
+# Correr la suite de tests de un flavor específico
+./gradlew :app:testStoreDebugUnitTest
+./gradlew :app:testUnlockedDebugUnitTest
+```
+
+En Android Studio, usa el panel **Build Variants** (esquina inferior izquierda) para cambiar entre `storeDebug`/`unlockedDebug`/etc. antes de correr ▶️.
 
 ## 🚀 Primeros Pasos
 
