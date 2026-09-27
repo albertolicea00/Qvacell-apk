@@ -1,5 +1,6 @@
 plugins {
     id("com.android.application")
+    id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
@@ -7,12 +8,14 @@ plugins {
 
 android {
     namespace = "com.qvacell.app"
-    compileSdk = 37
+    // Capped at 36 (AGP 8.11.0's max supported API level) rather than 37 — needed to stay on
+    // an AGP version the installed Android Studio (2025.1 Meerkat) actually supports syncing.
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.qvacell.app"
         minSdk = 26
-        targetSdk = 37
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
     }
