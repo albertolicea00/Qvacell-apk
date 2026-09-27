@@ -52,6 +52,17 @@ This project uses two Gradle product flavors (dimension `distribution`) to ship 
 
 `store` exists specifically so the Play Store build never has to clear Google's restricted-permissions review for `READ_SMS`/`READ_CALL_LOG` — it's built from the exact same source, just missing the capture source sets (`app/src/store/`) instead of `unlocked`'s (`app/src/unlocked/`). See [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) for how the split works and what each flavor's capture layer does.
 
+**Why each permission exists** (`unlocked` only — `store` requests none of these):
+
+| Permission | Why |
+| --- | --- |
+| `CALL_PHONE` | Already existed for Compras' purchase-confirmation flow (`ACTION_CALL`, dials directly once the user accepts the in-app confirm sheet). `unlocked` also reuses it for silent USSD capture (`TelephonyManager.sendUssdRequest`) — same permission, wider use, which is why that path is opt-in behind an explainer rather than silently repurposing the existing grant. |
+| `READ_SMS` | One-time historical scan of the SMS inbox, so a fresh install can backfill the dashboard from ETECSA messages the user already received, not just ones that arrive from that point on. |
+| `RECEIVE_SMS` | Live capture of new incoming ETECSA SMS (balance, deductions, limit dates) as they arrive, via a broadcast receiver — the "keep the dashboard fresh going forward" half of SMS capture. |
+| `READ_CALL_LOG` | Feeds the background estimation engine: counts/durations of calls to Cuban numbers since the last confirmed reading, to estimate usage between real USSD/SMS syncs. |
+
+None of these are requested at install time — each is asked for at runtime, right before the specific feature that needs it (Ajustes toggles, both default OFF), with an in-app explanation of why.
+
 **Build & run:**
 
 ```bash

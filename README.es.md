@@ -52,6 +52,17 @@ Este proyecto usa dos "product flavors" de Gradle (dimensión `distribution`) pa
 
 `store` existe específicamente para que la versión de Play Store nunca tenga que pasar la revisión de permisos restringidos de Google para `READ_SMS`/`READ_CALL_LOG` — se compila del mismo código exacto, solo que sin los source sets de captura (`app/src/store/`) que sí tiene `unlocked` (`app/src/unlocked/`). Ver [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) para cómo funciona la separación y qué hace la capa de captura de cada flavor.
 
+**Por qué existe cada permiso** (solo `unlocked` — `store` no pide ninguno de estos):
+
+| Permiso | Por qué |
+| --- | --- |
+| `CALL_PHONE` | Ya existía para el flujo de confirmación de compra en Compras (`ACTION_CALL`, marca directo una vez el usuario acepta la hoja de confirmación). `unlocked` también lo reutiliza para captura silenciosa de USSD (`TelephonyManager.sendUssdRequest`) — mismo permiso, uso más amplio, por eso ese camino es opcional detrás de una explicación en vez de reutilizar el permiso ya concedido sin avisar. |
+| `READ_SMS` | Escaneo único del historial de SMS al instalar, para que una instalación nueva pueda rellenar el dashboard con mensajes de ETECSA que el usuario ya recibió, no solo los que lleguen a partir de ese momento. |
+| `RECEIVE_SMS` | Captura en vivo de nuevos SMS entrantes de ETECSA (saldo, descuentos, fechas límite) a medida que llegan, vía un receiver — la mitad de "mantener el dashboard actualizado hacia adelante" de la captura de SMS. |
+| `READ_CALL_LOG` | Alimenta el motor de estimación en segundo plano: cuenta/duración de llamadas a números cubanos desde la última lectura confirmada, para estimar el consumo entre sincronizaciones reales por USSD/SMS. |
+
+Ninguno de estos se pide al instalar — cada uno se solicita en tiempo de ejecución, justo antes de la función que lo necesita (interruptores en Ajustes, ambos apagados por defecto), con una explicación dentro de la app de por qué.
+
 **Compilar y correr:**
 
 ```bash
