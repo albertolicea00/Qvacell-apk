@@ -17,17 +17,17 @@ android {
         versionName = "1.0.0"
     }
 
-    // "full" (GitHub/sideload) gets the dashboard data-capture pipeline — silent USSD capture,
+    // "unlocked" (GitHub/sideload) gets the dashboard data-capture pipeline — silent USSD capture,
     // SMS reading, call-log estimation — and the sensitive permissions/receivers it needs.
-    // "play" (Google Play) ships without any of that, so the store build never has to clear
+    // "store" (Google Play) ships without any of that, so the store build never has to clear
     // Play's restricted-permissions review for RECEIVE_SMS/READ_SMS/READ_CALL_LOG.
     flavorDimensions += "distribution"
     productFlavors {
-        create("full") {
+        create("unlocked") {
             dimension = "distribution"
             buildConfigField("boolean", "DASHBOARD_CAPTURE_ENABLED", "true")
         }
-        create("play") {
+        create("store") {
             dimension = "distribution"
             buildConfigField("boolean", "DASHBOARD_CAPTURE_ENABLED", "false")
         }
