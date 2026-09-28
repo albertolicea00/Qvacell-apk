@@ -150,7 +150,7 @@ fun rememberCodeActionHandler(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "Se marcará directamente, sin abrir el marcador del teléfono.",
+                    "Se marcará directamente, sin confirmación de respuesta de ETECSA.",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     textAlign = TextAlign.Center,

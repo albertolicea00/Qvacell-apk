@@ -35,7 +35,7 @@ import com.qvacell.app.ui.components.CodeOptionsSheet
 import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.GroupHeader
-import com.qvacell.app.ui.components.QuickPurchaseWarningBanner
+
 import com.qvacell.app.ui.components.SearchableTopAppBar
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 // import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
@@ -94,9 +94,7 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
             if (showNetworkStatus) {
                 ConnectionBanner()
             }
-            if (categoryId == "purchase" && quickActionEnabled) {
-                QuickPurchaseWarningBanner()
-            }
+
             if (categoryId == "helplines") {
                 // Native Contacts-app look: individual bordered rows with a circled icon avatar,
                 // grouped under sticky headers by codes.json's existing groups (instead of
