@@ -27,7 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,12 +40,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.qvacell.app.service.ContactsRepository
 import com.qvacell.app.service.DeviceContact
 import com.qvacell.app.service.DialService
-import com.qvacell.app.ui.components.AlphabetIndexBar
+
 import com.qvacell.app.ui.components.ContactOptionsSheet
 import com.qvacell.app.ui.components.ContactRow
 import com.qvacell.app.ui.components.GroupHeader
 import com.qvacell.app.ui.components.SearchableTopAppBar
-import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -156,49 +156,26 @@ fun ContactsListScreen() {
                         }
                         .toSortedMap()
                 }
-                val letters = remember(grouped) { grouped.keys.toList() }
-                // Flat item index (counting each sticky header as one item) where each letter's
-                // section starts — lets the index bar jump straight to it.
-                val letterStartIndex = remember(grouped) {
-                    var index = 0
-                    val map = mutableMapOf<String, Int>()
-                    grouped.forEach { (letter, group) ->
-                        map[letter] = index
-                        index += 1 + group.size
-                    }
-                    map
-                }
-                val listState = rememberLazyListState()
-                val scope = rememberCoroutineScope()
 
-                Row(modifier = Modifier.fillMaxSize()) {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(vertical = 8.dp)
-                    ) {
-                        grouped.forEach { (letter, group) ->
-                            stickyHeader(key = "header_$letter") { GroupHeader(letter) }
-                            items(group, key = { it.id }) { contact ->
-                                val number = contact.cubanNumbers.firstOrNull()
-                                ContactRow(
-                                    contact = contact,
-                                    onClick = { selectedContact = contact },
-                                    onCallCollect = { if (number != null) DialService.dial(context, "*99$number") },
-                                    onCallAnonymous = { if (number != null) DialService.dial(context, "#31#$number") }
-                                )
-                            }
+                val listState = rememberLazyListState()
+
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    grouped.forEach { (letter, group) ->
+                        stickyHeader(key = "header_$letter") { GroupHeader(letter) }
+                        items(group, key = { it.id }) { contact ->
+                            val number = contact.cubanNumbers.firstOrNull()
+                            ContactRow(
+                                contact = contact,
+                                onClick = { selectedContact = contact },
+                                onCallCollect = { if (number != null) DialService.dial(context, "*99$number") },
+                                onCallAnonymous = { if (number != null) DialService.dial(context, "#31#$number") }
+                            )
                         }
                     }
-                    AlphabetIndexBar(
-                        letters = letters,
-                        onLetterSelected = { letter ->
-                            letterStartIndex[letter]?.let { index ->
-                                scope.launch { listState.scrollToItem(index) }
-                            }
-                        },
-                        modifier = Modifier.fillMaxHeight()
-                    )
                 }
             }
         }
