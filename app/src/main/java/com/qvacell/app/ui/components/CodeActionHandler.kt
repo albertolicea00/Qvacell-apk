@@ -21,7 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
+
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -129,6 +129,15 @@ fun rememberCodeActionHandler(
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (!useNoConfirmCode) {
+                    Text(
+                        "Se marcará directamente, sin abrir el marcador del teléfono.",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 if (code.price != null) {
                     Text(
@@ -143,27 +152,6 @@ fun rememberCodeActionHandler(
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
-                // Acción sin Confirmación already tells the user this dials straight through
-                // (Ajustes' own row explains it) — repeating it here on every purchase is noise.
-                if (!useNoConfirmCode) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Footnote — same discreet, low-opacity style as the dashboard's "Actualizado
-                    // hace X días" timestamps, so the raw dial code reads as fine print, not an action.
-                    Text(
-                        "Se marcará directamente, sin abrir el marcador del teléfono.",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        dialCode,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        fontFamily = FontFamily.Monospace,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
             }
             DialogActionRow(
                 cancelText = "Cancelar",
