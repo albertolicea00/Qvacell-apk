@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.ui.graphics.RectangleShape
+
 /**
  * Flat two-button footer — plain text, no pill/outline, split evenly by a hairline divider. Used
  * in place of an OutlinedButton/Button pair for every form's Cancelar/confirm row, matching the
@@ -32,7 +34,8 @@ fun DialogActionRow(
     Row(modifier = modifier.fillMaxWidth().height(48.dp)) {
         TextButton(
             onClick = onCancel,
-            modifier = Modifier.weight(1f).fillMaxHeight()
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            shape = RectangleShape
         ) {
             Text(cancelText, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -40,7 +43,8 @@ fun DialogActionRow(
         TextButton(
             onClick = onConfirm,
             enabled = confirmEnabled,
-            modifier = Modifier.weight(1f).fillMaxHeight()
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            shape = RectangleShape
         ) {
             Text(confirmText, color = MaterialTheme.colorScheme.primary)
         }

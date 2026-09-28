@@ -110,7 +110,8 @@ fun rememberCodeActionHandler(
                                 dialCodeOption(context, code, label)
                                 activeCode = null
                             },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = androidx.compose.ui.graphics.RectangleShape
                         ) { Text(label, modifier = Modifier.fillMaxWidth()) }
                     }
                 }
