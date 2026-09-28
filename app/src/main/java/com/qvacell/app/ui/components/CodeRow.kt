@@ -40,26 +40,15 @@ fun CodeRow(
     // instead of the default flat row + shared group Card the other categories still use.
     contactStyle: Boolean = false
 ) {
-    Row(
-        modifier = modifier
-            .let {
-                if (contactStyle) {
-                    it.padding(horizontal = 12.dp, vertical = 3.dp)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .border(
-                            BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-                            RoundedCornerShape(14.dp)
-                        )
-                } else {
-                    it
-                }
-            }
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    val rowContent = @Composable {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
         if (showIcon) {
             if (contactStyle) {
                 Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
@@ -132,6 +121,20 @@ fun CodeRow(
         } else if (showPrice) {
             PriceChip(price = code.price!!)
         }
+    }
+    }
+
+    if (contactStyle) {
+        Column {
+            rowContent()
+            androidx.compose.material3.HorizontalDivider(
+                modifier = Modifier.padding(start = 72.dp),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
+        }
+    } else {
+        rowContent()
     }
 }
 
