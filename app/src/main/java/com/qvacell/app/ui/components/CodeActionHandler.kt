@@ -56,6 +56,16 @@ fun rememberCodeActionHandler(
         pendingConfirmCode = null
     }
 
+    var pendingDirectCallCode by remember { mutableStateOf<UssdCode?>(null) }
+    val directCallPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val code = pendingDirectCallCode ?: return@rememberLauncherForActivityResult
+        if (granted) DialService.dialDirect(context, resolvedDialCode(code, false))
+        else DialService.dial(context, resolvedDialCode(code, false))
+        pendingDirectCallCode = null
+    }
+
     activeCode?.let { code ->
         val hasOptionsOrVariants = !code.options.isNullOrEmpty() || !code.variants.isNullOrEmpty()
 
@@ -106,10 +116,20 @@ fun rememberCodeActionHandler(
                 }
             }
         } else if (isPurchaseCategory && code.type != UssdActionType.SMS) {
-            // Compras always confirms in-app before dialing directly — there's no dialer step to
-            // catch a mis-tap otherwise.
-            pendingConfirmCode = code
-            activeCode = null
+            if (useNoConfirmCode) {
+                // Compras always confirms in-app before dialing directly — there's no dialer step to
+                // catch a mis-tap otherwise.
+                pendingConfirmCode = code
+                activeCode = null
+            } else {
+                if (DialService.hasCallPermission(context)) {
+                    DialService.dialDirect(context, resolvedDialCode(code, false))
+                } else {
+                    pendingDirectCallCode = code
+                    directCallPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
+                }
+                activeCode = null
+            }
         } else {
             performAction(context, code, null, useNoConfirmCode = useNoConfirmCode)
             activeCode = null
@@ -129,15 +149,13 @@ fun rememberCodeActionHandler(
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (!useNoConfirmCode) {
-                    Text(
-                        "Se marcará directamente, sin abrir el marcador del teléfono.",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
+                Text(
+                    "Se marcará directamente, sin abrir el marcador del teléfono.",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 if (code.price != null) {
                     Text(
