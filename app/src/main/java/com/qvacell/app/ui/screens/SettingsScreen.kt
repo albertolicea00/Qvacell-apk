@@ -173,7 +173,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
         ?: accentColor
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Ajustes") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Ajustes") }) }) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(vertical = 8.dp),

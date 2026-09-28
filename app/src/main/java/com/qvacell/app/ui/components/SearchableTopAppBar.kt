@@ -2,6 +2,8 @@ package com.qvacell.app.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -49,6 +51,7 @@ fun SearchableTopAppBar(
     }
 
     TopAppBar(
+        modifier = Modifier.padding(top = 12.dp),
         title = {
             if (searching) {
                 TextField(

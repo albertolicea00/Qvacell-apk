@@ -53,7 +53,7 @@ fun HomeQuickActionsScreen() {
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Qvacell") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Qvacell") }) }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             if (showNetworkStatus) {
                 ConnectionBanner()
