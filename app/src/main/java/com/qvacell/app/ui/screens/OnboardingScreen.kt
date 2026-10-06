@@ -1,6 +1,8 @@
 package com.qvacell.app.ui.screens
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -33,6 +35,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.CellTower
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DataUsage
@@ -79,10 +82,13 @@ import com.qvacell.app.service.DialService
 import com.qvacell.app.service.OnboardingDataPrefetch
 import kotlinx.coroutines.launch
 
+private const val GITHUB_RELEASES_URL = "https://github.com/albertolicea00/qvacell-apk/releases"
+
 private sealed class OnboardingPage {
     object Welcome : OnboardingPage()
     object DashboardChoice : OnboardingPage()
     object HowDynamicWorks : OnboardingPage()
+    object DynamicUnavailable : OnboardingPage()
     object UssdPermission : OnboardingPage()
     object SmsPermission : OnboardingPage()
     object CallLogPermission : OnboardingPage()
@@ -108,7 +114,13 @@ fun OnboardingScreen(onComplete: () -> Unit) {
         buildList {
             add(OnboardingPage.Welcome)
             add(OnboardingPage.DashboardChoice)
-            if (dashboardChoice == "dynamic") add(OnboardingPage.HowDynamicWorks)
+            if (dashboardChoice == "dynamic") {
+                if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                    add(OnboardingPage.HowDynamicWorks)
+                } else {
+                    add(OnboardingPage.DynamicUnavailable)
+                }
+            }
             add(OnboardingPage.UssdPermission)
             if (dashboardChoice == "dynamic" && BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
                 add(OnboardingPage.SmsPermission)
@@ -194,6 +206,18 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                         onNext = ::next
                     )
                     OnboardingPage.HowDynamicWorks -> HowDynamicWorksPage(onNext = ::next)
+                    OnboardingPage.DynamicUnavailable -> DynamicUnavailablePage(
+                        onSwitchToManual = {
+                            dashboardChoice = "manual"
+                            // pages rebuilds → currentPageIndex now points to UssdPermission
+                        },
+                        onOpenGitHub = {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_RELEASES_URL))
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            )
+                        }
+                    )
                     OnboardingPage.UssdPermission -> UssdPermissionPage(
                         granted = ussdGranted,
                         onRequest = { ussdPermissionLauncher.launch(Manifest.permission.CALL_PHONE) },
@@ -669,5 +693,37 @@ private fun FeaturePage(
         },
         buttonLabel = buttonLabel,
         onButton = onNext
+    )
+}
+
+@Composable
+private fun DynamicUnavailablePage(
+    onSwitchToManual: () -> Unit,
+    onOpenGitHub: () -> Unit
+) {
+    PageLayout(
+        icon = Icons.Filled.OpenInBrowser,
+        title = "Función no disponible",
+        subtitle = "El Dashboard Dinámico no está incluido en la versión de Play Store",
+        content = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                InfoCard(
+                    icon = Icons.Filled.Info,
+                    text = "Esta versión de Qvacell está limitada por las políticas de Google Play. La captura automática de USSD, SMS y registro de llamadas solo está disponible en la versión completa desde GitHub.",
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                )
+                Button(
+                    onClick = onOpenGitHub,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Filled.OpenInBrowser, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Ver releases en GitHub", modifier = Modifier.padding(vertical = 4.dp))
+                }
+            }
+        },
+        buttonLabel = "Continuar con Marcación Rápida",
+        onButton = onSwitchToManual
     )
 }
