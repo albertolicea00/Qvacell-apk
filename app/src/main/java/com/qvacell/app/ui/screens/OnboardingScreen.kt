@@ -182,7 +182,12 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                 label = "onboarding_page"
             ) { page ->
                 when (page) {
-                    OnboardingPage.Welcome -> WelcomePage(onNext = ::next)
+                    OnboardingPage.Welcome -> WelcomePage(
+                        onNext = {
+                            ussdPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
+                            next()
+                        }
+                    )
                     OnboardingPage.DashboardChoice -> DashboardChoicePage(
                         selectedChoice = dashboardChoice,
                         onChoiceSelected = { dashboardChoice = it },
