@@ -22,6 +22,8 @@ class SettingsDataStore(private val context: Context) {
     private val ussdCaptureEnabledKey = booleanPreferencesKey("ussd_capture_enabled")
     private val smsCaptureEnabledKey = booleanPreferencesKey("sms_capture_enabled")
     private val hasRunSmsBackfillKey = booleanPreferencesKey("has_run_sms_backfill")
+    private val hasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
+    private val dashboardModeKey = stringPreferencesKey("dashboard_mode")
 
     val themeMode = context.dataStore.data.map {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
@@ -57,6 +59,11 @@ class SettingsDataStore(private val context: Context) {
     // newly granted.
     val hasRunSmsBackfill = context.dataStore.data.map { it[hasRunSmsBackfillKey] ?: false }
 
+    val hasCompletedOnboarding = context.dataStore.data.map { it[hasCompletedOnboardingKey] ?: false }
+
+    // "dynamic" or "manual" — set during onboarding, empty string means not yet chosen.
+    val dashboardMode = context.dataStore.data.map { it[dashboardModeKey] ?: "" }
+
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[themeModeKey] = mode.name }
     }
@@ -91,6 +98,14 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setHasRunSmsBackfill(enabled: Boolean) {
         context.dataStore.edit { it[hasRunSmsBackfillKey] = enabled }
+    }
+
+    suspend fun setHasCompletedOnboarding(completed: Boolean) {
+        context.dataStore.edit { it[hasCompletedOnboardingKey] = completed }
+    }
+
+    suspend fun setDashboardMode(mode: String) {
+        context.dataStore.edit { it[dashboardModeKey] = mode }
     }
 
     companion object {

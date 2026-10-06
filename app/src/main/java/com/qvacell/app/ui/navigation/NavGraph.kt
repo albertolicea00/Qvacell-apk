@@ -25,6 +25,7 @@ val bottomTabs = listOf(
 )
 
 object Routes {
+    const val ONBOARDING = "onboarding"
     const val REMINDERS = "settings/reminders"
     const val REMINDER_EDIT = "settings/reminders/edit"
     const val SMS_SERVICES = "sms"

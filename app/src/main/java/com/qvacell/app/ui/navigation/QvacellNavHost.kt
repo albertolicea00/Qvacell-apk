@@ -46,6 +46,7 @@ import com.qvacell.app.ui.screens.DirectorySearchScreen
 import com.qvacell.app.ui.screens.FriendsPlanManageScreen
 import com.qvacell.app.ui.screens.HelpScreen
 import com.qvacell.app.ui.screens.HomeQuickActionsScreen
+import com.qvacell.app.ui.screens.OnboardingScreen
 import com.qvacell.app.ui.screens.PlaceholderScreen
 import com.qvacell.app.ui.screens.ReminderEditScreen
 import com.qvacell.app.ui.screens.ReminderListScreen
@@ -100,7 +101,11 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     // there immediately, which used to yank the user out of Ajustes the moment `startTabRoute`
     // changed (e.g. picking a new "Pestaña predeterminada" while sitting in Ajustes).
     val validStartRoute = remember {
-        if (bottomTabs.any { it.route == startTabRoute }) startTabRoute else BottomTab.Home.route
+        when {
+            startTabRoute == Routes.ONBOARDING -> Routes.ONBOARDING
+            bottomTabs.any { it.route == startTabRoute } -> startTabRoute
+            else -> BottomTab.Home.route
+        }
     }
 
     // Used both to keep the Ajustes tab highlighted while inside one of its nested destinations,
@@ -110,6 +115,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
 
     Scaffold(
         bottomBar = {
+            if (currentRoute == Routes.ONBOARDING) return@Scaffold
             // Custom bar instead of Material3 NavigationBar: that component has a fixed 80dp
             // height with no public override, and its selected-item indicator draws a filled
             // pill behind the icon — both unwanted here. This gives full control over height
@@ -218,9 +224,25 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                         SettingsDestination.TransferPinManage -> Routes.TRANSFER_PIN_MANAGE
                         SettingsDestination.HomeWidgets -> Routes.HOME_WIDGETS
                         SettingsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
+                        SettingsDestination.Onboarding -> Routes.ONBOARDING
                     }
                     navController.navigate(route)
                 })
+            }
+
+            composable(Routes.ONBOARDING) {
+                val isReplay = navController.previousBackStackEntry != null
+                OnboardingScreen(
+                    onComplete = {
+                        if (isReplay) {
+                            navController.popBackStack()
+                        } else {
+                            navController.navigate(BottomTab.Home.route) {
+                                popUpTo(Routes.ONBOARDING) { inclusive = true }
+                            }
+                        }
+                    }
+                )
             }
 
             composable(Routes.REMINDERS) {

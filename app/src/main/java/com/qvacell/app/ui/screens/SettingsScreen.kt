@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -91,6 +92,7 @@ sealed class SettingsDestination {
     data object TransferPinManage : SettingsDestination()
     data object HomeWidgets : SettingsDestination()
     data object VoiceShortcuts : SettingsDestination()
+    data object Onboarding : SettingsDestination()
 }
 
 @Composable
@@ -362,6 +364,13 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                     )
                     SettingsDivider()
                     SettingsRow(headline = "Ayuda", onClick = { onNavigate(SettingsDestination.Help) })
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Tomar Tour",
+                        supporting = "Vuelve a ver la guía de bienvenida de Qvacell",
+                        icon = Icons.Filled.TravelExplore,
+                        onClick = { onNavigate(SettingsDestination.Onboarding) }
+                    )
                     SettingsDivider()
                     SettingsRow(
                         headline = "Versión",

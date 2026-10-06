@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.ui.navigation.QvacellNavHost
+import com.qvacell.app.ui.navigation.Routes
 import com.qvacell.app.ui.theme.QvacellTheme
 import kotlinx.coroutines.flow.first
 
@@ -49,22 +50,25 @@ class MainActivity : ComponentActivity() {
             var initialThemeMode by remember { mutableStateOf<ThemeMode?>(null) }
             var initialAccentColor by remember { mutableStateOf<String?>(null) }
             var initialDefaultTab by remember { mutableStateOf<String?>(null) }
+            var initialHasCompletedOnboarding by remember { mutableStateOf<Boolean?>(null) }
 
             LaunchedEffect(Unit) {
                 initialThemeMode = settings.themeMode.first()
                 initialAccentColor = settings.accentColor.first()
                 initialDefaultTab = settings.defaultTab.first()
+                initialHasCompletedOnboarding = settings.hasCompletedOnboarding.first()
             }
 
             val loadedThemeMode = initialThemeMode
             val loadedAccentColor = initialAccentColor
             val loadedDefaultTab = initialDefaultTab
-            if (loadedThemeMode != null && loadedAccentColor != null && loadedDefaultTab != null) {
+            val loadedHasCompletedOnboarding = initialHasCompletedOnboarding
+            if (loadedThemeMode != null && loadedAccentColor != null && loadedDefaultTab != null && loadedHasCompletedOnboarding != null) {
                 QvacellApp(
                     settings = settings,
                     initialThemeMode = loadedThemeMode,
                     initialAccentColor = loadedAccentColor,
-                    startTabRoute = loadedDefaultTab,
+                    startTabRoute = if (loadedHasCompletedOnboarding) loadedDefaultTab else Routes.ONBOARDING,
                     onNavigationBarColor = { window.navigationBarColor = it }
                 )
             }
