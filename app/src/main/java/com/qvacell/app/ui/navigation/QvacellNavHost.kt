@@ -42,7 +42,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.qvacell.app.ui.screens.CategoryListScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
-import com.qvacell.app.ui.screens.DirectorySearchScreen
 import com.qvacell.app.ui.screens.FriendsPlanManageScreen
 import com.qvacell.app.ui.screens.HelpScreen
 import com.qvacell.app.ui.screens.HomeQuickActionsScreen
@@ -286,7 +285,11 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 )
             }
             composable(Routes.DIRECTORY_SEARCH) {
-                DirectorySearchScreen(onBack = { navController.popBackStack() })
+                PlaceholderScreen(
+                    title = "Búsqueda en Base de Datos",
+                    description = "Búsqueda en base de datos telefónica local — función en desarrollo.",
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(Routes.HELP) {
                 HelpScreen(

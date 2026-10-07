@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ManageSearch
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -53,7 +56,14 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
                 title = { Text("Búsqueda en Base de Datos") },
-                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) },
+                actions = {
+                    Icon(
+                        Icons.Filled.ManageSearch,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 16.dp)
+                    )
+                }
             )
         }
     ) { padding ->

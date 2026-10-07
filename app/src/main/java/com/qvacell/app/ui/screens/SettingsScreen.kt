@@ -25,10 +25,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowOutward
+import androidx.compose.material.icons.filled.CallReceived
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.ManageSearch
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -330,6 +339,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                         SettingsRow(
                             headline = "Buscar en BBDD",
                             supporting = "Búsqueda inversa por número en una base de datos local",
+                            icon = Icons.Filled.Storage,
                             onClick = { onNavigate(SettingsDestination.DirectorySearch) }
                         )
                     }
@@ -339,20 +349,34 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
             item {
                 SettingsSection(header = "Cuenta") {
                     configuracionesCodes.forEach { code ->
+                        val isAccentLink = code.id in setOf("sms-2266-lte", "sms-2266-imei", "sms-4222-mms-config")
                         SettingsRow(
                             headline = code.title.value,
                             icon = resolveAndroidIcon(code.icon),
+                            accentHeadline = isAccentLink,
+                            trailingContent = if (isAccentLink) ({
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }) else null,
                             onClick = { onCodeClick(code) }
                         )
                         SettingsDivider()
                     }
                     SettingsRow(
                         headline = "Gestionar Plan Amigo",
+                        supporting = "Activa, desactiva o modifica tu Plan Amigo",
+                        icon = Icons.Filled.People,
                         onClick = { onNavigate(SettingsDestination.FriendsPlanManage) }
                     )
                     SettingsDivider()
                     SettingsRow(
                         headline = "Gestionar PIN de Transferencia",
+                        supporting = "Cambia o guarda tu PIN de transferencia",
+                        icon = Icons.Filled.Lock,
                         onClick = { onNavigate(SettingsDestination.TransferPinManage) }
                     )
                 }
@@ -363,20 +387,30 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                     SettingsRow(
                         headline = "Identificador de Llamadas",
                         supporting = "Solicitar rol de selección de llamadas",
+                        icon = Icons.Filled.CallReceived,
                         onClick = { requestCallScreeningRole(context) }
                     )
                     SettingsDivider()
                     SettingsRow(
                         headline = "Widgets de Inicio",
+                        supporting = "Widgets para la pantalla de inicio de tu teléfono",
+                        icon = Icons.Filled.Widgets,
                         onClick = { onNavigate(SettingsDestination.HomeWidgets) }
                     )
                     SettingsDivider()
                     SettingsRow(
                         headline = "Atajos de Voz (Gemini)",
+                        supporting = "Controla Qvacell con tu voz mediante Gemini",
+                        icon = Icons.Filled.Mic,
                         onClick = { onNavigate(SettingsDestination.VoiceShortcuts) }
                     )
                     SettingsDivider()
-                    SettingsRow(headline = "Ayuda", onClick = { onNavigate(SettingsDestination.Help) })
+                    SettingsRow(
+                        headline = "Ayuda",
+                        supporting = "Preguntas frecuentes y recursos de soporte",
+                        icon = Icons.Filled.Help,
+                        onClick = { onNavigate(SettingsDestination.Help) }
+                    )
                     SettingsDivider()
                     SettingsRow(
                         headline = "Versión",
@@ -590,10 +624,17 @@ private fun SettingsRow(
     supporting: String? = null,
     icon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
+    accentHeadline: Boolean = false,
     trailingContent: (@Composable () -> Unit)? = null
 ) {
     ListItem(
-        headlineContent = { Text(headline) },
+        headlineContent = {
+            Text(
+                headline,
+                color = if (accentHeadline) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurface
+            )
+        },
         supportingContent = supporting?.let {
             {
                 Text(
