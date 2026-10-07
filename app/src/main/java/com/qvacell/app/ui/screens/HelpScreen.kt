@@ -58,16 +58,6 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 8.dp)
         ) {
-            if (onStartTour != null) {
-                HelpSection("Tour de bienvenida") {
-                    HelpLinkRow(
-                        label = "Tomar Tour",
-                        icon = Icons.Filled.TravelExplore,
-                        onClick = onStartTour
-                    )
-                }
-            }
-
             HelpSection("Qué es Qvacell") {
                 HelpInfoRow(
                     title = "¿Qué hace la app?",
@@ -75,11 +65,13 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
                         "(Cubacel): saldo, compras, transferencias y otras utilidades, todo desde " +
                         "una app sin conexión y sin dependencias."
                 )
-                HelpLinkRow(
-                    label = "Código fuente en GitHub",
-                    icon = Icons.Filled.Code,
-                    onClick = { uriHandler.openUri(REPO_URL) }
-                )
+                if (onStartTour != null) {
+                    HelpLinkRow(
+                        label = "Tomar Tour de Bienvenida",
+                        icon = Icons.Filled.TravelExplore,
+                        onClick = onStartTour
+                    )
+                }
             }
 
             HelpSection("Idioma") {
@@ -233,6 +225,11 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
                     label = "@albertolicea00",
                     icon = Icons.Filled.Code,
                     onClick = { uriHandler.openUri(DEVELOPER_URL) }
+                )
+                HelpLinkRow(
+                    label = "Código fuente en GitHub",
+                    icon = Icons.Filled.Code,
+                    onClick = { uriHandler.openUri(REPO_URL) }
                 )
             }
 
