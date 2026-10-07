@@ -412,7 +412,8 @@ private fun QuickActionTile(
 ) {
     Surface(
         modifier = Modifier
-            .size(size)
+            .width(size)
+            .height(size * 0.72f)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(percent = 20),
         color = MaterialTheme.colorScheme.primary
