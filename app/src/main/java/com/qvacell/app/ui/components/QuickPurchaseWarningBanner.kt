@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-/** Compras-only, pinned banner — Ajustes' "Acción sin Confirmación" is on, so a tap dials
+/** Compras-only, pinned banner — Options' "Acción sin Confirmación" is on, so a tap dials
  *  straight through with no in-app confirmation step. Ported from iOS's QuickPurchaseWarningBannerView. */
 @Composable
 fun QuickPurchaseWarningBanner() {

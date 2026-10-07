@@ -48,7 +48,7 @@ This project uses two Gradle product flavors (dimension `distribution`) to ship 
 | Flavor | Distribution | Sensitive permissions | Dashboard auto-refresh |
 | --- | --- | --- | --- |
 | **`store`** | Google Play | None of the three below | Off — manual dial only, exactly like every other code in the app |
-| **`unlocked`** | GitHub / manual APK sideload | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (plus the existing `CALL_PHONE`, now also used for silent USSD capture) | On (opt-in toggles in Ajustes) — reads ETECSA SMS and USSD responses in the background and estimates usage since the last confirmed reading, to keep the balance/data/voice/SMS dashboard fresh between manual checks |
+| **`unlocked`** | GitHub / manual APK sideload | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (plus the existing `CALL_PHONE`, now also used for silent USSD capture) | On (opt-in toggles in Options) — reads ETECSA SMS and USSD responses in the background and estimates usage since the last confirmed reading, to keep the balance/data/voice/SMS dashboard fresh between manual checks |
 
 `store` exists specifically so the Play Store build never has to clear Google's restricted-permissions review for `READ_SMS`/`READ_CALL_LOG` — it's built from the exact same source, just missing the capture source sets (`app/src/store/`) instead of `unlocked`'s (`app/src/unlocked/`). See [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) for how the split works and what each flavor's capture layer does.
 
@@ -61,7 +61,7 @@ This project uses two Gradle product flavors (dimension `distribution`) to ship 
 | `RECEIVE_SMS` | Live capture of new incoming ETECSA SMS (balance, deductions, limit dates) as they arrive, via a broadcast receiver — the "keep the dashboard fresh going forward" half of SMS capture. |
 | `READ_CALL_LOG` | Feeds the background estimation engine: counts/durations of calls to Cuban numbers since the last confirmed reading, to estimate usage between real USSD/SMS syncs. |
 
-None of these are requested at install time — each is asked for at runtime, right before the specific feature that needs it (Ajustes toggles, both default OFF), with an in-app explanation of why.
+None of these are requested at install time — each is asked for at runtime, right before the specific feature that needs it (Options toggles, both default OFF), with an in-app explanation of why.
 
 **Build & run:**
 
@@ -96,7 +96,7 @@ Open the project in Android Studio and let it sync — the Gradle wrapper regene
 
 **USSD dialing requires a physical device with a Cubacel SIM** 📲 — the emulator has no real telephony stack and cannot place calls.
 
-To get Caller ID working for `*99` collect calls, open **Ajustes › Acerca de › Identificador de Llamadas** in the app and grant the call-screening role when prompted (`RoleManager.ROLE_CALL_SCREENING`). This is a one-time, manual Android setting — no app can enable it automatically. See [ARCHITECTURE.md § 11](ARCHITECTURE.md#11-caller-id-callscreeningservice-99-collect-call-identification) for why the result looks different from iOS's CallKit extension.
+To get Caller ID working for `*99` collect calls, open **Options › Acerca de › Identificador de Llamadas** in the app and grant the call-screening role when prompted (`RoleManager.ROLE_CALL_SCREENING`). This is a one-time, manual Android setting — no app can enable it automatically. See [ARCHITECTURE.md § 11](ARCHITECTURE.md#11-caller-id-callscreeningservice-99-collect-call-identification) for why the result looks different from iOS's CallKit extension.
 
 ## 🗂️ Project Structure
 
@@ -124,7 +124,7 @@ Free query codes dial immediately. Paid purchase codes stop at ETECSA's confirma
 
 ## 🔍 Phone Directory & Offline Database Search
 
-Under **Ajustes › Utilidades**:
+Under **Options › Utilidades**:
 
 - **Buscar en Database**: Advanced offline reverse phone lookup over a user-supplied SQLite (`.db`) file, imported via the system file picker. For security and privacy, this feature is hidden by default (unlocked by tapping the app version 5 times in _Acerca de_) and searches strictly by phone number (no name lookup).
 

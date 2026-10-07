@@ -43,7 +43,7 @@ import com.qvacell.app.service.TransferPinStore
 import com.qvacell.app.ui.components.BackNavigationIcon
 
 /**
- * Ajustes › Cuenta › Gestionar PIN de Transferencia — "Cambiar Clave" dials ETECSA's PIN-change
+ * Options › Cuenta › Gestionar PIN de Transferencia — "Cambiar Clave" dials ETECSA's PIN-change
  * code and updates the saved PIN to match; "Guardar Clave" just persists a PIN locally so
  * Transferir can prefill it — ported from iOS's TransferPinSettingsView.
  */

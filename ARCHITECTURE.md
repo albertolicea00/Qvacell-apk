@@ -24,10 +24,10 @@ It is an Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell
                             ▼
                      QvacellNavHost
               (bottom nav, 5 tabs: Ayuda, Contactos,
-               Home, Compras, Ajustes)
+               Home, Compras, Options)
         ┌──────────┬──────────┬──────────┬──────────┐
         ▼          ▼          ▼          ▼          ▼
-   CategoryListScreen (×2, helplines/purchase)   SettingsScreen
+   CategoryListScreen (×2, helplines/purchase)   OptionsScreen
    (per-category code list · dials/prompts)      (nested routes)
         │                                              │
         ▼                                              ▼
@@ -78,9 +78,9 @@ There is no MVVM view-model layer and no cross-screen navigation state machine b
 | `receiver/BootCompletedReceiver.kt`                | Re-registers all enabled reminders after `ACTION_BOOT_COMPLETED`, since `AlarmManager` alarms are cleared on reboot (§6) — a correctness step iOS local notifications don't need.                                                                                                                  |
 | `ui/AndroidIconResolver.kt`                        | Resolves the `icon` string in this repo's `codes.json` (e.g. `"Filled.Home"` — this repo's own copy replaces iOS's SF Symbol names with Material icon identifiers in that same field) to a `androidx.compose.material.icons` `ImageVector` via reflection; falls back to a generic circle icon when unset or unresolvable. |
 | `ui/components/`                                   | Reusable, presentation-only composables: `CodeRow`, `ContactRow`, `DirectoryEntryRow`, `ConnectionBanner`, and `CodeActionHandler` (the input/variant/options dialog + dispatch logic shared by every code-tap flow).                                                                              |
-| `ui/navigation/NavGraph.kt`                        | `BottomTab` sealed class (the 5 fixed tabs) and `Routes` (nested route constants for screens pushed from Ajustes).                                                                                                                                                                                 |
+| `ui/navigation/NavGraph.kt`                        | `BottomTab` sealed class (the 5 fixed tabs) and `Routes` (nested route constants for screens pushed from Options).                                                                                                                                                                                 |
 | `ui/navigation/QvacellNavHost.kt`                  | Compose `NavHost` wiring bottom-tab routes and nested routes together.                                                                                                                                                                                                                             |
-| `ui/screens/`                                      | `CategoryListScreen` (Ayuda/Compras), `ContactsListScreen`, `HomeQuickActionsScreen`, `TransferFlowScreen`, `RechargeFlowScreen`, `ReminderListScreen`/`ReminderEditScreen`, `DirectorySearchScreen`, `WifiRoomsScreen`, `TransferPinScreen`, `SettingsScreen`, `HelpScreen`, `SmsServicesScreen`. |
+| `ui/screens/`                                      | `CategoryListScreen` (Ayuda/Compras), `ContactsListScreen`, `HomeQuickActionsScreen`, `TransferFlowScreen`, `RechargeFlowScreen`, `ReminderListScreen`/`ReminderEditScreen`, `DirectorySearchScreen`, `WifiRoomsScreen`, `TransferPinScreen`, `OptionsScreen`, `HelpScreen`, `SmsServicesScreen`. |
 | `app/src/main/assets/codes.json`                   | Static, bundled dataset: version, carrier, categories → groups → codes, each with its dial string and presentation metadata (§3). Byte-identical to the iOS app's copy.                                                                                                                            |
 | `app/src/main/assets/wifi_navigation_rooms.json`   | Static, bundled dataset: one entry per province with its navigation rooms and free WiFi hotspots. Byte-identical to the iOS app's copy.                                                                                                                                                            |
 
@@ -117,11 +117,11 @@ A code carries no `category` field of its own — its category and group are ent
 
 ## 4. Navigation Model
 
-`QvacellNavHost` hosts a bottom navigation bar with 5 explicit tabs — Ayuda, Contactos, Home, Compras, Ajustes (`BottomTab` in `NavGraph.kt`) — not a generic loop over every catalog category (the tab order is fixed on purpose: Home sits in the middle). Ayuda and Compras each host a `CategoryListScreen` bound to the matching `UssdCategory` (`helplines`/`purchase`); adding a _code or group_ to either category in `codes.json` updates that tab automatically, but adding a whole new top-level category does **not** grow the bottom bar — the tab set itself is fixed, same constraint as iOS.
+`QvacellNavHost` hosts a bottom navigation bar with 5 explicit tabs — Ayuda, Contactos, Home, Compras, Options (`BottomTab` in `NavGraph.kt`) — not a generic loop over every catalog category (the tab order is fixed on purpose: Home sits in the middle). Ayuda and Compras each host a `CategoryListScreen` bound to the matching `UssdCategory` (`helplines`/`purchase`); adding a _code or group_ to either category in `codes.json` updates that tab automatically, but adding a whole new top-level category does **not** grow the bottom bar — the tab set itself is fixed, same constraint as iOS.
 
 Tapping a row in `CategoryListScreen` dials/prompts/sends an SMS intent directly depending on `UssdCode.type` and `requiresInput`, via the shared `CodeActionHandler` — there is no single "code detail" screen type.
 
-`SettingsScreen` pushes nested routes (`Routes` in `NavGraph.kt`) for Reminders, SMS services, WiFi rooms, Directory search (hidden by default), Transfer PIN management, and Help — same structure as the iOS app's `SettingsView` push destinations, minus Siri/Shortcuts (iOS-only, not ported) and with the Caller-ID settings replaced by a role-request action (§11) instead of a system-settings deep link.
+`OptionsScreen` pushes nested routes (`Routes` in `NavGraph.kt`) for Reminders, SMS services, WiFi rooms, Directory search (hidden by default), Transfer PIN management, and Help — same structure as the iOS app's `SettingsView` push destinations, minus Siri/Shortcuts (iOS-only, not ported) and with the Caller-ID settings replaced by a role-request action (§11) instead of a system-settings deep link.
 
 ---
 
@@ -141,7 +141,7 @@ Separately, the Home Transferir flow and the offline Database search prefill a P
 
 ## 6. Reminders & Local Notifications
 
-Ajustes › Utilidades › Recordatorios schedules local notifications for a purchase/recharge/transfer the user needs to make — entirely on-device, no push infrastructure, no server, consistent with §1's "no backend, no network calls."
+Options › Utilidades › Recordatorios schedules local notifications for a purchase/recharge/transfer the user needs to make — entirely on-device, no push infrastructure, no server, consistent with §1's "no backend, no network calls."
 
 ### 6.1 Model & scheduling
 
@@ -236,14 +236,14 @@ QvacellDatabase.wrappedCallerDao()  ──▶  Room table "wrapped_callers"
 
 - **`ContactsRepository.syncWrappedCallers`** rebuilds the entire `wrapped_callers` table from the device's Contacts every time `ContactsListScreen` fetches them — same "no separate manual sync button" behavior as the iOS app's `ContactsService.fetch()`.
 - **`CallerIdScreeningService`** (`service/CallerIdScreeningService.kt`) extends `android.telecom.CallScreeningService`. On every incoming call it unwraps the number if it matches the `99…99` pattern, looks it up against `wrapped_callers`, and — if found — posts a heads-up notification naming the caller. It **never blocks or rejects any call**; screening decisions always allow the call through.
-- The service is declared with a `CallScreeningService` intent filter and requires the user to grant `RoleManager.ROLE_CALL_SCREENING` once, via Ajustes › Acerca de › Identificador de Llamadas — a one-time manual step, no API lets an app enable it for itself.
+- The service is declared with a `CallScreeningService` intent filter and requires the user to grant `RoleManager.ROLE_CALL_SCREENING` once, via Options › Acerca de › Identificador de Llamadas — a one-time manual step, no API lets an app enable it for itself.
 - Compras' purchase confirmation flow (`CodeActionHandler`, §5) is unrelated to this service but shares the same `CALL_PHONE` permission: every non-SMS Compras code always shows an in-app "Confirmar compra" sheet, and only dials directly (`DialService.dialDirect`, `ACTION_CALL`) once the user accepts and the permission is granted — requesting it inline at that point, and falling back to the normal dialer (`ACTION_DIAL`) if denied.
 
 ### 11.3 Real constraints (not fixable in code) — the platform gap vs. iOS
 
 - **Cannot inject a custom name into the system in-call UI.** This is the central difference from the iOS app's CallKit Call Directory Extension, which _can_ relabel the system's own incoming-call screen. Android's `CallScreeningService` API gives a screening app no mechanism to change the displayed caller name unless that app is also the user's **default dialer app** — a much larger commitment (replacing core phone UI, `InCallService`, etc.) that this project deliberately does not take on for one feature. The heads-up notification is the best-effort substitute: it doesn't replace the incoming-call screen, but it does surface the real name promptly.
 - **Only labels contacts already in the address book** — a `*99` call from an unknown number still resolves to nothing, same limitation as the iOS app.
-- **The user must grant the call-screening role once, manually** — Ajustes del sistema will show a role-holder picker; only one app can hold `ROLE_CALL_SCREENING` at a time, so enabling this may replace another call-screening/spam-blocking app the user already had.
+- **The user must grant the call-screening role once, manually** — Options del sistema will show a role-holder picker; only one app can hold `ROLE_CALL_SCREENING` at a time, so enabling this may replace another call-screening/spam-blocking app the user already had.
 - **Only testable on a physical device with a real telephony stack.**
 - **A truly anonymous call (`#31#`) can never be identified this way** — the network never transmits the number at all in that case, so there is nothing to wrap or unwrap.
 
@@ -253,7 +253,7 @@ QvacellDatabase.wrappedCallerDao()  ──▶  Room table "wrapped_callers"
 
 `TransferPinStore` (`service/TransferPinStore.kt`) persists the user's ETECSA transfer PIN using `EncryptedSharedPreferences` (`androidx.security.crypto`), backed by a `MasterKey` in the Android Keystore (AES256-GCM), with AES256-SIV key encryption and AES256-GCM value encryption — the Android equivalent of the iOS app's Keychain-backed store. `.save(_)`/`.load()`/`.delete()` are thin wrappers over the encrypted `SharedPreferences`.
 
-Consumers: the Home Transferir flow and the offline Database search's PIN field both call `TransferPinStore.load()` to prefill themselves instead of asking the user to retype the PIN every time; the Transfer PIN settings screen (Ajustes › Cuenta) is the only place that writes to it.
+Consumers: the Home Transferir flow and the offline Database search's PIN field both call `TransferPinStore.load()` to prefill themselves instead of asking the user to retype the PIN every time; the Transfer PIN settings screen (Options › Cuenta) is the only place that writes to it.
 
 ---
 
@@ -340,7 +340,7 @@ Two new tables, added in `data/QvacellDatabase.kt` via a hand-written `Migration
 - **`UssdCaptureService`** (`app/src/unlocked/`) — wraps `TelephonyManager.sendUssdRequest` (API 26+) to capture a USSD response's text programmatically, instead of the `ACTION_DIAL`-only path every other code in the app uses. Falls back to the normal `DialService.dial()` (system dialer, today's exact UX) on any failure, timeout, or when the user hasn't opted in — this is not on by default (see below).
 - **`EtecsaSmsReceiver`**/**`EtecsaSmsFilter`** (`app/src/unlocked/`) — live incoming-SMS capture plus a historical backfill query, filtered by a stub "is this an ETECSA message" heuristic pending real sender/format examples.
 - **`EstimationEngine`**/**`EstimationScheduler`**/**`EstimationAlarmReceiver`** (`app/src/unlocked/`) — the background estimate: queries `CallLog.Calls` and (once live) `Telephony.Sms.Sent` since the last confirmed anchor, filtered to Cuban numbers via the existing `model/CubanPhoneNumber.kt` (no new heuristic written — reused what already existed), and writes the delta via `recordEstimate`. Scheduled via `AlarmManager.setExactAndAllowWhileIdle`, mirroring `ReminderScheduler`'s existing pattern (§6) rather than introducing WorkManager as a second background-work paradigm in the same app.
-- **Ajustes toggles** — "Consulta automática de saldo (experimental)" (silent USSD) and "Detección automática por SMS" (SMS + call-log estimation) in `SettingsScreen.kt`, both **default OFF**. Silent USSD capture reuses the same `CALL_PHONE` permission already granted for Compras, but its blast radius is now wider (silent background use vs. an explicit in-app confirm-then-call), so it's opt-in behind an explainer rather than silently repurposing an existing grant. The reliability of `sendUssdRequest` against ETECSA's actual gateway is unverified — this is a real spike/validate-early risk, not just a formality, since some carriers route USSD replies as an OS-level dialog the app's callback never sees.
+- **Options toggles** — "Consulta automática de saldo (experimental)" (silent USSD) and "Detección automática por SMS" (SMS + call-log estimation) in `OptionsScreen.kt`, both **default OFF**. Silent USSD capture reuses the same `CALL_PHONE` permission already granted for Compras, but its blast radius is now wider (silent background use vs. an explicit in-app confirm-then-call), so it's opt-in behind an explainer rather than silently repurposing an existing grant. The reliability of `sendUssdRequest` against ETECSA's actual gateway is unverified — this is a real spike/validate-early risk, not just a formality, since some carriers route USSD replies as an OS-level dialog the app's callback never sees.
 
 ### 15.6 `store`/`unlocked` flavor split
 
@@ -355,7 +355,7 @@ app/src/store/.../DashboardCapture.kt    — no-op: always falls back to plain D
 app/src/unlocked/.../DashboardCapture.kt — real capture-or-dial decision (§15.5)
 ```
 
-`BuildConfig.DASHBOARD_CAPTURE_ENABLED` (a per-flavor `buildConfigField`) gates whether the two Ajustes toggles render at all — the `store` flavor never shows a UI affordance for a feature it can't perform. See [README.md § Build Flavors & Permissions](README.md#-build-flavors--permissions) for the actual `./gradlew` commands to build/install/test each flavor.
+`BuildConfig.DASHBOARD_CAPTURE_ENABLED` (a per-flavor `buildConfigField`) gates whether the two Options toggles render at all — the `store` flavor never shows a UI affordance for a feature it can't perform. See [README.md § Build Flavors & Permissions](README.md#-build-flavors--permissions) for the actual `./gradlew` commands to build/install/test each flavor.
 
 ### 15.7 Testing
 
@@ -372,7 +372,7 @@ Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX
 - Parser contract/registry scaffolding (stubbed, see below).
 - `DashboardDataRepository` with the real-beats-estimate reconciliation rule.
 - Capture services, estimation engine, AlarmManager scheduling (`unlocked` flavor).
-- `store`/`unlocked` flavor split, manifest/permission separation, `BuildConfig`-gated Ajustes UI.
+- `store`/`unlocked` flavor split, manifest/permission separation, `BuildConfig`-gated Options UI.
 - First-ever test suite for this project.
 
 **Explicitly stubbed, pending real-world examples from the maintainer**:

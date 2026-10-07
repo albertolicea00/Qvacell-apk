@@ -124,7 +124,7 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
             HelpSection("Recordatorios") {
                 HelpInfoRow(
                     title = "¿Qué hace?",
-                    text = "En Ajustes › Utilidades › Recordatorios puedes crear notificaciones " +
+                    text = "En Opciones › Utilidades › Recordatorios puedes crear notificaciones " +
                         "locales (sin servidor, sin internet) para que te avisen cuando toca " +
                         "comprar un paquete, recargar saldo o hacer una transferencia. Hay una " +
                         "sección por plantilla, y puedes agregar tantos recordatorios de cada una " +
@@ -152,7 +152,7 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
             HelpSection("Plan Amigo") {
                 HelpInfoRow(
                     title = "Gestionar Plan Amigo",
-                    text = "En Ajustes › Cuenta › Gestionar Plan Amigo puedes activarlo, " +
+                    text = "En Opciones › Cuenta › Gestionar Plan Amigo puedes activarlo, " +
                         "desactivarlo, agregar o eliminar un amigo (con su número o eligiéndolo " +
                         "de Contactos), y consultar su estado. Activar el Plan Amigos tiene un " +
                         "costo de $25.00."
@@ -162,7 +162,7 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
             HelpSection("PIN de Transferencia") {
                 HelpInfoRow(
                     title = "Cambiar y guardar tu PIN",
-                    text = "En Ajustes › Cuenta › Gestionar PIN de Transferencia puedes cambiar " +
+                    text = "En Opciones › Cuenta › Gestionar PIN de Transferencia puedes cambiar " +
                         "el PIN que usas para transferir saldo, o guardarlo en este dispositivo " +
                         "para que se rellene solo cada vez que transfieras (desde Home o desde un " +
                         "contacto). Se guarda cifrado en este teléfono y nunca sale de él."
@@ -200,7 +200,7 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
             HelpSection("Buscar en Directorio") {
                 HelpInfoRow(
                     title = "¿Qué es?",
-                    text = "En Ajustes › Utilidades › Buscar en Directorio puedes buscar números " +
+                    text = "En Opciones › Utilidades › Buscar en Directorio puedes buscar números " +
                         "y contactos comerciales en el directorio telefónico de ETECSA (función " +
                         "actualmente en desarrollo)."
                 )

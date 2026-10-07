@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import com.qvacell.app.ui.navigation.SquareGrid2x2
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Sync
@@ -101,7 +102,10 @@ private sealed class OnboardingPage {
     object FeatureContacts : OnboardingPage()
     object FeatureHome : OnboardingPage()
     object FeaturePurchases : OnboardingPage()
-    object FeatureSettings : OnboardingPage()
+    object FeatureOptions : OnboardingPage()
+
+    @Deprecated("Renamed to FeatureOptions", ReplaceWith("FeatureOptions"))
+    val FeatureSettings = FeatureOptions
 }
 
 @Composable
@@ -135,7 +139,7 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
             add(OnboardingPage.FeatureContacts)
             add(OnboardingPage.FeatureHome)
             add(OnboardingPage.FeaturePurchases)
-            add(OnboardingPage.FeatureSettings)
+            add(OnboardingPage.FeatureOptions)
         }
     }
 
@@ -276,8 +280,8 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
                         ),
                         onNext = ::next
                     )
-                    OnboardingPage.FeatureSettings -> FeaturePage(
-                        icon = Icons.Filled.Settings,
+                    OnboardingPage.FeatureOptions -> FeaturePage(
+                        icon = SquareGrid2x2,
                         title = "Personalización",
                         subtitle = "Adapta la app a tu estilo y necesidades",
                         bullets = listOf(
@@ -548,7 +552,7 @@ private fun DashboardChoicePage(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            "Puedes cambiarlo más adelante desde Ajustes",
+            "Puedes cambiarlo más adelante desde Opciones",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -679,7 +683,7 @@ private fun UssdPermissionPage(granted: Boolean, onRequest: () -> Unit, onNext: 
                     GrantedBadge()
                 } else {
                     Text(
-                        "Sin este permiso abriremos el marcador del sistema. Puedes concederlo más tarde desde Ajustes.",
+                        "Sin este permiso abriremos el marcador del sistema. Puedes concederlo más tarde desde Opciones.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center

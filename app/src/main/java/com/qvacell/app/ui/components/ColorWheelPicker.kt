@@ -31,7 +31,7 @@ import kotlin.math.sqrt
 
 /**
  * HSV wheel (hue = angle, saturation = distance from center) plus a brightness slider below —
- * replaces typing a raw #RRGGBB hex for Ajustes › Color de acento.
+ * replaces typing a raw #RRGGBB hex for Options › Color de acento.
  */
 @Composable
 fun ColorWheelPicker(color: Color, onColorChange: (Color) -> Unit, modifier: Modifier = Modifier) {

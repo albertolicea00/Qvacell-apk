@@ -62,7 +62,7 @@ private val DarkColors = darkColorScheme(
     surfaceContainerHighest = Color(0xFF2A2A2D)
 )
 
-/** Builds a full color scheme from a single user-picked accent color (Ajustes › Color de acento). */
+/** Builds a full color scheme from a single user-picked accent color (Options › Color de acento). */
 private fun accentColorScheme(accent: Color, dark: Boolean): ColorScheme {
     val onAccent = if (accent.luminance() > 0.5f) Color.Black else Color.White
     return if (dark) {
@@ -103,7 +103,7 @@ private fun accentColorScheme(accent: Color, dark: Boolean): ColorScheme {
 @Composable
 fun QvacellTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    // Hex string from Ajustes › Color de acento (e.g. "#0099CC"); null/unparseable falls back to
+    // Hex string from Options › Color de acento (e.g. "#0099CC"); null/unparseable falls back to
     // the hardcoded brand cyan scheme above.
     accentColorHex: String? = null,
     // Off by default so the accent color above is what actually renders — Material You's dynamic

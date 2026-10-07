@@ -144,7 +144,7 @@ fun MainBalanceCard(
     }
 }
 
-/** "24-10-2026" (dd-MM-yyyy) — the format Ajustes/backend hand us for this date; ⊥ on parse failure. */
+/** "24-10-2026" (dd-MM-yyyy) — the format Options/backend hand us for this date; ⊥ on parse failure. */
 private fun parseDmyDate(value: String): LocalDate? {
     val parts = value.split("-")
     if (parts.size != 3) return null

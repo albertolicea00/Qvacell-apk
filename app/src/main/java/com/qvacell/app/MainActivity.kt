@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Theme mode and accent color still collect live (Ajustes changes them and the whole app should
+ * Theme mode and accent color still collect live (Options changes them and the whole app should
  * react instantly), but `startTabRoute` is a plain snapshot, passed once — [QvacellNavHost] never
  * receives a changed value that could yank the user out of wherever they navigated to.
  */

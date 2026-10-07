@@ -29,7 +29,7 @@ Una aplicación para Android para acceder rápidamente a los **códigos de servi
 - 👥 **Gestión de Cuentas y PIN** — Almacena el PIN de transferencia en un almacén local cifrado y gestiona números del Plan Amigo.
 - 🔔 **Recordatorios Locales** — Programa alertas recurrentes para compras de planes, recargas de saldo o transferencias, con marcado en 1 toque, reprogramadas automáticamente tras reiniciar el dispositivo.
 - 🔍 **Búsqueda Offline en Directorio** — Búsqueda inversa por número sobre una base de datos SQLite suministrada por el usuario (oculta por defecto, ver abajo).
-- 🌗 **Personalización y Ajustes** — Soporte para tema Claro/Oscuro, color de acento personalizado y pestaña de inicio configurable.
+- 🌗 **Personalización y Options** — Soporte para tema Claro/Oscuro, color de acento personalizado y pestaña de inicio configurable.
 
 > [!NOTE]
 > **App Nativa de Android**
@@ -48,7 +48,7 @@ Este proyecto usa dos "product flavors" de Gradle (dimensión `distribution`) pa
 | Flavor | Distribución | Permisos sensibles | Auto-actualización del dashboard |
 | --- | --- | --- | --- |
 | **`store`** | Google Play | Ninguno de los tres siguientes | Desactivada — solo marcado manual, igual que cualquier otro código de la app |
-| **`unlocked`** | GitHub / APK manual | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (más el `CALL_PHONE` ya existente, ahora también usado para captura silenciosa de USSD) | Activada (interruptores opcionales en Ajustes) — lee SMS de ETECSA y respuestas USSD en segundo plano y estima el consumo desde la última lectura confirmada, para mantener el dashboard de saldo/datos/voz/SMS actualizado entre consultas manuales |
+| **`unlocked`** | GitHub / APK manual | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (más el `CALL_PHONE` ya existente, ahora también usado para captura silenciosa de USSD) | Activada (interruptores opcionales en Opciones) — lee SMS de ETECSA y respuestas USSD en segundo plano y estima el consumo desde la última lectura confirmada, para mantener el dashboard de saldo/datos/voz/SMS actualizado entre consultas manuales |
 
 `store` existe específicamente para que la versión de Play Store nunca tenga que pasar la revisión de permisos restringidos de Google para `READ_SMS`/`READ_CALL_LOG` — se compila del mismo código exacto, solo que sin los source sets de captura (`app/src/store/`) que sí tiene `unlocked` (`app/src/unlocked/`). Ver [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) para cómo funciona la separación y qué hace la capa de captura de cada flavor.
 
@@ -61,7 +61,7 @@ Este proyecto usa dos "product flavors" de Gradle (dimensión `distribution`) pa
 | `RECEIVE_SMS` | Captura en vivo de nuevos SMS entrantes de ETECSA (saldo, descuentos, fechas límite) a medida que llegan, vía un receiver — la mitad de "mantener el dashboard actualizado hacia adelante" de la captura de SMS. |
 | `READ_CALL_LOG` | Alimenta el motor de estimación en segundo plano: cuenta/duración de llamadas a números cubanos desde la última lectura confirmada, para estimar el consumo entre sincronizaciones reales por USSD/SMS. |
 
-Ninguno de estos se pide al instalar — cada uno se solicita en tiempo de ejecución, justo antes de la función que lo necesita (interruptores en Ajustes, ambos apagados por defecto), con una explicación dentro de la app de por qué.
+Ninguno de estos se pide al instalar — cada uno se solicita en tiempo de ejecución, justo antes de la función que lo necesita (interruptores en Opciones, ambos apagados por defecto), con una explicación dentro de la app de por qué.
 
 **Compilar y correr:**
 
@@ -96,7 +96,7 @@ Abre el proyecto en Android Studio y espera la sincronización — el Gradle wra
 
 **El marcado USSD requiere un dispositivo físico con una SIM de Cubacel** 📲 — el emulador no tiene una pila de telefonía real y no puede realizar llamadas.
 
-Para activar el Identificador de Llamadas para llamadas `*99`, abre **Ajustes › Acerca de › Identificador de Llamadas** en la app y concede el rol de selección de llamadas cuando se solicite (`RoleManager.ROLE_CALL_SCREENING`). Este es un ajuste manual de Android que se realiza una sola vez — ninguna app puede activarlo automáticamente. Consulta [ARCHITECTURE.md § 11](ARCHITECTURE.md#11-caller-id-callscreeningservice-99-collect-call-identification) para entender por qué el resultado es distinto al de la extensión CallKit de iOS.
+Para activar el Identificador de Llamadas para llamadas `*99`, abre **Opciones › Acerca de › Identificador de Llamadas** en la app y concede el rol de selección de llamadas cuando se solicite (`RoleManager.ROLE_CALL_SCREENING`). Este es un ajuste manual de Android que se realiza una sola vez — ninguna app puede activarlo automáticamente. Consulta [ARCHITECTURE.md § 11](ARCHITECTURE.md#11-caller-id-callscreeningservice-99-collect-call-identification) para entender por qué el resultado es distinto al de la extensión CallKit de iOS.
 
 ## 🗂️ Estructura del Proyecto
 
@@ -105,7 +105,7 @@ app/src/main/java/com/qvacell/app/
 ├── QvacellApplication.kt        # Punto de entrada de la app, canales de notificación
 ├── MainActivity.kt              # Host de Activity única, aplica el tema, solicita permiso de notificaciones
 ├── model/                       # Catálogo USSDCode/Category, CubanPhoneNumber, Reminder, WrappedCaller
-├── data/                        # Base de datos Room, DAOs, DataStore de ajustes
+├── data/                        # Base de datos Room, DAOs, DataStore de preferencias/opciones
 ├── service/                     # DialService, ContactsRepository, TransferPinStore,
 │                                 # ReminderRepository/Scheduler, DirectoryDatabase, CallerIdScreeningService
 ├── receiver/                    # Receivers de alarma/acción de recordatorios, reprogramación al reiniciar
@@ -124,7 +124,7 @@ Los códigos de consulta gratuitos se marcan inmediatamente. Los códigos de com
 
 ## 🔍 Directorio Telefónico y Base de Datos Offline
 
-En **Ajustes › Utilidades**:
+En **Opciones › Utilidades**:
 
 - **Buscar en Database**: Búsqueda inversa offline sobre una base de datos SQLite (`.db`) suministrada por el usuario, importada mediante el selector de archivos del sistema. Por seguridad y privacidad, esta función viene oculta por defecto (se desbloquea tocando 5 veces la versión en _Acerca de_) y la búsqueda es estrictamente solo por número (sin búsqueda por nombre).
 

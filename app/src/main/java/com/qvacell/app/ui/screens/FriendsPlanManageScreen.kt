@@ -50,7 +50,7 @@ import com.qvacell.app.service.DialService
 import com.qvacell.app.ui.components.BackNavigationIcon
 
 /**
- * Ajustes › Cuenta › Gestionar Plan Amigo — activate/deactivate/status query up top, then two
+ * Options › Cuenta › Gestionar Plan Amigo — activate/deactivate/status query up top, then two
  * independent add/remove forms below (each dials a different code, so kept as separate forms
  * rather than one control smart enough to handle both) — ported from iOS's FriendsPlanManageView.
  */

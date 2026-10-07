@@ -51,17 +51,17 @@ import com.qvacell.app.ui.screens.HelpScreen
 import com.qvacell.app.ui.screens.HomeQuickActionsScreen
 import com.qvacell.app.ui.screens.OnboardingScreen
 import com.qvacell.app.ui.screens.PlaceholderScreen
+import com.qvacell.app.ui.screens.OptionsDestination
+import com.qvacell.app.ui.screens.OptionsScreen
 import com.qvacell.app.ui.screens.ReminderEditScreen
 import com.qvacell.app.ui.screens.ReminderListScreen
-import com.qvacell.app.ui.screens.SettingsDestination
-import com.qvacell.app.ui.screens.SettingsScreen
 import com.qvacell.app.ui.screens.TransferPinManageScreen
 import com.qvacell.app.ui.screens.WifiProvinceDetailScreen
 import com.qvacell.app.ui.screens.WifiProvinceListScreen
 
-// Every destination pushed from within Ajustes — not all share the "settings/..." route prefix
+// Every destination pushed from within Options — not all share the "options/..." or "settings/..." route prefix
 // (SMS_SERVICES is just "sms"), so this is spelled out explicitly rather than string-matched.
-private val SETTINGS_NESTED_ROUTES = setOf(
+private val OPTIONS_NESTED_ROUTES = setOf(
     Routes.REMINDERS,
     Routes.REMINDER_EDIT,
     Routes.SMS_SERVICES,
@@ -76,9 +76,9 @@ private val SETTINGS_NESTED_ROUTES = setOf(
     Routes.VOICE_SHORTCUTS
 )
 
-// Shown on the bottom bar's Ajustes tab instead of the generic hamburger icon while inside one of
+// Shown on the bottom bar's Options tab instead of the generic icon while inside one of
 // these nested screens, so the tab reflects where you actually are (Recordatorios, SMS, WiFi...).
-private val SETTINGS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
+private val OPTIONS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.REMINDERS to Icons.Filled.Notifications,
     Routes.REMINDER_EDIT to Icons.Filled.Notifications,
     Routes.SMS_SERVICES to Icons.Filled.Sms,
@@ -101,20 +101,21 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     // A stale/unrecognized stored value (e.g. from a future version) falls back to Home rather
     // than crashing NavHost with an unknown start destination. Captured once (no recompute key) —
     // NavHost's startDestination must never change after first composition, or it force-navigates
-    // there immediately, which used to yank the user out of Ajustes the moment `startTabRoute`
-    // changed (e.g. picking a new "Pestaña predeterminada" while sitting in Ajustes).
+    // there immediately, which used to yank the user out of Options the moment `startTabRoute`
+    // changed (e.g. picking a new "Pestaña predeterminada" while sitting in Options).
     val validStartRoute = remember {
         when {
             startTabRoute == Routes.ONBOARDING -> Routes.ONBOARDING
+            startTabRoute == "settings" -> BottomTab.Options.route
             bottomTabs.any { it.route == startTabRoute } -> startTabRoute
             else -> BottomTab.Home.route
         }
     }
 
-    // Used both to keep the Ajustes tab highlighted while inside one of its nested destinations,
+    // Used both to keep the Options tab highlighted while inside one of its nested destinations,
     // and to know when tapping it should just pop back to its root instead of navigating like a
     // normal tab switch.
-    val isInSettingsSection = currentRoute in SETTINGS_NESTED_ROUTES
+    val isInOptionsSection = currentRoute in OPTIONS_NESTED_ROUTES
 
     val context = LocalContext.current
     val settings = remember { SettingsDataStore(context) }
@@ -147,7 +148,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                     ) {
                         bottomTabs.forEach { tab ->
                         val selected = currentRoute == tab.route ||
-                            (tab is BottomTab.Settings && isInSettingsSection)
+                            (tab is BottomTab.Options && isInOptionsSection)
                         val tint = if (selected) {
                             MaterialTheme.colorScheme.primary
                         } else {
@@ -160,8 +161,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                     selected = selected,
                                     role = Role.Tab,
                                     onClick = {
-                                        if (tab is BottomTab.Settings && isInSettingsSection) {
-                                            navController.popBackStack(BottomTab.Settings.route, inclusive = false)
+                                        if (tab is BottomTab.Options && isInOptionsSection) {
+                                            navController.popBackStack(BottomTab.Options.route, inclusive = false)
                                         } else {
                                             navController.navigate(tab.route) {
                                                 popUpTo(validStartRoute) { saveState = true }
@@ -174,8 +175,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                 .padding(vertical = 6.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            val icon = if (tab is BottomTab.Settings && isInSettingsSection) {
-                                SETTINGS_ROUTE_ICONS[currentRoute] ?: tab.icon
+                            val icon = if (tab is BottomTab.Options && isInOptionsSection) {
+                                OPTIONS_ROUTE_ICONS[currentRoute] ?: tab.icon
                             } else {
                                 tab.icon
                             }
@@ -221,23 +222,27 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             composable(BottomTab.Purchase.route) {
                 CategoryListScreen(categoryId = "purchase", title = "Compras")
             }
-            composable(BottomTab.Settings.route) {
-                SettingsScreen(onNavigate = { destination ->
-                    val route = when (destination) {
-                        SettingsDestination.Reminders -> Routes.REMINDERS
-                        SettingsDestination.SmsServices -> Routes.SMS_SERVICES
-                        SettingsDestination.WifiRooms -> Routes.WIFI_PROVINCES
-                        SettingsDestination.DirectorySearch -> Routes.DIRECTORY_SEARCH
-                        SettingsDestination.Help -> Routes.HELP
-                        SettingsDestination.YellowPagesSearch -> Routes.YELLOW_PAGES_SEARCH
-                        SettingsDestination.FriendsPlanManage -> Routes.FRIENDS_PLAN_MANAGE
-                        SettingsDestination.TransferPinManage -> Routes.TRANSFER_PIN_MANAGE
-                        SettingsDestination.HomeWidgets -> Routes.HOME_WIDGETS
-                        SettingsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
-                        SettingsDestination.CallerID -> Routes.CALLER_ID
-                    }
-                    navController.navigate(route)
-                })
+            val navigateFromOptions: (OptionsDestination) -> Unit = { destination ->
+                val route = when (destination) {
+                    OptionsDestination.Reminders -> Routes.REMINDERS
+                    OptionsDestination.SmsServices -> Routes.SMS_SERVICES
+                    OptionsDestination.WifiRooms -> Routes.WIFI_PROVINCES
+                    OptionsDestination.DirectorySearch -> Routes.DIRECTORY_SEARCH
+                    OptionsDestination.Help -> Routes.HELP
+                    OptionsDestination.YellowPagesSearch -> Routes.YELLOW_PAGES_SEARCH
+                    OptionsDestination.FriendsPlanManage -> Routes.FRIENDS_PLAN_MANAGE
+                    OptionsDestination.TransferPinManage -> Routes.TRANSFER_PIN_MANAGE
+                    OptionsDestination.HomeWidgets -> Routes.HOME_WIDGETS
+                    OptionsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
+                    OptionsDestination.CallerID -> Routes.CALLER_ID
+                }
+                navController.navigate(route)
+            }
+            composable(BottomTab.Options.route) {
+                OptionsScreen(onNavigate = navigateFromOptions)
+            }
+            composable("settings") {
+                OptionsScreen(onNavigate = navigateFromOptions)
             }
 
             composable(Routes.ONBOARDING) {

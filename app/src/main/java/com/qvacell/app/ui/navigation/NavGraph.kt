@@ -1,19 +1,27 @@
 package com.qvacell.app.ui.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Headset
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
+
+/**
+ * SF Symbol "square.grid.2x2" equivalent in Material Icons ([Icons.Filled.GridView]).
+ */
+val SquareGrid2x2: ImageVector = Icons.Filled.GridView
 
 sealed class BottomTab(val route: String, val label: String, val icon: ImageVector) {
     data object Helplines : BottomTab("helplines", "Ayuda", Icons.Filled.Headset)
     data object Contacts : BottomTab("contacts", "Contactos", Icons.Filled.Person)
     data object Home : BottomTab("home", "Inicio", Icons.Filled.Home)
     data object Purchase : BottomTab("purchase", "Compras", Icons.Filled.ShoppingCart)
-    data object Settings : BottomTab("settings", "Ajustes", Icons.Filled.Menu)
+    data object Options : BottomTab("options", "Opciones", SquareGrid2x2)
+
+    @Deprecated("Renamed to Options", ReplaceWith("Options"))
+    val Settings get() = Options
 }
 
 val bottomTabs = listOf(
@@ -21,7 +29,7 @@ val bottomTabs = listOf(
     BottomTab.Contacts,
     BottomTab.Home,
     BottomTab.Purchase,
-    BottomTab.Settings
+    BottomTab.Options
 )
 
 object Routes {

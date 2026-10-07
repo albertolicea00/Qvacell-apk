@@ -29,7 +29,10 @@ class SettingsDataStore(private val context: Context) {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
     }
 
-    val defaultTab = context.dataStore.data.map { it[defaultTabKey] ?: "home" }
+    val defaultTab = context.dataStore.data.map {
+        val tab = it[defaultTabKey] ?: "home"
+        if (tab == "settings") "options" else tab
+    }
 
     // Hex string, e.g. "#0099CC" — defaults to the brand cyan from the logo/iOS's Color.brandCyan.
     val accentColor = context.dataStore.data.map { it[accentColorKey] ?: DEFAULT_ACCENT_COLOR }

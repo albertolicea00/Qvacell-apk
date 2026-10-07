@@ -31,8 +31,8 @@ import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.ManageSearch
 import androidx.compose.material.icons.filled.Mic
@@ -97,22 +97,24 @@ private val ACCENT_COLOR_OPTIONS = listOf(
     "#D81B60" to "Rosa"
 )
 
-sealed class SettingsDestination {
-    data object Reminders : SettingsDestination()
-    data object SmsServices : SettingsDestination()
-    data object WifiRooms : SettingsDestination()
-    data object DirectorySearch : SettingsDestination()
-    data object Help : SettingsDestination()
-    data object YellowPagesSearch : SettingsDestination()
-    data object FriendsPlanManage : SettingsDestination()
-    data object TransferPinManage : SettingsDestination()
-    data object HomeWidgets : SettingsDestination()
-    data object VoiceShortcuts : SettingsDestination()
-    data object CallerID : SettingsDestination()
+sealed class OptionsDestination {
+    data object Reminders : OptionsDestination()
+    data object SmsServices : OptionsDestination()
+    data object WifiRooms : OptionsDestination()
+    data object DirectorySearch : OptionsDestination()
+    data object Help : OptionsDestination()
+    data object YellowPagesSearch : OptionsDestination()
+    data object FriendsPlanManage : OptionsDestination()
+    data object TransferPinManage : OptionsDestination()
+    data object HomeWidgets : OptionsDestination()
+    data object VoiceShortcuts : OptionsDestination()
+    data object CallerID : OptionsDestination()
 }
 
+typealias SettingsDestination = OptionsDestination
+
 @Composable
-fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
+fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
@@ -203,16 +205,16 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
         ?: accentColor
 
-    Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Ajustes") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Opciones") }) }) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                SettingsSection(header = "Cuenta") {
+                OptionsSection(header = "Cuenta") {
                     if (payPerUseCode != null) {
-                        SettingsRow(
+                        OptionsRow(
                             headline = payPerUseCode.title.value,
                             icon = Icons.Filled.DataUsage,
                             accentHeadline = true,
@@ -226,11 +228,11 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             },
                             onClick = { DialService.dialDirect(context, payPerUseCode.resolvedCode()) }
                         )
-                        SettingsDivider()
+                        OptionsDivider()
                     }
                     configuracionesCodes.forEach { code ->
                         val isAccentLink = code.id in setOf("sms-2266-lte", "sms-2266-imei", "sms-4222-mms-config")
-                        SettingsRow(
+                        OptionsRow(
                             headline = code.title.value,
                             icon = resolveAndroidIcon(code.icon),
                             accentHeadline = isAccentLink,
@@ -246,83 +248,83 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             }) else null,
                             onClick = { onCodeClick(code) }
                         )
-                        SettingsDivider()
+                        OptionsDivider()
                     }
                     if (advanceBalanceCodes.isNotEmpty()) {
-                        SettingsRow(
+                        OptionsRow(
                             headline = "Adelanta Saldo",
                             supporting = "Solicita un adelanto de saldo a ETECSA",
                             icon = Icons.Filled.Payments,
                             onClick = { showAdvanceBalanceSheet = true }
                         )
-                        SettingsDivider()
+                        OptionsDivider()
                     }
-                    SettingsRow(
+                    OptionsRow(
                         headline = "Gestionar Plan Amigo",
                         supporting = "Activa, desactiva o modifica tu Plan Amigo",
                         icon = Icons.Filled.People,
-                        onClick = { onNavigate(SettingsDestination.FriendsPlanManage) }
+                        onClick = { onNavigate(OptionsDestination.FriendsPlanManage) }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Gestionar PIN de Transferencia",
                         supporting = "Cambia o guarda tu PIN de transferencia",
                         icon = Icons.Filled.Lock,
-                        onClick = { onNavigate(SettingsDestination.TransferPinManage) }
+                        onClick = { onNavigate(OptionsDestination.TransferPinManage) }
                     )
                 }
             }
 
             item {
-                SettingsSection(header = "Utilidades") {
-                    SettingsRow(
+                OptionsSection(header = "Utilidades") {
+                    OptionsRow(
                         headline = "Recordatorios",
                         supporting = "Avisos para recargar o comprar paquetes",
                         icon = Icons.Filled.Notifications,
-                        onClick = { onNavigate(SettingsDestination.Reminders) }
+                        onClick = { onNavigate(OptionsDestination.Reminders) }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Servicios por SMS",
                         supporting = "Horóscopos, noticias, recetas y más por SMS",
                         icon = Icons.Filled.Sms,
-                        onClick = { onNavigate(SettingsDestination.SmsServices) }
+                        onClick = { onNavigate(OptionsDestination.SmsServices) }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Salas de Navegación WiFi",
                         supporting = "Ubica salas y puntos de acceso por provincia",
                         icon = Icons.Filled.Wifi,
-                        onClick = { onNavigate(SettingsDestination.WifiRooms) }
+                        onClick = { onNavigate(OptionsDestination.WifiRooms) }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Buscar en Directorio",
                         supporting = "Directorio telefónico de ETECSA (en desarrollo)",
                         icon = Icons.Filled.Search,
-                        onClick = { onNavigate(SettingsDestination.YellowPagesSearch) }
+                        onClick = { onNavigate(OptionsDestination.YellowPagesSearch) }
                     )
                     if (dbSearchUnlocked) {
-                        SettingsDivider()
-                        SettingsRow(
+                        OptionsDivider()
+                        OptionsRow(
                             headline = "Buscar en BBDD",
                             supporting = "Búsqueda inversa por número en una base de datos local",
                             icon = Icons.Filled.Storage,
-                            onClick = { onNavigate(SettingsDestination.DirectorySearch) }
+                            onClick = { onNavigate(OptionsDestination.DirectorySearch) }
                         )
                     }
                 }
             }
 
             item {
-                SettingsSection(header = "Preferencias") {
-                    SettingsRow(
+                OptionsSection(header = "Preferencias") {
+                    OptionsRow(
                         headline = "Tema",
                         supporting = themeModeLabel,
                         onClick = { showThemeSheet = true }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Color de acento",
                         supporting = accentColorLabel,
                         onClick = { showAccentColorSheet = true },
@@ -335,20 +337,20 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             )
                         }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Tipo de Dashboard",
                         supporting = dashboardModeLabel,
                         onClick = { showDashboardModeSheet = true }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Pestaña predeterminada",
                         supporting = defaultTabLabel,
                         onClick = { showDefaultTabSheet = true }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Acción sin Confirmación",
                         supporting = "En Compras, marca el código saltando el paso de confirmación de ETECSA.",
                         trailingContent = {
@@ -360,8 +362,8 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             )
                         }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Aviso de señal celular",
                         supporting = "Muestra un banner con la calidad de la señal antes de marcar",
                         trailingContent = {
@@ -378,8 +380,8 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
 
             if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
                 item {
-                    SettingsSection(header = "Datos del Dashboard (experimental)") {
-                        SettingsRow(
+                    OptionsSection(header = "Datos del Dashboard (experimental)") {
+                        OptionsRow(
                             headline = "Consulta automática de saldo",
                             supporting = "Lee la respuesta USSD sin abrir el marcador, usando el mismo permiso de Compras.",
                             trailingContent = {
@@ -395,8 +397,8 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                                 )
                             }
                         )
-                        SettingsDivider()
-                        SettingsRow(
+                        OptionsDivider()
+                        OptionsRow(
                             headline = "Detección automática por SMS",
                             supporting = "Lee los SMS de saldo de ETECSA (nuevos e historial) y el registro de llamadas para estimar tu consumo.",
                             trailingContent = {
@@ -423,35 +425,35 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
             }
 
             item {
-                SettingsSection(header = "Acerca de") {
-                    SettingsRow(
+                OptionsSection(header = "Acerca de") {
+                    OptionsRow(
                         headline = "Identificador de Llamadas",
                         supporting = "Solicitar rol de selección de llamadas",
                         icon = Icons.Filled.Phone,
-                        onClick = { onNavigate(SettingsDestination.CallerID) }
+                        onClick = { onNavigate(OptionsDestination.CallerID) }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Widgets de Inicio",
                         supporting = "Widgets para la pantalla de inicio de tu teléfono",
                         icon = Icons.Filled.Widgets,
-                        onClick = { onNavigate(SettingsDestination.HomeWidgets) }
+                        onClick = { onNavigate(OptionsDestination.HomeWidgets) }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Atajos de Voz (Gemini)",
                         supporting = "Controla Qvacell con tu voz mediante Gemini",
                         icon = Icons.Filled.Mic,
-                        onClick = { onNavigate(SettingsDestination.VoiceShortcuts) }
+                        onClick = { onNavigate(OptionsDestination.VoiceShortcuts) }
                     )
-                    SettingsDivider()
-                    SettingsRow(
+                    OptionsDivider()
+                    OptionsRow(
                         headline = "Ayuda",
                         supporting = "Preguntas frecuentes y recursos de soporte",
-                        icon = Icons.Filled.Help,
-                        onClick = { onNavigate(SettingsDestination.Help) }
+                        icon = Icons.AutoMirrored.Filled.Help,
+                        onClick = { onNavigate(OptionsDestination.Help) }
                     )
-                    SettingsDivider()
+                    OptionsDivider()
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.Top
@@ -739,7 +741,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
 
 /** Section header + surrounding card — same grouping style as Compras/Servicios por SMS. */
 @Composable
-private fun SettingsSection(header: String, content: @Composable ColumnScope.() -> Unit) {
+private fun OptionsSection(header: String, content: @Composable ColumnScope.() -> Unit) {
     Column {
         Text(
             header,
@@ -757,7 +759,7 @@ private fun SettingsSection(header: String, content: @Composable ColumnScope.() 
 }
 
 @Composable
-private fun SettingsRow(
+private fun OptionsRow(
     headline: String,
     supporting: String? = null,
     icon: ImageVector? = null,
@@ -790,7 +792,7 @@ private fun SettingsRow(
 }
 
 @Composable
-private fun SettingsDivider() {
+private fun OptionsDivider() {
     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }
 
@@ -804,3 +806,10 @@ private fun requestCallScreeningRole(context: Context) {
         }
     }
 }
+
+@Deprecated("Renamed to OptionsScreen", ReplaceWith("OptionsScreen(onNavigate)"))
+@Composable
+fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
+    OptionsScreen(onNavigate)
+}
+
