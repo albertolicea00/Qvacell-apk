@@ -15,7 +15,7 @@ object DashboardCapture {
         repository: DashboardDataRepository,
         captureEnabled: Boolean
     ) {
-        DialService.dial(context, code.resolvedCode())
+        DialService.dialDirect(context, code.resolvedCode())
     }
 
     fun scheduleEstimationIfEnabled(context: Context, enabled: Boolean) = Unit

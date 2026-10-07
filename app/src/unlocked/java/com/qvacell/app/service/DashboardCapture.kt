@@ -29,11 +29,11 @@ object DashboardCapture {
                     is UssdCaptureResult.Success -> CoroutineScope(Dispatchers.IO).launch {
                         repository.recordUssdParse(code.id, result.response)
                     }
-                    is UssdCaptureResult.Failure -> DialService.dial(context, code.resolvedCode())
+                    is UssdCaptureResult.Failure -> DialService.dialDirect(context, code.resolvedCode())
                 }
             }
         } else {
-            DialService.dial(context, code.resolvedCode())
+            DialService.dialDirect(context, code.resolvedCode())
         }
     }
 
