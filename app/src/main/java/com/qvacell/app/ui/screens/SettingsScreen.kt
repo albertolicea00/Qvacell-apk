@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Phone
@@ -167,6 +168,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
             ?.codes
             .orEmpty()
     }
+    val payPerUseCode = remember { repository.findCodeById("data-pay-per-use") }
 
     fun onVersionTap() {
         val now = System.currentTimeMillis()
@@ -353,6 +355,23 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
 
             item {
                 SettingsSection(header = "Cuenta") {
+                    if (payPerUseCode != null) {
+                        SettingsRow(
+                            headline = payPerUseCode.title.value,
+                            icon = Icons.Filled.DataUsage,
+                            accentHeadline = true,
+                            trailingContent = {
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = { onCodeClick(payPerUseCode) }
+                        )
+                        SettingsDivider()
+                    }
                     configuracionesCodes.forEach { code ->
                         val isAccentLink = code.id in setOf("sms-2266-lte", "sms-2266-imei", "sms-4222-mms-config")
                         SettingsRow(

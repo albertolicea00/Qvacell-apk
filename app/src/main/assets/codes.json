@@ -416,12 +416,12 @@
               "id": "data-pay-per-use",
               "code": "*133*1*1#",
               "title": {
-                "es": "Tarifa por Consumo (Activar/Desactivar)",
-                "en": "Pay-Per-Use Data (Enable/Disable)"
+                "es": "Tarifa por Consumo (Datos)",
+                "en": "Pay-Per-Use Data (Data)"
               },
               "details": {
-                "es": "Activa el cobro de datos por consumo, sin plan fijo.",
-                "en": "Enable data billed by usage, with no fixed plan."
+                "es": "Activa/Desactivar el cobro de datos por consumo.",
+                "en": "Enable/Disable data billed by usage."
               },
               "compact": true,
               "type": "ussd",
