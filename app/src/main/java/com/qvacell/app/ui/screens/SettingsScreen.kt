@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -109,6 +111,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     )
     val quickPurchaseNoConfirm by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
+    val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
     // Persisted (not local @State) so the unlock survives across launches, and one-way only —
     // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
@@ -137,6 +140,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     var showThemeSheet by remember { mutableStateOf(false) }
     var showDefaultTabSheet by remember { mutableStateOf(false) }
     var showAccentColorSheet by remember { mutableStateOf(false) }
+    var showDashboardModeSheet by remember { mutableStateOf(false) }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
@@ -170,6 +174,11 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
         ThemeMode.DARK -> "Oscuro"
     }
     val defaultTabLabel = bottomTabs.firstOrNull { it.route == defaultTab }?.label ?: "Inicio"
+    val dashboardModeLabel = when (dashboardMode) {
+        "dynamic" -> "Dashboard Dinámico"
+        "manual" -> "Marcación Rápida"
+        else -> "No configurado"
+    }
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
         ?: accentColor
 
@@ -185,6 +194,12 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                         headline = "Tema",
                         supporting = themeModeLabel,
                         onClick = { showThemeSheet = true }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Tipo de Dashboard",
+                        supporting = dashboardModeLabel,
+                        onClick = { showDashboardModeSheet = true }
                     )
                     SettingsDivider()
                     SettingsRow(
@@ -514,6 +529,37 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                         showAccentColorSheet = false
                     }
                 )
+            }
+        }
+    }
+
+    if (showDashboardModeSheet) {
+        ModalBottomSheet(onDismissRequest = { showDashboardModeSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "Tipo de Dashboard",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                listOf(
+                    "dynamic" to "Dashboard Dinámico",
+                    "manual" to "Marcación Rápida"
+                ).forEach { (mode, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { settings.setDashboardMode(mode) }
+                                showDashboardModeSheet = false
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = dashboardMode == mode, onClick = null)
+                        Text(label, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
             }
         }
     }

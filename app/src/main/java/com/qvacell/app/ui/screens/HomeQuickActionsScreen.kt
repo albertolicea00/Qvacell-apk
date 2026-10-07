@@ -50,6 +50,7 @@ fun HomeQuickActionsScreen() {
     val dashboardRepository = remember { DashboardDataRepository(context) }
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
 
@@ -58,6 +59,12 @@ fun HomeQuickActionsScreen() {
             if (showNetworkStatus) {
                 ConnectionBanner()
             }
+            // TODO: render DynamicDashboard or ManualDashboard based on dashboardMode
+            when (dashboardMode) {
+                "dynamic" -> { /* TODO: DynamicDashboardContent() */ }
+                else -> { /* falls through to the current quick-action layout below */ }
+            }
+
             // A fixed handful of cards, not an open-ended list — Column+verticalScroll sizes to the
             // actual content height. LazyColumn always stretches to fill the viewport, which left a
             // permanent blank gap above the bottom nav bar whenever the cards didn't fill the screen.
