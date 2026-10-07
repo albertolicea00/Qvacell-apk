@@ -77,7 +77,7 @@ fun CodeOptionsSheet(code: UssdCode, onDismiss: () -> Unit) {
                         Icon(
                             Icons.Filled.ArrowOutward,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier
                                 .padding(start = if (showPrice) 4.dp else 0.dp)
                                 .size(14.dp)
