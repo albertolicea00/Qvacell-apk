@@ -28,7 +28,8 @@
                 "en": "Check your balance, minutes, SMS and data."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.AccountBalanceWallet"
             },
             {
               "id": "bonus-usd-plans",
@@ -42,7 +43,8 @@
                 "en": "Check your USD bonuses and plans."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.CardGiftcard"
             },
             {
               "id": "data-plan",
@@ -56,7 +58,8 @@
                 "en": "Check your contracted data plan."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.NetworkCell"
             },
             {
               "id": "voice-balance",
@@ -70,7 +73,8 @@
                 "en": "Check your voice plan or minutes."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.Phone"
             },
             {
               "id": "sms-balance",
@@ -84,7 +88,8 @@
                 "en": "Check your SMS plan."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.Sms"
             },
             {
               "id": "national-recharge-limit",
@@ -98,7 +103,8 @@
                 "en": "Check the status of your national recharge limit (360 CUP per 30 days)."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.Warning"
             },
             {
               "id": "postpaid-balance",
@@ -112,7 +118,8 @@
                 "en": "Check your postpaid or institutional balance."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.AccountBalance"
             },
             {
               "id": "friends-plan",
@@ -125,6 +132,22 @@
                 "es": "Consulta el estado de tu Plan Amigos.",
                 "en": "Check the status of your Friends Plan."
               },
+              "type": "ussd",
+              "requiresInput": false,
+              "icon": "Filled.People"
+            },
+            {
+              "id": "tfa",
+              "code": "*118#",
+              "title": {
+                "es": "TFA",
+                "en": "TFA"
+              },
+              "details": {
+                "es": "Servicio TFA (*118#).",
+                "en": "TFA service (*118#)."
+              },
+              "icon": "Filled.Shield",
               "type": "ussd",
               "requiresInput": false
             }
