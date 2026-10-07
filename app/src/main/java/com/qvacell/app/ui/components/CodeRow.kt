@@ -49,7 +49,7 @@ fun CodeRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-        if (showIcon && code.accentLink != true) {
+        if (showIcon) {
             if (contactStyle) {
                 Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primaryContainer) {
                     Icon(
@@ -73,8 +73,7 @@ fun CodeRow(
             Text(
                 code.title.value,
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (code.accentLink == true) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface
             )
             if (showDescription) {
                 Text(
@@ -85,14 +84,6 @@ fun CodeRow(
             }
         }
         Spacer(modifier = Modifier.width(8.dp))
-        if (code.accentLink == true) {
-            Icon(
-                Icons.Filled.ArrowOutward,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(18.dp)
-            )
-        }
         if (code.isSubscription == true) {
             Surface(
                 shape = RoundedCornerShape(8.dp),
