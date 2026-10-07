@@ -46,6 +46,7 @@ fun ReminderListScreen(onAdd: () -> Unit, onEdit: (Reminder) -> Unit, onBack: ((
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.padding(top = 12.dp),
                 title = { Text("Recordatorios") },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )

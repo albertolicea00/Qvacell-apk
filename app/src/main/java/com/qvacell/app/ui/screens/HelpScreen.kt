@@ -45,6 +45,7 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.padding(top = 12.dp),
                 title = { Text("Ayuda") },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )

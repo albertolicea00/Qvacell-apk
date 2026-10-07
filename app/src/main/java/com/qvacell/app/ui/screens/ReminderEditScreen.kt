@@ -58,6 +58,7 @@ fun ReminderEditScreen(onDone: () -> Unit, onBack: (() -> Unit)? = null) {
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.padding(top = 12.dp),
                 title = { Text("Nuevo Recordatorio") },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )

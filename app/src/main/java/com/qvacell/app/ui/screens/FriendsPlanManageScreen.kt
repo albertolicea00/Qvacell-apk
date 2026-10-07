@@ -71,6 +71,7 @@ fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.padding(top = 12.dp),
                 title = { Text("Gestionar Plan Amigo") },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )

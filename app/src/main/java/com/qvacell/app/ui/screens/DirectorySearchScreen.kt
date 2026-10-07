@@ -51,6 +51,7 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.padding(top = 12.dp),
                 title = { Text("Búsqueda en Base de Datos") },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )

@@ -23,6 +23,7 @@ fun PlaceholderScreen(title: String, description: String, onBack: (() -> Unit)? 
     Scaffold(
         topBar = {
             TopAppBar(
+                modifier = Modifier.padding(top = 12.dp),
                 title = { Text(title) },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )
