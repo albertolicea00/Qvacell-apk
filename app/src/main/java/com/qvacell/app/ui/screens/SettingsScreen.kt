@@ -211,18 +211,6 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                     )
                     SettingsDivider()
                     SettingsRow(
-                        headline = "Tipo de Dashboard",
-                        supporting = dashboardModeLabel,
-                        onClick = { showDashboardModeSheet = true }
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        headline = "Pestaña predeterminada",
-                        supporting = defaultTabLabel,
-                        onClick = { showDefaultTabSheet = true }
-                    )
-                    SettingsDivider()
-                    SettingsRow(
                         headline = "Color de acento",
                         supporting = accentColorLabel,
                         onClick = { showAccentColorSheet = true },
@@ -234,6 +222,18 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                                     .background(runCatching { Color(android.graphics.Color.parseColor(accentColor)) }.getOrDefault(MaterialTheme.colorScheme.primary))
                             )
                         }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Tipo de Dashboard",
+                        supporting = dashboardModeLabel,
+                        onClick = { showDashboardModeSheet = true }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Pestaña predeterminada",
+                        supporting = defaultTabLabel,
+                        onClick = { showDefaultTabSheet = true }
                     )
                     SettingsDivider()
                     SettingsRow(
