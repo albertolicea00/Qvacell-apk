@@ -17,7 +17,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardDataRepository
-import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.RechargeBottomSheet
 import com.qvacell.app.ui.components.TransferBottomSheet
 
@@ -27,7 +26,6 @@ fun HomeQuickActionsScreen() {
     val repository = remember { CatalogRepository(context) }
     val settings = remember { SettingsDataStore(context) }
     val dashboardRepository = remember { DashboardDataRepository(context) }
-    val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
 
@@ -37,9 +35,6 @@ fun HomeQuickActionsScreen() {
 
     Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Qvacell") }) }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            if (showNetworkStatus) {
-                ConnectionBanner()
-            }
             when (dashboardMode) {
                 "dynamic" -> DynamicDashboardContent(
                     repository = repository,

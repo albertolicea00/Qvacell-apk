@@ -30,6 +30,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qvacell.app.data.SettingsDataStore
+import com.qvacell.app.ui.components.ConnectionBanner
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -112,6 +116,10 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     // normal tab switch.
     val isInSettingsSection = currentRoute in SETTINGS_NESTED_ROUTES
 
+    val context = LocalContext.current
+    val settings = remember { SettingsDataStore(context) }
+    val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
+
     Scaffold(
         bottomBar = {
             if (currentRoute == Routes.ONBOARDING) return@Scaffold
@@ -124,6 +132,9 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 tonalElevation = 0.dp
             ) {
                 Column {
+                    if (showNetworkStatus) {
+                        ConnectionBanner()
+                    }
                     HorizontalDivider(
                         thickness = 1.dp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)

@@ -221,7 +221,7 @@ fun rememberCodeActionHandler(
                 if (code.price != null) {
                     Text(
                         code.price,
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.displaySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))

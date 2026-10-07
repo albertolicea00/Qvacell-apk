@@ -34,7 +34,6 @@ import com.qvacell.app.model.UssdCode
 import com.qvacell.app.model.UssdCodeGroup
 import com.qvacell.app.ui.components.CodeOptionsSheet
 import com.qvacell.app.ui.components.CodeRow
-import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.GroupHeader
 
 import com.qvacell.app.ui.components.SearchableTopAppBar
@@ -51,7 +50,6 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
 
     val settings = remember { SettingsDataStore(context) }
     val quickActionEnabled by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
-    val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     // Session-only toggle — resets to false on every app start, not persisted.
     var sessionNoConfirm by remember { mutableStateOf(false) }
     var codeForOptionsSheet by remember { mutableStateOf<UssdCode?>(null) }
@@ -92,10 +90,6 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            if (showNetworkStatus) {
-                ConnectionBanner()
-            }
-
             if (categoryId == "purchase") {
                 Card(
                     modifier = Modifier
