@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.OpenInBrowser
@@ -71,10 +72,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardCapture
@@ -315,7 +320,8 @@ private fun ProgressDots(total: Int, current: Int, modifier: Modifier = Modifier
 
 @Composable
 private fun PageLayout(
-    icon: ImageVector,
+    icon: ImageVector? = null,
+    painter: Painter? = null,
     title: String,
     subtitle: String,
     content: @Composable ColumnScope.() -> Unit = {},
@@ -341,12 +347,21 @@ private fun PageLayout(
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(48.dp)
-            )
+            if (painter != null) {
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(72.dp)
+                )
+            } else if (icon != null) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
         }
 
         Spacer(Modifier.height(32.dp))
@@ -441,7 +456,7 @@ private fun BulletItem(icon: ImageVector, text: String) {
 @Composable
 private fun WelcomePage(onNext: () -> Unit) {
     PageLayout(
-        icon = Icons.Filled.CellTower,
+        painter = painterResource(R.drawable.ic_launcher_foreground),
         title = "Bienvenido a Qvacell",
         subtitle = "Tu asistente para servicios ETECSA y Cubacel en Cuba",
         buttonLabel = "Comenzar",

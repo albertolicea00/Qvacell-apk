@@ -224,7 +224,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                         SettingsDestination.TransferPinManage -> Routes.TRANSFER_PIN_MANAGE
                         SettingsDestination.HomeWidgets -> Routes.HOME_WIDGETS
                         SettingsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
-                        SettingsDestination.Onboarding -> Routes.ONBOARDING
                     }
                     navController.navigate(route)
                 })
@@ -287,7 +286,10 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 DirectorySearchScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.HELP) {
-                HelpScreen(onBack = { navController.popBackStack() })
+                HelpScreen(
+                    onBack = { navController.popBackStack() },
+                    onStartTour = { navController.navigate(Routes.ONBOARDING) }
+                )
             }
             composable(Routes.YELLOW_PAGES_SEARCH) {
                 PlaceholderScreen(

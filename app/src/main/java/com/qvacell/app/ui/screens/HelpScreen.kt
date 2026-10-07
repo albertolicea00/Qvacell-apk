@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +38,7 @@ private const val REPO_URL = "https://github.com/albertolicea00/Qvacell-apk"
 private const val DEVELOPER_URL = "https://github.com/albertolicea00"
 
 @Composable
-fun HelpScreen(onBack: (() -> Unit)? = null) {
+fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -56,6 +57,16 @@ fun HelpScreen(onBack: (() -> Unit)? = null) {
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 8.dp)
         ) {
+            if (onStartTour != null) {
+                HelpSection("Tour de bienvenida") {
+                    HelpLinkRow(
+                        label = "Tomar Tour",
+                        icon = Icons.Filled.TravelExplore,
+                        onClick = onStartTour
+                    )
+                }
+            }
+
             HelpSection("Qué es Qvacell") {
                 HelpInfoRow(
                     title = "¿Qué hace la app?",
