@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
@@ -156,6 +157,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
     var showDefaultTabSheet by remember { mutableStateOf(false) }
     var showAccentColorSheet by remember { mutableStateOf(false) }
     var showDashboardModeSheet by remember { mutableStateOf(false) }
+    var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
@@ -169,6 +171,9 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
             .orEmpty()
     }
     val payPerUseCode = remember { repository.findCodeById("data-pay-per-use") }
+    val advanceBalanceCodes = remember {
+        listOf("advance-balance-25", "advance-balance-50").mapNotNull { repository.findCodeById(it) }
+    }
 
     fun onVersionTap() {
         val now = System.currentTimeMillis()
@@ -368,7 +373,7 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                                     modifier = Modifier.size(18.dp)
                                 )
                             },
-                            onClick = { onCodeClick(payPerUseCode) }
+                            onClick = { DialService.dialDirect(context, payPerUseCode.resolvedCode()) }
                         )
                         SettingsDivider()
                     }
@@ -389,6 +394,15 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                                 )
                             }) else null,
                             onClick = { onCodeClick(code) }
+                        )
+                        SettingsDivider()
+                    }
+                    if (advanceBalanceCodes.isNotEmpty()) {
+                        SettingsRow(
+                            headline = "Adelanta Saldo",
+                            supporting = "Solicita un adelanto de saldo a ETECSA",
+                            icon = Icons.Filled.Payments,
+                            onClick = { showAdvanceBalanceSheet = true }
                         )
                         SettingsDivider()
                     }
@@ -655,6 +669,69 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                     }
                 }
                 Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+
+    if (showAdvanceBalanceSheet && advanceBalanceCodes.isNotEmpty()) {
+        ModalBottomSheet(
+            onDismissRequest = { showAdvanceBalanceSheet = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    "Adelanta Saldo",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                androidx.compose.material3.Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
+                ) {
+                    Column {
+                        advanceBalanceCodes.forEachIndexed { index, code ->
+                            if (index > 0) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        DialService.dialDirect(context, code.resolvedCode())
+                                        showAdvanceBalanceSheet = false
+                                    }
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        code.price ?: code.title.value,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        code.details.value,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
