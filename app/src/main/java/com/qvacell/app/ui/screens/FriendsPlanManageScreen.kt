@@ -10,24 +10,28 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowOutward
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonRemove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -89,11 +93,11 @@ fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Column {
-                    ActionRow("Activar Plan Amigo") { dial(repository.findCodeById("friends-plan-activate")) }
+                    ActionRow("Activar Plan Amigo", Icons.Filled.PersonAdd) { dial(repository.findCodeById("friends-plan-activate")) }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    ActionRow("Desactivar Plan Amigo") { dial(repository.findCodeById("friends-plan-deactivate")) }
+                    ActionRow("Desactivar Plan Amigo", Icons.Filled.PersonRemove) { dial(repository.findCodeById("friends-plan-deactivate")) }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    ActionRow("Consultar Plan Amigo") { dial(repository.findCodeById("friends-plan-status-settings")) }
+                    ActionRow("Consultar Plan Amigo", Icons.Filled.Groups) { dial(repository.findCodeById("friends-plan-status-settings")) }
                 }
             }
             Text(
@@ -141,7 +145,7 @@ private fun SectionHeader(text: String) {
 }
 
 @Composable
-private fun ActionRow(label: String, onClick: () -> Unit) {
+private fun ActionRow(label: String, icon: ImageVector, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -150,8 +154,12 @@ private fun ActionRow(label: String, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, color = MaterialTheme.colorScheme.primary)
-        Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(12.dp))
+            Text(label, color = MaterialTheme.colorScheme.primary)
+        }
+        Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
     }
 }
 
@@ -173,26 +181,13 @@ private fun NumberFormCard(
     ) {
         Column {
             Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.size(36.dp).clickable(onClick = onPickContact)
-                ) {
-                    Icon(
-                        Icons.Filled.Person,
-                        contentDescription = "Elegir de contactos",
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
-                Spacer(Modifier.width(12.dp))
                 BasicTextField(
                     value = number,
                     onValueChange = onNumberChange,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).padding(start = 16.dp),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onSurface
                     ),
@@ -210,6 +205,15 @@ private fun NumberFormCard(
                         inner()
                     }
                 )
+                IconButton(onClick = onPickContact, modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        Icons.Filled.Person,
+                        contentDescription = "Elegir de contactos",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Spacer(Modifier.width(4.dp))
             }
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
             Row(
