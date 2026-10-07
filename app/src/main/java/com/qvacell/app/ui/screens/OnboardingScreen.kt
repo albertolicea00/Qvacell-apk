@@ -76,6 +76,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -467,13 +468,59 @@ private fun BulletItem(icon: ImageVector, text: String) {
 
 @Composable
 private fun WelcomePage(onNext: () -> Unit) {
-    PageLayout(
-        painter = painterResource(R.drawable.ic_launcher_foreground),
-        title = "Bienvenido a Qvacell",
-        subtitle = "Tu asistente para servicios ETECSA y Cubacel en Cuba",
-        buttonLabel = "Comenzar",
-        onButton = onNext
-    )
+    val uriHandler = LocalUriHandler.current
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Spacer(Modifier.weight(1f))
+
+        Image(
+            painter = painterResource(R.drawable.ic_launcher_foreground),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.size(160.dp)
+        )
+
+        TextButton(onClick = { uriHandler.openUri("https://github.com/albertolicea00") }) {
+            Text(
+                "by @albertolicea00",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            "Bienvenido a Qvacell",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(12.dp))
+
+        Text(
+            "Tu asistente para servicios ETECSA y Cubacel en Cuba",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(Modifier.weight(1f))
+
+        Button(
+            onClick = onNext,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Comenzar", modifier = Modifier.padding(vertical = 4.dp))
+        }
+
+        Spacer(Modifier.height(16.dp))
+    }
 }
 
 @Composable
