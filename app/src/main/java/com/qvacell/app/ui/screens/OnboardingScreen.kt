@@ -104,7 +104,7 @@ private sealed class OnboardingPage {
 }
 
 @Composable
-fun OnboardingScreen(onComplete: () -> Unit) {
+fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
@@ -288,6 +288,18 @@ fun OnboardingScreen(onComplete: () -> Unit) {
                         onNext = ::next
                     )
                     null -> Unit
+                }
+            }
+
+            if (onSkipTour != null) {
+                TextButton(
+                    onClick = onSkipTour,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp)
+                        .padding(bottom = 12.dp)
+                ) {
+                    Text("Saltar tour", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }

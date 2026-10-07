@@ -240,7 +240,10 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                 popUpTo(Routes.ONBOARDING) { inclusive = true }
                             }
                         }
-                    }
+                    },
+                    onSkipTour = if (isReplay) {
+                        { navController.popBackStack() }
+                    } else null
                 )
             }
 
