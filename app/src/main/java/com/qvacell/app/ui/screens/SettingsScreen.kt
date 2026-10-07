@@ -26,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Check
@@ -359,8 +360,10 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             icon = resolveAndroidIcon(code.icon),
                             accentHeadline = isAccentLink,
                             trailingContent = if (isAccentLink) ({
+                                val arrowIcon = if (code.id == "sms-2266-lte") Icons.Filled.ArrowOutward
+                                               else Icons.AutoMirrored.Filled.ArrowForward
                                 Icon(
-                                    Icons.Filled.ArrowOutward,
+                                    arrowIcon,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(18.dp)
