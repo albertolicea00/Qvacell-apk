@@ -97,6 +97,9 @@ fun ManualDashboardContent(
             repository.findCodeById(tile.codeId)?.let { tile to it }
         }
     }
+    val advanceBalanceCodes = remember {
+        listOf("advance-balance-25", "advance-balance-50").mapNotNull { repository.findCodeById(it) }
+    }
 
     var transferNumber by remember { mutableStateOf("") }
     var transferPin by remember { mutableStateOf(pinStore.load() ?: "") }
@@ -368,6 +371,31 @@ fun ManualDashboardContent(
                         Text("Recargar con Tarjeta", style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
                         Spacer(Modifier.width(4.dp))
                         Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = rechargeTint, modifier = Modifier.size(16.dp))
+                    }
+                }
+            }
+        }
+
+        // Advance balance section
+        if (advanceBalanceCodes.isNotEmpty()) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    "ADELANTA SALDO",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    advanceBalanceCodes.forEach { code ->
+                        androidx.compose.material3.OutlinedButton(
+                            onClick = { DialService.dialDirect(context, code.resolvedCode()) },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(code.price ?: code.title.value)
+                        }
                     }
                 }
             }
