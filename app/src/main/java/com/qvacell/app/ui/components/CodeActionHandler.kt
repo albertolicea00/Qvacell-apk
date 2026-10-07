@@ -217,29 +217,11 @@ fun rememberCodeActionHandler(
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.padding(top = 2.dp)
-                ) {
-                    Icon(
-                        Icons.Filled.Warning,
-                        contentDescription = null,
-                        tint = Color(0xFFFFB300),
-                        modifier = Modifier.size(11.dp).padding(end = 2.dp)
-                    )
-                    Text(
-                        "Se marcará directamente, sin confirmación de respuesta de ETECSA.",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = Color(0xFFFFB300),
-                        textAlign = TextAlign.Center
-                    )
-                }
                 Spacer(modifier = Modifier.height(8.dp))
                 if (code.price != null) {
                     Text(
                         code.price,
-                        style = MaterialTheme.typography.displaySmall,
+                        style = MaterialTheme.typography.displayMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -249,6 +231,24 @@ fun rememberCodeActionHandler(
                     style = MaterialTheme.typography.titleLarge,
                     textAlign = TextAlign.Center
                 )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(top = 6.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(11.dp).padding(end = 2.dp)
+                    )
+                    Text(
+                        "Se marcará directamente, sin confirmación de respuesta de ETECSA.",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             DialogActionRow(
                 cancelText = "Cancelar",
