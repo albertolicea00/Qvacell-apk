@@ -405,7 +405,7 @@ private fun PageLayout(
                 onClick = onButton,
                 enabled = buttonEnabled,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(50)
             ) {
                 Text(buttonLabel, modifier = Modifier.padding(vertical = 4.dp))
             }
@@ -514,7 +514,7 @@ private fun WelcomePage(onNext: () -> Unit) {
         Button(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(50)
         ) {
             Text("Comenzar", modifier = Modifier.padding(vertical = 4.dp))
         }
@@ -580,7 +580,7 @@ private fun DashboardChoicePage(
             onClick = onNext,
             enabled = selectedChoice != null,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(50)
         ) {
             Text("Continuar", modifier = Modifier.padding(vertical = 4.dp))
         }
@@ -789,7 +789,7 @@ private fun DynamicUnavailablePage(
                 Button(
                     onClick = onOpenGitHub,
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(50)
                 ) {
                     Icon(Icons.Filled.OpenInBrowser, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
