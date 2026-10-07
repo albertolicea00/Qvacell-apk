@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,6 +16,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,14 +49,14 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
     val catalog = remember { repository.loadCatalog() }
     val category = remember(categoryId) { catalog.categories.firstOrNull { it.id == categoryId } }
 
-    // Persisted in Ajustes › Preferencias › "Acción sin Confirmación" — no more per-visit
-    // override here, it just follows that setting.
     val settings = remember { SettingsDataStore(context) }
     val quickActionEnabled by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
+    // Session-only toggle — resets to false on every app start, not persisted.
+    var sessionNoConfirm by remember { mutableStateOf(false) }
     var codeForOptionsSheet by remember { mutableStateOf<UssdCode?>(null) }
     val onCodeClick = rememberCodeActionHandler(
-        useNoConfirmCode = categoryId == "purchase" && quickActionEnabled,
+        useNoConfirmCode = categoryId == "purchase" && (quickActionEnabled || sessionNoConfirm),
         isPurchaseCategory = categoryId == "purchase",
         onOpenCodeOptions = { code -> codeForOptionsSheet = code }
     )
@@ -92,6 +94,40 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
         Column(modifier = Modifier.padding(padding)) {
             if (showNetworkStatus) {
                 ConnectionBanner()
+            }
+
+            if (categoryId == "purchase") {
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "Marcar sin Confirmación",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                "Marca el código saltando el paso de confirmación de ETECSA",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = sessionNoConfirm,
+                            onCheckedChange = { sessionNoConfirm = it },
+                            modifier = Modifier.padding(start = 12.dp)
+                        )
+                    }
+                }
             }
 
             if (categoryId == "helplines") {

@@ -210,6 +210,111 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
+                SettingsSection(header = "Cuenta") {
+                    if (payPerUseCode != null) {
+                        SettingsRow(
+                            headline = payPerUseCode.title.value,
+                            icon = Icons.Filled.DataUsage,
+                            accentHeadline = true,
+                            trailingContent = {
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = { DialService.dialDirect(context, payPerUseCode.resolvedCode()) }
+                        )
+                        SettingsDivider()
+                    }
+                    configuracionesCodes.forEach { code ->
+                        val isAccentLink = code.id in setOf("sms-2266-lte", "sms-2266-imei", "sms-4222-mms-config")
+                        SettingsRow(
+                            headline = code.title.value,
+                            icon = resolveAndroidIcon(code.icon),
+                            accentHeadline = isAccentLink,
+                            trailingContent = if (isAccentLink) ({
+                                val arrowIcon = if (code.id == "sms-2266-lte") Icons.Filled.ArrowOutward
+                                               else Icons.AutoMirrored.Filled.ArrowForward
+                                Icon(
+                                    arrowIcon,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }) else null,
+                            onClick = { onCodeClick(code) }
+                        )
+                        SettingsDivider()
+                    }
+                    if (advanceBalanceCodes.isNotEmpty()) {
+                        SettingsRow(
+                            headline = "Adelanta Saldo",
+                            supporting = "Solicita un adelanto de saldo a ETECSA",
+                            icon = Icons.Filled.Payments,
+                            onClick = { showAdvanceBalanceSheet = true }
+                        )
+                        SettingsDivider()
+                    }
+                    SettingsRow(
+                        headline = "Gestionar Plan Amigo",
+                        supporting = "Activa, desactiva o modifica tu Plan Amigo",
+                        icon = Icons.Filled.People,
+                        onClick = { onNavigate(SettingsDestination.FriendsPlanManage) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Gestionar PIN de Transferencia",
+                        supporting = "Cambia o guarda tu PIN de transferencia",
+                        icon = Icons.Filled.Lock,
+                        onClick = { onNavigate(SettingsDestination.TransferPinManage) }
+                    )
+                }
+            }
+
+            item {
+                SettingsSection(header = "Utilidades") {
+                    SettingsRow(
+                        headline = "Recordatorios",
+                        supporting = "Avisos para recargar o comprar paquetes",
+                        icon = Icons.Filled.Notifications,
+                        onClick = { onNavigate(SettingsDestination.Reminders) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Servicios por SMS",
+                        supporting = "Horóscopos, noticias, recetas y más por SMS",
+                        icon = Icons.Filled.Sms,
+                        onClick = { onNavigate(SettingsDestination.SmsServices) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Salas de Navegación WiFi",
+                        supporting = "Ubica salas y puntos de acceso por provincia",
+                        icon = Icons.Filled.Wifi,
+                        onClick = { onNavigate(SettingsDestination.WifiRooms) }
+                    )
+                    SettingsDivider()
+                    SettingsRow(
+                        headline = "Buscar en Directorio",
+                        supporting = "Directorio telefónico de ETECSA (en desarrollo)",
+                        icon = Icons.Filled.Search,
+                        onClick = { onNavigate(SettingsDestination.YellowPagesSearch) }
+                    )
+                    if (dbSearchUnlocked) {
+                        SettingsDivider()
+                        SettingsRow(
+                            headline = "Buscar en BBDD",
+                            supporting = "Búsqueda inversa por número en una base de datos local",
+                            icon = Icons.Filled.Storage,
+                            onClick = { onNavigate(SettingsDestination.DirectorySearch) }
+                        )
+                    }
+                }
+            }
+
+            item {
                 SettingsSection(header = "Preferencias") {
                     SettingsRow(
                         headline = "Tema",
@@ -314,111 +419,6 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                             }
                         )
                     }
-                }
-            }
-
-            item {
-                SettingsSection(header = "Utilidades") {
-                    SettingsRow(
-                        headline = "Recordatorios",
-                        supporting = "Avisos para recargar o comprar paquetes",
-                        icon = Icons.Filled.Notifications,
-                        onClick = { onNavigate(SettingsDestination.Reminders) }
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        headline = "Servicios por SMS",
-                        supporting = "Horóscopos, noticias, recetas y más por SMS",
-                        icon = Icons.Filled.Sms,
-                        onClick = { onNavigate(SettingsDestination.SmsServices) }
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        headline = "Salas de Navegación WiFi",
-                        supporting = "Ubica salas y puntos de acceso por provincia",
-                        icon = Icons.Filled.Wifi,
-                        onClick = { onNavigate(SettingsDestination.WifiRooms) }
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        headline = "Buscar en Directorio",
-                        supporting = "Directorio telefónico de ETECSA (en desarrollo)",
-                        icon = Icons.Filled.Search,
-                        onClick = { onNavigate(SettingsDestination.YellowPagesSearch) }
-                    )
-                    if (dbSearchUnlocked) {
-                        SettingsDivider()
-                        SettingsRow(
-                            headline = "Buscar en BBDD",
-                            supporting = "Búsqueda inversa por número en una base de datos local",
-                            icon = Icons.Filled.Storage,
-                            onClick = { onNavigate(SettingsDestination.DirectorySearch) }
-                        )
-                    }
-                }
-            }
-
-            item {
-                SettingsSection(header = "Cuenta") {
-                    if (payPerUseCode != null) {
-                        SettingsRow(
-                            headline = payPerUseCode.title.value,
-                            icon = Icons.Filled.DataUsage,
-                            accentHeadline = true,
-                            trailingContent = {
-                                Icon(
-                                    Icons.Filled.ArrowOutward,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            onClick = { DialService.dialDirect(context, payPerUseCode.resolvedCode()) }
-                        )
-                        SettingsDivider()
-                    }
-                    configuracionesCodes.forEach { code ->
-                        val isAccentLink = code.id in setOf("sms-2266-lte", "sms-2266-imei", "sms-4222-mms-config")
-                        SettingsRow(
-                            headline = code.title.value,
-                            icon = resolveAndroidIcon(code.icon),
-                            accentHeadline = isAccentLink,
-                            trailingContent = if (isAccentLink) ({
-                                val arrowIcon = if (code.id == "sms-2266-lte") Icons.Filled.ArrowOutward
-                                               else Icons.AutoMirrored.Filled.ArrowForward
-                                Icon(
-                                    arrowIcon,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }) else null,
-                            onClick = { onCodeClick(code) }
-                        )
-                        SettingsDivider()
-                    }
-                    if (advanceBalanceCodes.isNotEmpty()) {
-                        SettingsRow(
-                            headline = "Adelanta Saldo",
-                            supporting = "Solicita un adelanto de saldo a ETECSA",
-                            icon = Icons.Filled.Payments,
-                            onClick = { showAdvanceBalanceSheet = true }
-                        )
-                        SettingsDivider()
-                    }
-                    SettingsRow(
-                        headline = "Gestionar Plan Amigo",
-                        supporting = "Activa, desactiva o modifica tu Plan Amigo",
-                        icon = Icons.Filled.People,
-                        onClick = { onNavigate(SettingsDestination.FriendsPlanManage) }
-                    )
-                    SettingsDivider()
-                    SettingsRow(
-                        headline = "Gestionar PIN de Transferencia",
-                        supporting = "Cambia o guarda tu PIN de transferencia",
-                        icon = Icons.Filled.Lock,
-                        onClick = { onNavigate(SettingsDestination.TransferPinManage) }
-                    )
                 }
             }
 
