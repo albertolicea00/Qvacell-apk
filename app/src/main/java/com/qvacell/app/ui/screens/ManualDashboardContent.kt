@@ -264,7 +264,7 @@ fun ManualDashboardContent(
                             .fillMaxWidth()
                             .clickable(enabled = transferEnabled) {
                                 pinStore.save(transferPin)
-                                DialService.dial(context, "*234*1*$transferNumber*$transferPin*$transferAmount#")
+                                DialService.dialDirect(context, "*234*1*$transferNumber*$transferPin*$transferAmount#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,
@@ -297,7 +297,7 @@ fun ManualDashboardContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { DialService.dial(context, "*88#") }
+                            .clickable { DialService.dialDirect(context, "*88#") }
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -359,7 +359,7 @@ fun ManualDashboardContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable(enabled = rechargeEnabled) {
-                                DialService.dial(context, "*662*$cardNumber#")
+                                DialService.dialDirect(context, "*662*$cardNumber#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,

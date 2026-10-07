@@ -107,7 +107,7 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
                                 ?.replace("{current}", currentPin)
                                 ?.replace("{new}", newPin)
                             if (resolved != null) {
-                                DialService.dial(context, resolved)
+                                DialService.dialDirect(context, resolved)
                                 pinStore.save(newPin)
                                 savedPin = newPin
                                 isSavedPinPersisted = true

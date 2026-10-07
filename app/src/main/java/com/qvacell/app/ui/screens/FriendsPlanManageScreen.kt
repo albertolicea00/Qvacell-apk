@@ -75,7 +75,7 @@ fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
 
     fun dial(code: UssdCode?, input: String? = null) {
         if (code == null) return
-        DialService.dial(context, code.resolvedCode(input))
+        DialService.dialDirect(context, code.resolvedCode(input))
     }
 
     Scaffold(
