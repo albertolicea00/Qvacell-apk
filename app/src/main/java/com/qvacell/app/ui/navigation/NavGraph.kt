@@ -38,4 +38,5 @@ object Routes {
     const val TRANSFER_PIN_MANAGE = "settings/transfer-pin"
     const val HOME_WIDGETS = "settings/widgets"
     const val VOICE_SHORTCUTS = "settings/voice-shortcuts"
+    const val CALLER_ID = "settings/caller-id"
 }

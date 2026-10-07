@@ -223,6 +223,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                         SettingsDestination.TransferPinManage -> Routes.TRANSFER_PIN_MANAGE
                         SettingsDestination.HomeWidgets -> Routes.HOME_WIDGETS
                         SettingsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
+                        SettingsDestination.CallerID -> Routes.CALLER_ID
                     }
                     navController.navigate(route)
                 })
@@ -321,6 +322,13 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 PlaceholderScreen(
                     title = "Atajos de Voz (Gemini)",
                     description = "Controla Qvacell con tu voz mediante Gemini — función en desarrollo.",
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable(Routes.CALLER_ID) {
+                PlaceholderScreen(
+                    title = "Identificador de Llamadas",
+                    description = "Identifica llamadas entrantes con información del directorio — función en desarrollo.",
                     onBack = { navController.popBackStack() }
                 )
             }

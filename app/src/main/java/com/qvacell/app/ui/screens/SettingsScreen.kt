@@ -27,7 +27,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowOutward
-import androidx.compose.material.icons.filled.CallReceived
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Lock
@@ -105,6 +105,7 @@ sealed class SettingsDestination {
     data object TransferPinManage : SettingsDestination()
     data object HomeWidgets : SettingsDestination()
     data object VoiceShortcuts : SettingsDestination()
+    data object CallerID : SettingsDestination()
 }
 
 @Composable
@@ -390,8 +391,8 @@ fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
                     SettingsRow(
                         headline = "Identificador de Llamadas",
                         supporting = "Solicitar rol de selección de llamadas",
-                        icon = Icons.Filled.CallReceived,
-                        onClick = { requestCallScreeningRole(context) }
+                        icon = Icons.Filled.Phone,
+                        onClick = { onNavigate(SettingsDestination.CallerID) }
                     )
                     SettingsDivider()
                     SettingsRow(
