@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sms
@@ -50,6 +51,7 @@ import com.qvacell.app.ui.screens.FriendsPlanManageScreen
 import com.qvacell.app.ui.screens.HelpScreen
 import com.qvacell.app.ui.screens.HomeQuickActionsScreen
 import com.qvacell.app.ui.screens.OnboardingScreen
+import com.qvacell.app.ui.screens.HomeWidgetsScreen
 import com.qvacell.app.ui.screens.PlaceholderScreen
 import com.qvacell.app.ui.screens.OptionsDestination
 import com.qvacell.app.ui.screens.OptionsScreen
@@ -90,7 +92,8 @@ private val OPTIONS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.FRIENDS_PLAN_MANAGE to Icons.Filled.People,
     Routes.TRANSFER_PIN_MANAGE to Icons.Filled.Key,
     Routes.HOME_WIDGETS to Icons.Filled.Widgets,
-    Routes.VOICE_SHORTCUTS to Icons.Filled.Mic
+    Routes.VOICE_SHORTCUTS to Icons.Filled.Mic,
+    Routes.CALLER_ID to Icons.Filled.PhoneInTalk
 )
 
 @Composable
@@ -323,11 +326,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 TransferPinManageScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.HOME_WIDGETS) {
-                PlaceholderScreen(
-                    title = "Widgets de Inicio",
-                    description = "Widgets para la pantalla de inicio de tu teléfono — función en desarrollo.",
-                    onBack = { navController.popBackStack() }
-                )
+                HomeWidgetsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.VOICE_SHORTCUTS) {
                 PlaceholderScreen(
