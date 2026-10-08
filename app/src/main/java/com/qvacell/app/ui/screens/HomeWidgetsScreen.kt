@@ -37,10 +37,8 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -85,8 +84,6 @@ private val swatchPresets = listOf(
     Color(0xFF0099CC),
     Color(0xFFF44336),
     Color(0xFF4CAF50),
-    Color(0xFFFFEB3B),
-    Color(0xFFFF9800),
     Color(0xFF9C27B0),
 )
 
@@ -117,6 +114,58 @@ private fun TransparentSwatch(
         }
         if (selected) {
             Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+        }
+    }
+}
+
+@Composable
+private fun GradientSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    colors: List<Color>,
+    modifier: Modifier = Modifier
+) {
+    BoxWithConstraints(modifier.height(28.dp)) {
+        val density = LocalDensity.current
+        val widthPx = with(density) { maxWidth.toPx() }
+        val thumbR = with(density) { 10.dp.toPx() }
+        val trackH = with(density) { 12.dp.toPx() }
+        val trackStart = thumbR
+        val trackEnd = widthPx - thumbR
+        val trackLen = (trackEnd - trackStart).coerceAtLeast(1f)
+
+        Canvas(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(28.dp)
+                .pointerInput(widthPx, trackStart, trackLen) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        fun update(x: Float) {
+                            onValueChange(((x - trackStart) / trackLen).coerceIn(0f, 1f))
+                        }
+                        update(down.position.x)
+                        down.consume()
+                        var ch = awaitDragOrCancellation(down.id)
+                        while (ch != null) {
+                            update(ch.position.x)
+                            ch.consume()
+                            ch = awaitDragOrCancellation(ch.id)
+                        }
+                    }
+                }
+        ) {
+            val cy = size.height / 2f
+            val r = trackH / 2f
+            drawRoundRect(
+                brush = Brush.horizontalGradient(colors, startX = trackStart, endX = trackEnd),
+                topLeft = Offset(trackStart, cy - r),
+                size = Size(trackLen, trackH),
+                cornerRadius = CornerRadius(r)
+            )
+            val tx = (trackStart + value * trackLen).coerceIn(trackStart, trackEnd)
+            drawCircle(Color.White, thumbR, Offset(tx, cy))
+            drawCircle(Color.Black.copy(alpha = 0.15f), thumbR, Offset(tx, cy), style = Stroke(2f))
         }
     }
 }
@@ -236,20 +285,12 @@ private fun ColorPickerSheet(
         mutableFloatStateOf(if (showAlpha) (initialColor.toArgb() ushr 24 and 0xFF) / 255f else 1f)
     }
     var showWheel by remember { mutableStateOf(false) }
-    var hexInput by remember {
-        mutableStateOf("#%06X".format(initialColor.toArgb() and 0x00FFFFFF))
-    }
 
     val rgbInt = android.graphics.Color.HSVToColor(floatArrayOf(hue, sat, bri))
+    val hexLabel = "#%06X".format(rgbInt and 0x00FFFFFF)
     val alphaInt = if (showAlpha) (alpha * 255).toInt() else 255
     val currentArgb = (alphaInt shl 24) or (rgbInt and 0x00FFFFFF)
     val currentColor = Color(currentArgb)
-
-    fun syncHex() {
-        hexInput = "#%06X".format(
-            android.graphics.Color.HSVToColor(floatArrayOf(hue, sat, bri)) and 0x00FFFFFF
-        )
-    }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
         Column(
@@ -287,7 +328,6 @@ private fun ColorPickerSheet(
                                 android.graphics.Color.colorToHSV(preset.toArgb(), hsv)
                                 hue = hsv[0]; sat = hsv[1]; bri = hsv[2]
                                 if (showAlpha) alpha = 1f
-                                syncHex()
                                 showWheel = false
                             },
                         contentAlignment = Alignment.Center
@@ -344,18 +384,18 @@ private fun ColorPickerSheet(
                             .background(currentColor)
                             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                     )
-                    Text(hexInput, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                    Text(hexLabel, style = MaterialTheme.typography.bodyMedium)
                 }
 
                 ColorWheelCanvas(
                     hue = hue, sat = sat, bri = bri,
-                    onPickHS = { h, s -> hue = h; sat = s; syncHex() },
+                    onPickHS = { h, s -> hue = h; sat = s },
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
+                        .size(260.dp)
+                        .align(Alignment.CenterHorizontally)
                 )
 
-                Column {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -364,11 +404,20 @@ private fun ColorPickerSheet(
                         Text("Brillo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text("${(bri * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Slider(value = bri, onValueChange = { bri = it; syncHex() }, modifier = Modifier.fillMaxWidth())
+                    GradientSlider(
+                        value = bri,
+                        onValueChange = { bri = it },
+                        colors = listOf(
+                            Color.Black,
+                            Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, sat, 1f)))
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
 
                 if (showAlpha) {
-                    Column {
+                    val opaqueColor = Color((0xFF000000.toInt()) or (rgbInt and 0x00FFFFFF))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Row(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -377,25 +426,14 @@ private fun ColorPickerSheet(
                             Text("Opacidad", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("${(alpha * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        Slider(value = alpha, onValueChange = { alpha = it }, modifier = Modifier.fillMaxWidth())
+                        GradientSlider(
+                            value = alpha,
+                            onValueChange = { alpha = it },
+                            colors = listOf(opaqueColor.copy(alpha = 0f), opaqueColor),
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
-
-                OutlinedTextField(
-                    value = hexInput,
-                    onValueChange = { v ->
-                        val clean = v.uppercase().take(7)
-                        hexInput = clean
-                        if (Regex("^#[0-9A-F]{6}$").matches(clean)) {
-                            val hsv = FloatArray(3)
-                            android.graphics.Color.colorToHSV(android.graphics.Color.parseColor(clean), hsv)
-                            hue = hsv[0]; sat = hsv[1]; bri = hsv[2]
-                        }
-                    },
-                    label = { Text("Hex (#RRGGBB)") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
             }
 
             } // end inner Column
