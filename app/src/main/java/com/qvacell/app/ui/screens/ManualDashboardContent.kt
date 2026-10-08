@@ -18,9 +18,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -93,7 +90,8 @@ fun ManualDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
-    tileStyle: String = "filled"
+    tileStyle: String = "filled",
+    showAsList: Boolean = false
 ) {
     val context = LocalContext.current
     val pinStore = remember { TransferPinStore(context) }
@@ -134,33 +132,55 @@ fun ManualDashboardContent(
             .padding(top = 16.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Quick-action tile grid
+        // Quick-action queries — tile grid or contact list
         if (resolvedTiles.isNotEmpty()) {
-            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                val rawSize = (maxWidth - TILE_GAP * (TILE_COLUMNS - 1)) / TILE_COLUMNS
-                val tileSize = maxOf(TILE_MIN, rawSize)
+            if (showAsList) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    resolvedTiles.forEachIndexed { index, (_, code) ->
+                        CodeRow(
+                            code = code,
+                            onClick = {
+                                DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
+                            },
+                            contactStyle = true,
+                            showDescription = true,
+                            plainPrice = true
+                        )
+                        if (index != resolvedTiles.lastIndex) {
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        }
+                    }
+                }
+            } else {
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    val rawSize = (maxWidth - TILE_GAP * (TILE_COLUMNS - 1)) / TILE_COLUMNS
+                    val tileSize = maxOf(TILE_MIN, rawSize)
 
-                Column(verticalArrangement = Arrangement.spacedBy(TILE_GAP)) {
-                    resolvedTiles.chunked(TILE_COLUMNS).forEach { row ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(TILE_GAP)
-                        ) {
-                            row.forEach { (tile, code) ->
-                                QuickActionTile(
-                                    code = code,
-                                    label = tile.label,
-                                    size = tileSize,
-                                    outline = tileStyle == "outline",
-                                    onClick = {
-                                        DashboardCapture.captureOrDial(
-                                            context, code, dashboardRepository, ussdCaptureEnabled
-                                        )
-                                    }
-                                )
-                            }
-                            repeat(TILE_COLUMNS - row.size) {
-                                Spacer(Modifier.size(tileSize))
+                    Column(verticalArrangement = Arrangement.spacedBy(TILE_GAP)) {
+                        resolvedTiles.chunked(TILE_COLUMNS).forEach { row ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(TILE_GAP)
+                            ) {
+                                row.forEach { (tile, code) ->
+                                    QuickActionTile(
+                                        code = code,
+                                        label = tile.label,
+                                        size = tileSize,
+                                        outline = tileStyle == "outline",
+                                        onClick = {
+                                            DashboardCapture.captureOrDial(
+                                                context, code, dashboardRepository, ussdCaptureEnabled
+                                            )
+                                        }
+                                    )
+                                }
+                                repeat(TILE_COLUMNS - row.size) {
+                                    Spacer(Modifier.size(tileSize))
+                                }
                             }
                         }
                     }
@@ -461,20 +481,10 @@ fun ListDashboardContent(
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean
 ) {
-    val context = LocalContext.current
-    val resolvedCodes = remember {
-        QUICK_TILES.mapNotNull { tile -> repository.findCodeById(tile.codeId) }
-    }
-    LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
-        items(resolvedCodes, key = { it.id }) { code ->
-            CodeRow(
-                code = code,
-                onClick = {
-                    DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
-                },
-                contactStyle = true,
-                showDescription = true
-            )
-        }
-    }
+    ManualDashboardContent(
+        repository = repository,
+        dashboardRepository = dashboardRepository,
+        ussdCaptureEnabled = ussdCaptureEnabled,
+        showAsList = true
+    )
 }
