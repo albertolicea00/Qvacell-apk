@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Contacts
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -117,7 +119,7 @@ fun ContactsListScreen() {
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        "Qvacell necesita acceso a tus contactos para identificar números cubanos y facilitar transferencias.",
+                        "Qvacell necesita acceso a tus contactos para identificar números cubanos y facilitar llamadas desde la app.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -163,36 +165,57 @@ fun ContactsListScreen() {
                     val q = query.trim()
                     if (q.isEmpty()) contacts else contacts.filter { it.name.contains(q, ignoreCase = true) }
                 }
-                // Native Contacts-app grouping: sorted alphabetically, bucketed by first letter
-                // (anything not A-Z falls under "#"), with a sticky header per letter.
-                val grouped = remember(filteredContacts) {
-                    filteredContacts
-                        .sortedBy { it.name.lowercase() }
-                        .groupBy { contact ->
-                            contact.name.firstOrNull()?.uppercaseChar()
-                                ?.takeIf { it.isLetter() }
-                                ?.toString() ?: "#"
-                        }
-                        .toSortedMap()
-                }
 
-                val listState = rememberLazyListState()
+                if (filteredContacts.isEmpty() && query.isNotBlank()) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.SearchOff,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            "Sin resultados para \"$query\"",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        )
+                    }
+                } else {
+                    val grouped = remember(filteredContacts) {
+                        filteredContacts
+                            .sortedBy { it.name.lowercase() }
+                            .groupBy { contact ->
+                                contact.name.firstOrNull()?.uppercaseChar()
+                                    ?.takeIf { it.isLetter() }
+                                    ?.toString() ?: "#"
+                            }
+                            .toSortedMap()
+                    }
 
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    grouped.forEach { (letter, group) ->
-                        stickyHeader(key = "header_$letter") { GroupHeader(letter) }
-                        items(group, key = { it.id }) { contact ->
-                            val number = contact.cubanNumbers.firstOrNull()
-                            ContactRow(
-                                contact = contact,
-                                onClick = { selectedContact = contact },
-                                onCallCollect = { if (number != null) DialService.dial(context, "*99$number") },
-                                onCallAnonymous = { if (number != null) DialService.dial(context, "#31#$number") }
-                            )
+                    val listState = rememberLazyListState()
+
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        grouped.forEach { (letter, group) ->
+                            stickyHeader(key = "header_$letter") { GroupHeader(letter) }
+                            items(group, key = { it.id }) { contact ->
+                                val number = contact.cubanNumbers.firstOrNull()
+                                ContactRow(
+                                    contact = contact,
+                                    onClick = { selectedContact = contact },
+                                    onCallCollect = { if (number != null) DialService.dial(context, "*99$number") },
+                                    onCallAnonymous = { if (number != null) DialService.dial(context, "#31#$number") }
+                                )
+                            }
                         }
                     }
                 }
