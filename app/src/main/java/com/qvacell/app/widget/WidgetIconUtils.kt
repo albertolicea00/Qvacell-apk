@@ -58,6 +58,20 @@ fun shapeBackgroundBitmap(sizePx: Int, color: Int, shape: String): Bitmap {
             path.lineTo(cx, s); path.lineTo(0f, cy)
             path.close(); canvas.drawPath(path, paint)
         }
+        "badge" -> {
+            val path = Path()
+            val outerR = s * 0.46f; val innerR = s * 0.30f
+            val pts = Array(16) { i ->
+                val a = Math.PI * i / 8 - Math.PI / 2
+                val r = if (i % 2 == 0) outerR else innerR
+                floatArrayOf(cx + r * Math.cos(a).toFloat(), cy + r * Math.sin(a).toFloat())
+            }
+            fun mid(a: FloatArray, b: FloatArray) = floatArrayOf((a[0]+b[0])/2f, (a[1]+b[1])/2f)
+            val mids = Array(16) { i -> mid(pts[i], pts[(i+1) % 16]) }
+            path.moveTo(mids[15][0], mids[15][1])
+            for (i in 0 until 16) path.quadTo(pts[i][0], pts[i][1], mids[i][0], mids[i][1])
+            path.close(); canvas.drawPath(path, paint)
+        }
         "rounded_diamond" -> {
             val path = Path(); val d = s * 0.10f / Math.sqrt(2.0).toFloat()
             path.moveTo(cx - d, d); path.quadTo(cx, 0f, cx + d, d)

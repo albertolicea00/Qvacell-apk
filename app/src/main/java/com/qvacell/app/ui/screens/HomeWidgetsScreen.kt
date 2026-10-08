@@ -461,6 +461,23 @@ private fun WidgetPreview(
                 path.close(); return Outline.Generic(path)
             }
         }
+        "badge" -> object : Shape {
+            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+                val path = Path()
+                val cx = size.width / 2f; val cy = size.height / 2f
+                val outerR = minOf(cx, cy) * 0.96f; val innerR = minOf(cx, cy) * 0.63f
+                val pts = Array(16) { i ->
+                    val a = (PI * i / 8 - PI / 2).toFloat()
+                    val r = if (i % 2 == 0) outerR else innerR
+                    floatArrayOf(cx + r * cos(a), cy + r * sin(a))
+                }
+                fun mid(a: FloatArray, b: FloatArray) = floatArrayOf((a[0]+b[0])/2f, (a[1]+b[1])/2f)
+                val mids = Array(16) { i -> mid(pts[i], pts[(i+1) % 16]) }
+                path.moveTo(mids[15][0], mids[15][1])
+                for (i in 0 until 16) path.quadraticBezierTo(pts[i][0], pts[i][1], mids[i][0], mids[i][1])
+                path.close(); return Outline.Generic(path)
+            }
+        }
         "rounded_diamond" -> object : Shape {
             override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
                 val path = Path()
@@ -679,6 +696,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                             "rounded_hexagon"  to "Hexágono redondeado",
                             "diamond"          to "Diamante",
                             "rounded_diamond"  to "Diamante redondeado",
+                            "badge"            to "Sello",
                         )
                         val shapeLabel = shapeOptions.firstOrNull { it.first == iconShape }?.second ?: "Redondeado"
                         ListItem(
@@ -736,6 +754,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                     "rounded_hexagon" to "Hexágono redondeado",
                     "diamond"         to "Diamante",
                     "rounded_diamond" to "Diamante redondeado",
+                    "badge"           to "Sello",
                 ).forEach { (value, label) ->
                     Row(
                         modifier = Modifier
