@@ -414,7 +414,6 @@ private fun WidgetPreview(
     bgColor: Color,
     iconColor: Color,
     textColor: Color,
-    iconShapeBgColor: Color,
     iconShape: String,
     contentStyle: String
 ) {
@@ -447,7 +446,7 @@ private fun WidgetPreview(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(shapeClip)
-                            .background(iconShapeBgColor),
+                            .background(Color(WidgetSettings.getIconShapeBgColor(LocalContext.current))),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -478,13 +477,11 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
     var iconColor by remember { mutableStateOf(Color(WidgetSettings.getIconColor(context))) }
     var textColor by remember { mutableStateOf(Color(WidgetSettings.getTextColor(context))) }
     var iconShape by remember { mutableStateOf(WidgetSettings.getIconShape(context)) }
-    var iconShapeBgColor by remember { mutableStateOf(Color(WidgetSettings.getIconShapeBgColor(context))) }
 
     var showContentStyleSheet by remember { mutableStateOf(false) }
     var showBgColorSheet by remember { mutableStateOf(false) }
     var showIconColorSheet by remember { mutableStateOf(false) }
     var showTextColorSheet by remember { mutableStateOf(false) }
-    var showShapeBgColorSheet by remember { mutableStateOf(false) }
 
     val contentStyleOptions = listOf(
         "icon_only" to "Solo icono",
@@ -515,7 +512,6 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                     bgColor = bgColor,
                     iconColor = iconColor,
                     textColor = textColor,
-                    iconShapeBgColor = iconShapeBgColor,
                     iconShape = iconShape,
                     contentStyle = contentStyle
                 )
@@ -602,38 +598,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                         ListItem(
-                            headlineContent = { Text("Color fondo de forma del icono") },
-                            trailingContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(CircleShape)
-                                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                                ) {
-                                    Canvas(modifier = Modifier.matchParentSize()) {
-                                        val cell = 4.dp.toPx()
-                                        val cols = (size.width / cell).toInt() + 1
-                                        val rows = (size.height / cell).toInt() + 1
-                                        for (row in 0 until rows) {
-                                            for (col in 0 until cols) {
-                                                drawRect(
-                                                    color = if ((row + col) % 2 == 0) Color(0xFFCCCCCC) else Color(0xFFFFFFFF),
-                                                    topLeft = Offset(col * cell, row * cell),
-                                                    size = Size(cell, cell)
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Box(modifier = Modifier.matchParentSize().background(iconShapeBgColor))
-                                }
-                            },
-                            modifier = Modifier.clickable { showShapeBgColorSheet = true },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-                        ListItem(
-                            headlineContent = { Text("Forma del icono") },
+                            headlineContent = { Text("Forma del widget") },
                             supportingContent = {
                                 Row(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -758,17 +723,4 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
         )
     }
 
-    if (showShapeBgColorSheet) {
-        ColorPickerSheet(
-            title = "Color fondo de forma del icono",
-            initialColor = iconShapeBgColor,
-            showAlpha = true,
-            onColorSelected = { color ->
-                iconShapeBgColor = color
-                WidgetSettings.setIconShapeBgColor(context, color.toArgb())
-                WidgetSettings.refreshAllWidgets(context)
-            },
-            onDismiss = { showShapeBgColorSheet = false }
-        )
-    }
 }
