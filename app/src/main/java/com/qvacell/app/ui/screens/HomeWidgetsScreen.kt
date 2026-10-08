@@ -416,8 +416,7 @@ private fun ColorPickerSheet(
 @Composable
 private fun WidgetPreview(
     bgColor: Color,
-    iconColor: Color,
-    textColor: Color,
+    contentColor: Color,
     iconShape: String,
     contentStyle: String
 ) {
@@ -487,14 +486,14 @@ private fun WidgetPreview(
                     Icon(
                         imageVector = resolveAndroidIcon("Filled.AccountBalanceWallet"),
                         contentDescription = null,
-                        tint = iconColor,
+                        tint = contentColor,
                         modifier = Modifier.size(iconSize)
                     )
                     if (showText) Spacer(Modifier.height(3.dp))
                 }
                 if (showText) {
                     val textSize = if (showIcon) 9.sp else 13.sp
-                    Text("Saldo", color = textColor, fontSize = textSize, style = MaterialTheme.typography.labelSmall)
+                    Text("Saldo", color = contentColor, fontSize = textSize, style = MaterialTheme.typography.labelSmall)
                 }
             }
             }
@@ -509,15 +508,13 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
     var contentStyle by remember { mutableStateOf(WidgetSettings.getContentStyle(context)) }
     var bgColor by remember { mutableStateOf(Color(WidgetSettings.getBackgroundColor(context))) }
-    var iconColor by remember { mutableStateOf(Color(WidgetSettings.getIconColor(context))) }
-    var textColor by remember { mutableStateOf(Color(WidgetSettings.getTextColor(context))) }
+    var contentColor by remember { mutableStateOf(Color(WidgetSettings.getIconColor(context))) }
     var iconShape by remember { mutableStateOf(WidgetSettings.getIconShape(context)) }
 
     var showContentStyleSheet by remember { mutableStateOf(false) }
     var showIconShapeSheet by remember { mutableStateOf(false) }
     var showBgColorSheet by remember { mutableStateOf(false) }
-    var showIconColorSheet by remember { mutableStateOf(false) }
-    var showTextColorSheet by remember { mutableStateOf(false) }
+    var showContentColorSheet by remember { mutableStateOf(false) }
 
     val contentStyleOptions = listOf(
         "icon_only" to "Solo icono",
@@ -546,8 +543,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 WidgetPreview(
                     bgColor = bgColor,
-                    iconColor = iconColor,
-                    textColor = textColor,
+                    contentColor = contentColor,
                     iconShape = iconShape,
                     contentStyle = contentStyle
                 )
@@ -603,35 +599,18 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                         ListItem(
-                            headlineContent = { Text("Color del icono") },
-                            supportingContent = { Text("Color del ícono de la acción", style = MaterialTheme.typography.labelSmall) },
+                            headlineContent = { Text("Color del contenido") },
+                            supportingContent = { Text("Color del ícono y texto", style = MaterialTheme.typography.labelSmall) },
                             trailingContent = {
                                 Box(
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clip(CircleShape)
-                                        .background(iconColor)
+                                        .background(contentColor)
                                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                                 )
                             },
-                            modifier = Modifier.clickable { showIconColorSheet = true },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-                        ListItem(
-                            headlineContent = { Text("Color del texto") },
-                            supportingContent = { Text("Color del nombre de la acción", style = MaterialTheme.typography.labelSmall) },
-                            trailingContent = {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(CircleShape)
-                                        .background(textColor)
-                                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                                )
-                            },
-                            modifier = Modifier.clickable { showTextColorSheet = true },
+                            modifier = Modifier.clickable { showContentColorSheet = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -643,8 +622,6 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                             "square"         to "Cuadrado",
                             "pill"           to "Píldora",
                             "hexagon"        to "Hexágono",
-                            "star"           to "Estrella",
-                            "flower"         to "Flor",
                             "diamond"        to "Diamante",
                         )
                         val shapeLabel = shapeOptions.firstOrNull { it.first == iconShape }?.second ?: "Redondeado"
@@ -724,8 +701,6 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                     "square"         to "Cuadrado",
                     "pill"           to "Píldora",
                     "hexagon"        to "Hexágono",
-                    "star"           to "Estrella",
-                    "flower"         to "Flor",
                     "diamond"        to "Diamante",
                 ).forEach { (value, label) ->
                     Row(
@@ -763,31 +738,18 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
         )
     }
 
-    if (showIconColorSheet) {
+    if (showContentColorSheet) {
         ColorPickerSheet(
-            title = "Color del icono",
-            initialColor = iconColor,
+            title = "Color del contenido",
+            initialColor = contentColor,
             showAlpha = false,
             onColorSelected = { color ->
-                iconColor = color
+                contentColor = color
                 WidgetSettings.setIconColor(context, color.toArgb())
-                WidgetSettings.refreshAllWidgets(context)
-            },
-            onDismiss = { showIconColorSheet = false }
-        )
-    }
-
-    if (showTextColorSheet) {
-        ColorPickerSheet(
-            title = "Color del texto",
-            initialColor = textColor,
-            showAlpha = false,
-            onColorSelected = { color ->
-                textColor = color
                 WidgetSettings.setTextColor(context, color.toArgb())
                 WidgetSettings.refreshAllWidgets(context)
             },
-            onDismiss = { showTextColorSheet = false }
+            onDismiss = { showContentColorSheet = false }
         )
     }
 
