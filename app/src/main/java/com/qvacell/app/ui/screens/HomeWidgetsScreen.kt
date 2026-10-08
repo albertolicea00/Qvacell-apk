@@ -215,7 +215,7 @@ private fun ColorWheelCanvas(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun ColorPickerSheet(
     title: String,
@@ -264,9 +264,9 @@ private fun ColorPickerSheet(
             Text(title, style = MaterialTheme.typography.titleMedium)
 
             // Preset swatches + transparent swatch (when alpha) + "+" button
-            Row(
+            androidx.compose.foundation.layout.FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 swatchPresets.forEach { preset ->
@@ -311,19 +311,22 @@ private fun ColorPickerSheet(
                 Box(
                     modifier = Modifier
                         .size(36.dp)
-                        .border(
-                            width = if (showWheel) 2.5.dp else 1.5.dp,
-                            color = if (showWheel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                            shape = CircleShape
-                        )
                         .clip(CircleShape)
+                        .background(
+                            if (showWheel) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceVariant
+                        )
+                        .then(
+                            if (showWheel) Modifier.border(2.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                            else Modifier
+                        )
                         .clickable { showWheel = !showWheel },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (showWheel) Icons.Default.Close else Icons.Default.Add,
                         contentDescription = null,
-                        tint = if (showWheel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        tint = if (showWheel) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
