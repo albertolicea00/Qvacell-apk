@@ -94,6 +94,7 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
         if (!imported || query.length < MIN_QUERY_LENGTH) {
             results = emptyList()
             hasSearched = false
+            isSearching = false
             return@LaunchedEffect
         }
         isSearching = true
