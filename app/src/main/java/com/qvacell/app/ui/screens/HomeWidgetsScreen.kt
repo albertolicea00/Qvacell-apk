@@ -426,7 +426,6 @@ private fun WidgetPreview(
         "circle"   -> CircleShape
         "square"   -> RoundedCornerShape(0.dp)
         "squircle" -> RoundedCornerShape(40)
-        "pill"     -> RoundedCornerShape(50)
         "hexagon"  -> object : Shape {
             override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
                 val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f; val r = minOf(cx, cy) * 0.96f
@@ -459,6 +458,39 @@ private fun WidgetPreview(
                 val path = Path()
                 path.moveTo(size.width / 2f, 0f); path.lineTo(size.width, size.height / 2f)
                 path.lineTo(size.width / 2f, size.height); path.lineTo(0f, size.height / 2f)
+                path.close(); return Outline.Generic(path)
+            }
+        }
+        "rounded_diamond" -> object : Shape {
+            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+                val path = Path()
+                val cx = size.width / 2f; val cy = size.height / 2f
+                val d = size.width * 0.10f / sqrt(2f)
+                path.moveTo(cx - d, d); path.quadraticBezierTo(cx, 0f, cx + d, d)
+                path.lineTo(size.width - d, cy - d); path.quadraticBezierTo(size.width, cy, size.width - d, cy + d)
+                path.lineTo(cx + d, size.height - d); path.quadraticBezierTo(cx, size.height, cx - d, size.height - d)
+                path.lineTo(d, cy + d); path.quadraticBezierTo(0f, cy, d, cy - d)
+                path.close(); return Outline.Generic(path)
+            }
+        }
+        "rounded_hexagon" -> object : Shape {
+            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+                val path = Path()
+                val cx = size.width / 2f; val cy = size.height / 2f
+                val r = minOf(cx, cy) * 0.94f; val cr = minOf(cx, cy) * 0.14f
+                val verts = Array(6) { i ->
+                    val a = (PI * i / 3 - PI / 6).toFloat()
+                    floatArrayOf(cx + r * cos(a), cy + r * sin(a))
+                }
+                for (i in 0 until 6) {
+                    val prev = verts[(i + 5) % 6]; val curr = verts[i]; val next = verts[(i + 1) % 6]
+                    val dx1 = curr[0] - prev[0]; val dy1 = curr[1] - prev[1]; val l1 = sqrt(dx1 * dx1 + dy1 * dy1)
+                    val dx2 = next[0] - curr[0]; val dy2 = next[1] - curr[1]; val l2 = sqrt(dx2 * dx2 + dy2 * dy2)
+                    val fx = curr[0] - cr * dx1 / l1; val fy = curr[1] - cr * dy1 / l1
+                    val tx = curr[0] + cr * dx2 / l2; val ty = curr[1] + cr * dy2 / l2
+                    if (i == 0) path.moveTo(fx, fy) else path.lineTo(fx, fy)
+                    path.quadraticBezierTo(curr[0], curr[1], tx, ty)
+                }
                 path.close(); return Outline.Generic(path)
             }
         }
@@ -551,6 +583,29 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
             item {
                 Text(
+                    "Cómo agregar",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                )
+                Card(modifier = Modifier.fillMaxWidth(), colors = cardColors) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        listOf(
+                            "1. Mantén pulsado en la pantalla de inicio de tu teléfono.",
+                            "2. Toca \"Widgets\" y busca Qvacell.",
+                            "3. Arrastra \"Consultas Rápidas\" a la pantalla y selecciona la acción."
+                        ).forEach {
+                            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+            }
+
+            item {
+                Text(
                     "Estilo Widget 1×1",
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
@@ -616,13 +671,14 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                         val shapeOptions = listOf(
-                            "rounded_square" to "Redondeado",
-                            "squircle"       to "Squircle (Pixel)",
-                            "circle"         to "Círculo",
-                            "square"         to "Cuadrado",
-                            "pill"           to "Píldora",
-                            "hexagon"        to "Hexágono",
-                            "diamond"        to "Diamante",
+                            "rounded_square"   to "Redondeado",
+                            "squircle"         to "Squircle (Pixel)",
+                            "circle"           to "Círculo",
+                            "square"           to "Cuadrado",
+                            "hexagon"          to "Hexágono",
+                            "rounded_hexagon"  to "Hexágono redondeado",
+                            "diamond"          to "Diamante",
+                            "rounded_diamond"  to "Diamante redondeado",
                         )
                         val shapeLabel = shapeOptions.firstOrNull { it.first == iconShape }?.second ?: "Redondeado"
                         ListItem(
@@ -631,29 +687,6 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                             modifier = Modifier.clickable { showIconShapeSheet = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                         )
-                    }
-                }
-            }
-
-            item {
-                Text(
-                    "Cómo agregar",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
-                )
-                Card(modifier = Modifier.fillMaxWidth(), colors = cardColors) {
-                    Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        listOf(
-                            "1. Mantén pulsado en la pantalla de inicio de tu teléfono.",
-                            "2. Toca \"Widgets\" y busca Qvacell.",
-                            "3. Arrastra \"Consultas Rápidas\" a la pantalla y selecciona la acción."
-                        ).forEach {
-                            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
                     }
                 }
             }
@@ -695,13 +728,14 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
             Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
                 Text("Forma del widget", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
                 listOf(
-                    "rounded_square" to "Redondeado",
-                    "squircle"       to "Squircle (Pixel)",
-                    "circle"         to "Círculo",
-                    "square"         to "Cuadrado",
-                    "pill"           to "Píldora",
-                    "hexagon"        to "Hexágono",
-                    "diamond"        to "Diamante",
+                    "rounded_square"  to "Redondeado",
+                    "squircle"        to "Squircle (Pixel)",
+                    "circle"          to "Círculo",
+                    "square"          to "Cuadrado",
+                    "hexagon"         to "Hexágono",
+                    "rounded_hexagon" to "Hexágono redondeado",
+                    "diamond"         to "Diamante",
+                    "rounded_diamond" to "Diamante redondeado",
                 ).forEach { (value, label) ->
                     Row(
                         modifier = Modifier

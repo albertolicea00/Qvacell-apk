@@ -22,7 +22,6 @@ fun shapeBackgroundBitmap(sizePx: Int, color: Int, shape: String): Bitmap {
         "square"        -> canvas.drawRect(0f, 0f, s, s, paint)
         "rounded_square"-> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.22f, s * 0.22f, paint)
         "squircle"      -> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.40f, s * 0.40f, paint)
-        "pill"          -> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.48f, s * 0.48f, paint)
         "hexagon" -> {
             val path = Path(); val r = s * 0.48f
             for (i in 0 until 6) {
@@ -57,6 +56,32 @@ fun shapeBackgroundBitmap(sizePx: Int, color: Int, shape: String): Bitmap {
             val path = Path()
             path.moveTo(cx, 0f); path.lineTo(s, cy)
             path.lineTo(cx, s); path.lineTo(0f, cy)
+            path.close(); canvas.drawPath(path, paint)
+        }
+        "rounded_diamond" -> {
+            val path = Path(); val d = s * 0.10f / Math.sqrt(2.0).toFloat()
+            path.moveTo(cx - d, d); path.quadTo(cx, 0f, cx + d, d)
+            path.lineTo(s - d, cy - d); path.quadTo(s, cy, s - d, cy + d)
+            path.lineTo(cx + d, s - d); path.quadTo(cx, s, cx - d, s - d)
+            path.lineTo(d, cy + d); path.quadTo(0f, cy, d, cy - d)
+            path.close(); canvas.drawPath(path, paint)
+        }
+        "rounded_hexagon" -> {
+            val path = Path(); val r = s * 0.46f; val cr = s * 0.07f
+            val verts = Array(6) { i ->
+                val a = Math.PI * i / 3 - Math.PI / 6
+                floatArrayOf(cx + r * Math.cos(a).toFloat(), cy + r * Math.sin(a).toFloat())
+            }
+            for (i in 0 until 6) {
+                val prev = verts[(i + 5) % 6]; val curr = verts[i]; val next = verts[(i + 1) % 6]
+                fun len(dx: Float, dy: Float) = Math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+                val dx1 = curr[0] - prev[0]; val dy1 = curr[1] - prev[1]; val l1 = len(dx1, dy1)
+                val dx2 = next[0] - curr[0]; val dy2 = next[1] - curr[1]; val l2 = len(dx2, dy2)
+                val fx = curr[0] - cr * dx1 / l1; val fy = curr[1] - cr * dy1 / l1
+                val tx = curr[0] + cr * dx2 / l2; val ty = curr[1] + cr * dy2 / l2
+                if (i == 0) path.moveTo(fx, fy) else path.lineTo(fx, fy)
+                path.quadTo(curr[0], curr[1], tx, ty)
+            }
             path.close(); canvas.drawPath(path, paint)
         }
         else -> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.22f, s * 0.22f, paint)
