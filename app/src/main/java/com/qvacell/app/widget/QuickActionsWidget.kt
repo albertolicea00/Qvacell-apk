@@ -56,8 +56,10 @@ class QuickActionsWidget : AppWidgetProvider() {
             val showIcon = contentStyle in listOf("icon_only", "icon_text")
             val showText = contentStyle in listOf("icon_text", "text_only")
 
-            // Background color via setColorFilter on the background ImageView
-            views.setInt(R.id.tile_bg_view, "setColorFilter", bgColor)
+            // Background: colored bitmap with correct shape
+            runCatching {
+                shapeBackgroundBitmap(200, bgColor, iconShape)
+            }.getOrNull()?.let { views.setImageViewBitmap(R.id.tile_bg_view, it) }
 
             // Content visibility
             views.setViewVisibility(R.id.tile_icon_container, if (showIcon) View.VISIBLE else View.GONE)
@@ -71,10 +73,15 @@ class QuickActionsWidget : AppWidgetProvider() {
 
             // Icon bitmap
             if (code != null && showIcon) {
+                val iconSizePx = if (showText) 110 else 140
                 runCatching {
-                    imageVectorToBitmap(resolveAndroidIcon(code.icon), sizePx = 80, tintArgb = iconColor)
+                    imageVectorToBitmap(resolveAndroidIcon(code.icon), sizePx = iconSizePx, tintArgb = iconColor)
                 }.getOrNull()?.let { views.setImageViewBitmap(R.id.tile_icon, it) }
             }
+
+            // Text size
+            val textSizeSp = if (showIcon) 11f else 16f
+            views.setTextViewTextSize(R.id.tile_label, android.util.TypedValue.COMPLEX_UNIT_SP, textSizeSp)
 
             val intent = Intent(context, DialTrampolineActivity::class.java).apply {
                 putExtra(DialTrampolineActivity.EXTRA_CODE_ID, codeId)

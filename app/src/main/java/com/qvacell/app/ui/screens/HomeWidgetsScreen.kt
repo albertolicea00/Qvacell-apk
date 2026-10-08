@@ -414,16 +414,22 @@ private fun WidgetPreview(
     bgColor: Color,
     iconColor: Color,
     textColor: Color,
+    iconShape: String,
     contentStyle: String
 ) {
     val showIcon = contentStyle in listOf("icon_only", "icon_text")
     val showText = contentStyle in listOf("icon_text", "text_only")
+    val shapeClip = when (iconShape) {
+        "circle" -> CircleShape
+        "square" -> RoundedCornerShape(0.dp)
+        else -> RoundedCornerShape(16.dp)
+    }
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .clip(RoundedCornerShape(16.dp))
+                .clip(shapeClip)
                 .background(bgColor),
             contentAlignment = Alignment.Center
         ) {
@@ -436,16 +442,18 @@ private fun WidgetPreview(
                 verticalArrangement = Arrangement.Center
             ) {
                 if (showIcon) {
+                    val iconSize = if (showText) 28.dp else 38.dp
                     Icon(
                         imageVector = resolveAndroidIcon("Filled.AccountBalanceWallet"),
                         contentDescription = null,
                         tint = iconColor,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(iconSize)
                     )
                     if (showText) Spacer(Modifier.height(3.dp))
                 }
                 if (showText) {
-                    Text("Saldo", color = textColor, fontSize = 9.sp, style = MaterialTheme.typography.labelSmall)
+                    val textSize = if (showIcon) 9.sp else 13.sp
+                    Text("Saldo", color = textColor, fontSize = textSize, style = MaterialTheme.typography.labelSmall)
                 }
             }
             }
@@ -499,6 +507,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                     bgColor = bgColor,
                     iconColor = iconColor,
                     textColor = textColor,
+                    iconShape = iconShape,
                     contentStyle = contentStyle
                 )
             }
