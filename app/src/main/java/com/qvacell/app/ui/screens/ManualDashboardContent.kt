@@ -316,8 +316,7 @@ fun ManualDashboardContent(
             }
         }
 
-        // Recharge section
-        val rechargeEnabled = cardNumber.isNotBlank()
+        // Recargar por Llamada — standalone card (above tarjeta)
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 "RECARGAR SALDO",
@@ -330,83 +329,89 @@ fun ManualDashboardContent(
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
             ) {
-                Column {
-                    // Recargar por Llamada — top row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { DialService.dialDirect(context, "*88#") }
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Filled.Phone,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Text(
-                                "Recargar por Llamada",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { DialService.dialDirect(context, "*88#") }
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowForward,
+                            Icons.Filled.Phone,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            "Recargar por Llamada",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 8.dp)
                         )
                     }
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    // Card number row
-                    Row(
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        BasicTextField(
-                            value = cardNumber,
-                            onValueChange = { cardNumber = it },
-                            modifier = Modifier.weight(1f).padding(start = 16.dp),
-                            textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            singleLine = true,
-                            decorationBox = { inner ->
-                                if (cardNumber.isEmpty()) Text("Número de tarjeta", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
-                                inner()
-                            }
-                        )
-                        IconButton(onClick = { /* TODO: camera scan */ }, modifier = Modifier.size(40.dp)) {
-                            Icon(
-                                Icons.Filled.CameraAlt,
-                                contentDescription = "Escanear tarjeta",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                modifier = Modifier.size(20.dp)
-                            )
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+        }
+
+        // Recharge with card section
+        val rechargeEnabled = cardNumber.isNotBlank()
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicTextField(
+                        value = cardNumber,
+                        onValueChange = { cardNumber = it },
+                        modifier = Modifier.weight(1f).padding(start = 16.dp),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        decorationBox = { inner ->
+                            if (cardNumber.isEmpty()) Text("Número de tarjeta", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                            inner()
                         }
-                        Spacer(Modifier.width(4.dp))
+                    )
+                    IconButton(onClick = { /* TODO: camera scan */ }, modifier = Modifier.size(40.dp)) {
+                        Icon(
+                            Icons.Filled.CameraAlt,
+                            contentDescription = "Escanear tarjeta",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    val rechargeTint = if (rechargeEnabled) MaterialTheme.colorScheme.primary
-                                      else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = rechargeEnabled) {
-                                DialService.dialDirect(context, "*662*$cardNumber#")
-                            }
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Recargar con Tarjeta", style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
-                        Spacer(Modifier.width(4.dp))
-                        Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = rechargeTint, modifier = Modifier.size(16.dp))
-                    }
+                    Spacer(Modifier.width(4.dp))
+                }
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                val rechargeTint = if (rechargeEnabled) MaterialTheme.colorScheme.primary
+                                  else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = rechargeEnabled) {
+                            DialService.dialDirect(context, "*662*$cardNumber#")
+                        }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Recargar con Tarjeta", style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
+                    Spacer(Modifier.width(4.dp))
+                    Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = rechargeTint, modifier = Modifier.size(16.dp))
                 }
             }
         }
