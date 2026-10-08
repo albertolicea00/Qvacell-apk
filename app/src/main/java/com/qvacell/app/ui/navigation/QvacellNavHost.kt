@@ -106,7 +106,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     val validStartRoute = remember {
         when {
             startTabRoute == Routes.ONBOARDING -> Routes.ONBOARDING
-            startTabRoute == "settings" -> BottomTab.Options.route
             bottomTabs.any { it.route == startTabRoute } -> startTabRoute
             else -> BottomTab.Home.route
         }
@@ -241,10 +240,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             composable(BottomTab.Options.route) {
                 OptionsScreen(onNavigate = navigateFromOptions)
             }
-            composable("settings") {
-                OptionsScreen(onNavigate = navigateFromOptions)
-            }
-
             composable(Routes.ONBOARDING) {
                 val isReplay = navController.previousBackStackEntry != null
                 OnboardingScreen(

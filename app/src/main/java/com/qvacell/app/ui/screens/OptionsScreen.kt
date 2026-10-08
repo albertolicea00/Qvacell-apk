@@ -111,8 +111,6 @@ sealed class OptionsDestination {
     data object CallerID : OptionsDestination()
 }
 
-typealias SettingsDestination = OptionsDestination
-
 @Composable
 fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val context = LocalContext.current
@@ -854,9 +852,4 @@ private fun requestCallScreeningRole(context: Context) {
     }
 }
 
-@Deprecated("Renamed to OptionsScreen", ReplaceWith("OptionsScreen(onNavigate)"))
-@Composable
-fun SettingsScreen(onNavigate: (SettingsDestination) -> Unit) {
-    OptionsScreen(onNavigate)
-}
 
