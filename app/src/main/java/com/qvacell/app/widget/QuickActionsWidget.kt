@@ -52,6 +52,7 @@ class QuickActionsWidget : AppWidgetProvider() {
             val iconColor = settings.getIconColor(context)
             val textColor = settings.getTextColor(context)
             val iconShape = settings.getIconShape(context)
+            val iconShapeBgColor = settings.getIconShapeBgColor(context)
 
             val showIcon = contentStyle in listOf("icon_only", "icon_code", "icon_text")
             val showText = contentStyle in listOf("icon_text", "text_only", "text_code")
@@ -72,13 +73,10 @@ class QuickActionsWidget : AppWidgetProvider() {
             views.setTextViewText(R.id.tile_code, code?.code ?: "")
             views.setTextColor(R.id.tile_code, textColor)
 
-            // Icon shape background drawable
-            val shapeSrc = when (iconShape) {
-                "circle" -> R.drawable.widget_icon_bg_circle
-                "square" -> R.drawable.widget_icon_bg_square
-                else -> R.drawable.widget_icon_bg_rounded
-            }
-            views.setImageViewResource(R.id.tile_icon_shape_bg, shapeSrc)
+            // Icon shape background bitmap (dynamic color + shape)
+            runCatching {
+                shapeBackgroundBitmap(72, iconShapeBgColor, iconShape)
+            }.getOrNull()?.let { views.setImageViewBitmap(R.id.tile_icon_shape_bg, it) }
 
             // Icon bitmap
             if (code != null && showIcon) {

@@ -23,7 +23,7 @@ object WidgetSettings {
 
     // Content style: "icon_only" | "icon_code" | "icon_text" | "text_only" | "text_code"
     fun getContentStyle(context: Context): String =
-        prefs(context).getString("content_style", "icon_text") ?: "icon_text"
+        prefs(context).getString("content_style", "icon_only") ?: "icon_only"
 
     fun setContentStyle(context: Context, value: String) {
         prefs(context).edit { putString("content_style", value) }
@@ -59,6 +59,14 @@ object WidgetSettings {
 
     fun setIconShape(context: Context, value: String) {
         prefs(context).edit { putString("icon_shape", value) }
+    }
+
+    // Icon shape background color (ARGB, default semi-transparent black)
+    fun getIconShapeBgColor(context: Context): Int =
+        prefs(context).getInt("icon_shape_bg_color", 0x33000000)
+
+    fun setIconShapeBgColor(context: Context, value: Int) {
+        prefs(context).edit { putInt("icon_shape_bg_color", value) }
     }
 
     // Refresh all existing widgets after a setting change

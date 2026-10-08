@@ -5,10 +5,24 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.RectF
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathNode
 import androidx.compose.ui.graphics.vector.VectorGroup
 import androidx.compose.ui.graphics.vector.VectorPath
+
+fun shapeBackgroundBitmap(sizePx: Int, color: Int, shape: String): Bitmap {
+    val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
+    val s = sizePx.toFloat()
+    when (shape) {
+        "circle" -> canvas.drawCircle(s / 2f, s / 2f, s / 2f, paint)
+        "square" -> canvas.drawRect(0f, 0f, s, s, paint)
+        else -> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.22f, s * 0.22f, paint)
+    }
+    return bitmap
+}
 
 fun imageVectorToBitmap(imageVector: ImageVector, sizePx: Int, tintArgb: Int): Bitmap {
     val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
