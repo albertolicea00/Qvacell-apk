@@ -31,6 +31,8 @@ import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.PhoneDisabled
+import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
@@ -135,6 +137,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val smsCaptureEnabled by settings.smsCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val hasRunSmsBackfill by settings.hasRunSmsBackfill.collectAsStateWithLifecycle(initialValue = false)
+
+    val isCallerIdRoleHeld = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
+            roleManager.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)
+        } else false
+    }
 
     val ussdCapturePermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -441,8 +450,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 OptionsSection(header = "Acerca de") {
                     OptionsRow(
                         headline = "Identificador de Llamadas",
-                        supporting = "Solicitar rol de selección de llamadas",
-                        icon = Icons.Filled.Phone,
+                        supporting = if (isCallerIdRoleHeld) "Activo" else "Solicitar rol de selección de llamadas",
+                        icon = if (isCallerIdRoleHeld) Icons.Filled.PhoneInTalk else Icons.Filled.PhoneDisabled,
                         onClick = { onNavigate(OptionsDestination.CallerID) }
                     )
                     OptionsDivider()
