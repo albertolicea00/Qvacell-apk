@@ -10,8 +10,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Fax
 import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -43,12 +43,21 @@ fun DirectoryEntryRow(entry: DirectoryEntry, onClick: () -> Unit, modifier: Modi
             )
         },
         leadingContent = {
-            Icon(
-                if (entry.isMobile) Icons.Filled.PhoneAndroid else Icons.Filled.PhoneInTalk,
-                contentDescription = if (entry.isMobile) "Móvil" else "Fijo",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
+            if (entry.isMobile) {
+                Icon(
+                    Icons.Filled.PhoneAndroid,
+                    contentDescription = "Móvil",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                Icon(
+                    Icons.Filled.Fax,
+                    contentDescription = "Fijo",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         },
         trailingContent = {
             IconButton(onClick = {
