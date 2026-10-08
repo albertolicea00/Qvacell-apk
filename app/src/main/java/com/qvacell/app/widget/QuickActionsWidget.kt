@@ -5,9 +5,11 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.widget.RemoteViews
 import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
+import com.qvacell.app.ui.resolveAndroidIcon
 
 class QuickActionsWidget : AppWidgetProvider() {
 
@@ -34,6 +36,14 @@ class QuickActionsWidget : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_quick_actions)
 
             views.setTextViewText(R.id.tile_label, code?.title?.value ?: "")
+            if (code != null) {
+                val iconBitmap = imageVectorToBitmap(
+                    resolveAndroidIcon(code.icon),
+                    sizePx = 96,
+                    tintArgb = Color.WHITE
+                )
+                views.setImageViewBitmap(R.id.tile_icon, iconBitmap)
+            }
 
             val intent = Intent(context, DialTrampolineActivity::class.java).apply {
                 putExtra(DialTrampolineActivity.EXTRA_CODE_ID, codeId)
@@ -42,7 +52,7 @@ class QuickActionsWidget : AppWidgetProvider() {
                 context, widgetId, intent,
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
             )
-            views.setOnClickPendingIntent(R.id.tile_label, pi)
+            views.setOnClickPendingIntent(R.id.widget_root, pi)
 
             manager.updateAppWidget(widgetId, views)
         }
