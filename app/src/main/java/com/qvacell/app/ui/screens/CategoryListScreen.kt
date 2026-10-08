@@ -121,8 +121,9 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
                             )
                         }
                         Switch(
-                            checked = sessionNoConfirm,
+                            checked = quickActionEnabled || sessionNoConfirm,
                             onCheckedChange = { sessionNoConfirm = it },
+                            enabled = !quickActionEnabled,
                             modifier = Modifier.padding(start = 12.dp)
                         )
                     }

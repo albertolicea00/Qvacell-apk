@@ -260,9 +260,7 @@ private fun ColorPickerSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 swatchPresets.forEach { preset ->
-                    val presetRgb = preset.toArgb() and 0x00FFFFFF
-                    val currentRgb = rgbInt and 0x00FFFFFF
-                    val selected = presetRgb == currentRgb && alpha > 0f && !showWheel
+                    val selected = preset.toArgb() == initialColor.toArgb()
                     Box(
                         modifier = Modifier
                             .size(36.dp)
@@ -273,11 +271,8 @@ private fun ColorPickerSheet(
                                 else Modifier
                             )
                             .clickable {
-                                val hsv = FloatArray(3)
-                                android.graphics.Color.colorToHSV(preset.toArgb(), hsv)
-                                hue = hsv[0]; sat = hsv[1]; bri = hsv[2]
-                                if (showAlpha) alpha = 1f
-                                showWheel = false
+                                onColorSelected(preset)
+                                onDismiss()
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -293,8 +288,8 @@ private fun ColorPickerSheet(
                 }
                 if (showAlpha) {
                     TransparentSwatch(
-                        selected = alpha == 0f,
-                        onClick = { alpha = 0f; showWheel = false }
+                        selected = initialColor.alpha == 0f,
+                        onClick = { onColorSelected(Color.Transparent); onDismiss() }
                     )
                 }
                 Box(
@@ -387,25 +382,27 @@ private fun ColorPickerSheet(
 
             } // end inner Column
 
-            HorizontalDivider()
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f).height(52.dp)
+            if (showWheel) {
+                HorizontalDivider()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Cancelar", textAlign = TextAlign.Center)
-                }
-                VerticalDivider(modifier = Modifier.height(52.dp))
-                TextButton(
-                    onClick = { onColorSelected(currentColor); onDismiss() },
-                    modifier = Modifier.weight(1f).height(52.dp)
-                ) {
-                    Text("Aplicar", color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center)
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f).height(52.dp)
+                    ) {
+                        Text("Cancelar", textAlign = TextAlign.Center)
+                    }
+                    VerticalDivider(modifier = Modifier.height(52.dp))
+                    TextButton(
+                        onClick = { onColorSelected(currentColor); onDismiss() },
+                        modifier = Modifier.weight(1f).height(52.dp)
+                    ) {
+                        Text("Aplicar", color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center)
+                    }
                 }
             }
         }
@@ -433,6 +430,10 @@ private fun WidgetPreview(
                 .background(bgColor),
             contentAlignment = Alignment.Center
         ) {
+            Box(
+                modifier = Modifier.matchParentSize(),
+                contentAlignment = Alignment.Center
+            ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -465,6 +466,7 @@ private fun WidgetPreview(
                 if (showCode) {
                     Text("*222#", color = textColor.copy(alpha = 0.7f), fontSize = 7.sp, style = MaterialTheme.typography.labelSmall)
                 }
+            }
             }
         }
     }
@@ -549,9 +551,24 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clip(CircleShape)
-                                        .background(bgColor.copy(alpha = 1f))
                                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                                )
+                                ) {
+                                    Canvas(modifier = Modifier.matchParentSize()) {
+                                        val cell = 4.dp.toPx()
+                                        val cols = (size.width / cell).toInt() + 1
+                                        val rows = (size.height / cell).toInt() + 1
+                                        for (row in 0 until rows) {
+                                            for (col in 0 until cols) {
+                                                drawRect(
+                                                    color = if ((row + col) % 2 == 0) Color(0xFFCCCCCC) else Color(0xFFFFFFFF),
+                                                    topLeft = Offset(col * cell, row * cell),
+                                                    size = Size(cell, cell)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Box(modifier = Modifier.matchParentSize().background(bgColor))
+                                }
                             },
                             modifier = Modifier.clickable { showBgColorSheet = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -597,9 +614,24 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                                     modifier = Modifier
                                         .size(24.dp)
                                         .clip(CircleShape)
-                                        .background(iconShapeBgColor)
                                         .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
-                                )
+                                ) {
+                                    Canvas(modifier = Modifier.matchParentSize()) {
+                                        val cell = 4.dp.toPx()
+                                        val cols = (size.width / cell).toInt() + 1
+                                        val rows = (size.height / cell).toInt() + 1
+                                        for (row in 0 until rows) {
+                                            for (col in 0 until cols) {
+                                                drawRect(
+                                                    color = if ((row + col) % 2 == 0) Color(0xFFCCCCCC) else Color(0xFFFFFFFF),
+                                                    topLeft = Offset(col * cell, row * cell),
+                                                    size = Size(cell, cell)
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Box(modifier = Modifier.matchParentSize().background(iconShapeBgColor))
+                                }
                             },
                             modifier = Modifier.clickable { showShapeBgColorSheet = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
