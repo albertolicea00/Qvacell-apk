@@ -90,9 +90,9 @@ fun ManualDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
-    tileStyle: String = "filled",
-    showAsList: Boolean = false
+    tileStyle: String = "filled"
 ) {
+    val showAsList = tileStyle == "list"
     val context = LocalContext.current
     val pinStore = remember { TransferPinStore(context) }
 
@@ -129,57 +129,65 @@ fun ManualDashboardContent(
         modifier = Modifier
             .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState())
-            .padding(top = 16.dp, bottom = 24.dp),
+            .padding(top = 16.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Quick-action queries — tile grid or contact list
         if (resolvedTiles.isNotEmpty()) {
-            if (showAsList) {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-                ) {
-                    resolvedTiles.forEachIndexed { index, (_, code) ->
-                        CodeRow(
-                            code = code,
-                            onClick = {
-                                DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
-                            },
-                            contactStyle = true,
-                            showDescription = true,
-                            plainPrice = true
-                        )
-                        if (index != resolvedTiles.lastIndex) {
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    "CONSULTAS",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+                if (showAsList) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                    ) {
+                        resolvedTiles.forEachIndexed { index, (_, code) ->
+                            CodeRow(
+                                code = code,
+                                onClick = {
+                                    DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
+                                },
+                                contactStyle = true,
+                                showDescription = true,
+                                plainPrice = true
+                            )
+                            if (index != resolvedTiles.lastIndex) {
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
                         }
                     }
-                }
-            } else {
-                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-                    val rawSize = (maxWidth - TILE_GAP * (TILE_COLUMNS - 1)) / TILE_COLUMNS
-                    val tileSize = maxOf(TILE_MIN, rawSize)
+                } else {
+                    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                        val rawSize = (maxWidth - TILE_GAP * (TILE_COLUMNS - 1)) / TILE_COLUMNS
+                        val tileSize = maxOf(TILE_MIN, rawSize)
 
-                    Column(verticalArrangement = Arrangement.spacedBy(TILE_GAP)) {
-                        resolvedTiles.chunked(TILE_COLUMNS).forEach { row ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(TILE_GAP)
-                            ) {
-                                row.forEach { (tile, code) ->
-                                    QuickActionTile(
-                                        code = code,
-                                        label = tile.label,
-                                        size = tileSize,
-                                        outline = tileStyle == "outline",
-                                        onClick = {
-                                            DashboardCapture.captureOrDial(
-                                                context, code, dashboardRepository, ussdCaptureEnabled
-                                            )
-                                        }
-                                    )
-                                }
-                                repeat(TILE_COLUMNS - row.size) {
-                                    Spacer(Modifier.size(tileSize))
+                        Column(verticalArrangement = Arrangement.spacedBy(TILE_GAP)) {
+                            resolvedTiles.chunked(TILE_COLUMNS).forEach { row ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(TILE_GAP)
+                                ) {
+                                    row.forEach { (tile, code) ->
+                                        QuickActionTile(
+                                            code = code,
+                                            label = tile.label,
+                                            size = tileSize,
+                                            outline = tileStyle == "outline",
+                                            onClick = {
+                                                DashboardCapture.captureOrDial(
+                                                    context, code, dashboardRepository, ussdCaptureEnabled
+                                                )
+                                            }
+                                        )
+                                    }
+                                    repeat(TILE_COLUMNS - row.size) {
+                                        Spacer(Modifier.size(tileSize))
+                                    }
                                 }
                             }
                         }
@@ -475,16 +483,3 @@ private fun QuickActionTile(
     }
 }
 
-@Composable
-fun ListDashboardContent(
-    repository: CatalogRepository,
-    dashboardRepository: DashboardDataRepository,
-    ussdCaptureEnabled: Boolean
-) {
-    ManualDashboardContent(
-        repository = repository,
-        dashboardRepository = dashboardRepository,
-        ussdCaptureEnabled = ussdCaptureEnabled,
-        showAsList = true
-    )
-}

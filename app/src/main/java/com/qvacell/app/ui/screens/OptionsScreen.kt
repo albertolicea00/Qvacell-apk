@@ -202,11 +202,11 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val dashboardModeLabel = when (dashboardMode) {
         "dynamic" -> "Dashboard Dinámico"
         "manual" -> "Marcación Rápida"
-        "list" -> "Lista"
         else -> "No configurado"
     }
     val quickActionsStyleLabel = when (quickActionsStyle) {
         "outline" -> "Contorno"
+        "list" -> "Lista"
         else -> "Rellenas"
     }
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
@@ -669,8 +669,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 )
                 listOf(
                     "dynamic" to "Dashboard Dinámico",
-                    "manual" to "Marcación Rápida",
-                    "list" to "Lista"
+                    "manual" to "Marcación Rápida"
                 ).forEach { (mode, label) ->
                     Row(
                         modifier = Modifier
@@ -701,7 +700,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 )
                 listOf(
                     "filled" to "Rellenas",
-                    "outline" to "Contorno"
+                    "outline" to "Contorno",
+                    "list" to "Lista"
                 ).forEach { (style, label) ->
                     Row(
                         modifier = Modifier

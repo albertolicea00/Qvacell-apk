@@ -44,11 +44,6 @@ fun HomeQuickActionsScreen() {
                     onTransfer = { showTransferSheet = true },
                     onRecharge = { showRechargeSheet = true }
                 )
-                "list" -> ListDashboardContent(
-                    repository = repository,
-                    dashboardRepository = dashboardRepository,
-                    ussdCaptureEnabled = ussdCaptureEnabled
-                )
                 else -> ManualDashboardContent(
                     repository = repository,
                     dashboardRepository = dashboardRepository,
