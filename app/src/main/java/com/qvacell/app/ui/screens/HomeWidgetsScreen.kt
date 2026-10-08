@@ -39,7 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -476,7 +475,6 @@ private fun WidgetPreview(
 fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
 
-    var showSms by remember { mutableStateOf(WidgetSettings.getShowSmsServices(context)) }
     var contentStyle by remember { mutableStateOf(WidgetSettings.getContentStyle(context)) }
     var bgColor by remember { mutableStateOf(Color(WidgetSettings.getBackgroundColor(context))) }
     var iconColor by remember { mutableStateOf(Color(WidgetSettings.getIconColor(context))) }
@@ -540,19 +538,6 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                             headlineContent = { Text("Contenido") },
                             supportingContent = { Text(currentStyleLabel, style = MaterialTheme.typography.labelSmall) },
                             modifier = Modifier.clickable { showContentStyleSheet = true },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-
-                        ListItem(
-                            headlineContent = { Text("Mostrar servicios SMS") },
-                            supportingContent = { Text("Al seleccionar acción del widget", style = MaterialTheme.typography.labelSmall) },
-                            trailingContent = {
-                                Switch(checked = showSms, onCheckedChange = { v ->
-                                    showSms = v
-                                    WidgetSettings.setShowSmsServices(context, v)
-                                })
-                            },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
