@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.service.DirectoryDatabase
 import com.qvacell.app.service.DirectoryEntry
+import com.qvacell.app.service.ImportResult
 import com.qvacell.app.ui.components.BackNavigationIcon
 import com.qvacell.app.ui.components.DirectoryEntryRow
 import kotlinx.coroutines.delay
@@ -58,14 +59,33 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
     var results by remember { mutableStateOf<List<DirectoryEntry>>(emptyList()) }
     var isSearching by remember { mutableStateOf(false) }
     var hasSearched by remember { mutableStateOf(false) }
+    var isImporting by remember { mutableStateOf(false) }
 
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             scope.launch {
-                val success = database.importFrom(uri)
-                imported = success
-                val msg = if (success) "Base de datos importada" else "Error al importar"
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                isImporting = true
+                val result = database.importFrom(uri)
+                isImporting = false
+                when (result) {
+                    is ImportResult.Success -> {
+                        imported = true
+                        Toast.makeText(context, "Base de datos importada", Toast.LENGTH_SHORT).show()
+                    }
+                    is ImportResult.Truncated -> {
+                        Toast.makeText(
+                            context,
+                            "Copia incompleta (${result.copied / 1_000_000}MB de ${result.expected / 1_000_000}MB) — inténtalo de nuevo",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    is ImportResult.InvalidSchema -> {
+                        Toast.makeText(context, "Archivo no reconocido como base de datos válida", Toast.LENGTH_LONG).show()
+                    }
+                    is ImportResult.Error -> {
+                        Toast.makeText(context, "Error al importar", Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
         }
     }
@@ -123,8 +143,19 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
                         )
                         Button(
                             onClick = { importLauncher.launch("*/*") },
+                            enabled = !isImporting,
                             modifier = Modifier.padding(top = 16.dp)
-                        ) { Text("Importar base de datos") }
+                        ) {
+                            if (isImporting) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            } else {
+                                Text("Importar base de datos")
+                            }
+                        }
                     }
                 }
             } else {

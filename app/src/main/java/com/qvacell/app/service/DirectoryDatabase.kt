@@ -4,6 +4,7 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteDatabaseCorruptException
 import android.net.Uri
+import android.provider.OpenableColumns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -18,6 +19,13 @@ data class DirectoryEntry(val number: String, val name: String, val isMobile: Bo
 
 private enum class SchemaVersion { V1_SINGLE_TABLE, V2_SPLIT_TABLES, UNKNOWN }
 
+sealed class ImportResult {
+    data object Success : ImportResult()
+    data class Truncated(val copied: Long, val expected: Long) : ImportResult()
+    data object InvalidSchema : ImportResult()
+    data object Error : ImportResult()
+}
+
 /** Read-only reverse phone lookup, imported by the user as a raw SQLite file via SAF. */
 class DirectoryDatabase(private val context: Context) {
 
@@ -25,19 +33,42 @@ class DirectoryDatabase(private val context: Context) {
 
     fun isImported(): Boolean = importedDbFile.exists()
 
-    suspend fun importFrom(uri: Uri): Boolean = withContext(Dispatchers.IO) {
+    suspend fun importFrom(uri: Uri): ImportResult = withContext(Dispatchers.IO) {
         try {
+            val sourceSize = queryFileSize(uri)
+
             context.contentResolver.openInputStream(uri)?.use { input ->
-                importedDbFile.outputStream().use { output -> input.copyTo(output) }
-            } ?: return@withContext false
+                importedDbFile.outputStream().use { output ->
+                    input.copyTo(output, bufferSize = 8 * 1024 * 1024)
+                }
+            } ?: return@withContext ImportResult.Error
+
+            val copiedSize = importedDbFile.length()
+            if (sourceSize > 0 && copiedSize != sourceSize) {
+                deleteImported()
+                return@withContext ImportResult.Truncated(copiedSize, sourceSize)
+            }
+
             if (!validate()) {
                 deleteImported()
-                return@withContext false
+                return@withContext ImportResult.InvalidSchema
             }
-            true
+
+            ImportResult.Success
         } catch (e: Exception) {
             deleteImported()
-            false
+            ImportResult.Error
+        }
+    }
+
+    private fun queryFileSize(uri: Uri): Long {
+        return try {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                if (sizeIndex >= 0 && cursor.moveToFirst()) cursor.getLong(sizeIndex) else -1L
+            } ?: -1L
+        } catch (e: Exception) {
+            -1L
         }
     }
 
