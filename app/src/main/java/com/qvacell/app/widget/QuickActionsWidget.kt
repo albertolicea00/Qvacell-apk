@@ -70,6 +70,7 @@ class QuickActionsWidget : AppWidgetProvider() {
             }
 
             // Content visibility
+            views.setViewVisibility(R.id.tile_icon_shape_bg, View.GONE)
             views.setViewVisibility(R.id.tile_icon_container, if (showIcon) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.tile_icon_space, if (showIcon && showText) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.tile_label, if (showText) View.VISIBLE else View.GONE)
