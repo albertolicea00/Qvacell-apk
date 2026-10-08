@@ -69,12 +69,13 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
         }
 
         val catalog = CatalogRepository(this).loadCatalog()
+        val showSms = WidgetSettings.getShowSmsServices(this)
 
         data class ListItem(val categoryHeader: String? = null, val code: UssdCode? = null)
 
         val listItems = buildList {
             catalog.categories
-                .filter { it.id != "sms" }
+                .filter { it.id != "sms" || showSms }
                 .forEach { cat ->
                     val codes = cat.groups.flatMap { it.codes }
                     if (codes.isNotEmpty()) {

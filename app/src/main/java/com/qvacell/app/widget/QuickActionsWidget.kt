@@ -5,7 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
-import android.graphics.Color
+import android.view.View
 import android.widget.RemoteViews
 import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
@@ -46,10 +46,44 @@ class QuickActionsWidget : AppWidgetProvider() {
             val code = CatalogRepository(context).findCodeById(codeId)
             val views = RemoteViews(context.packageName, R.layout.widget_quick_actions)
 
+            val settings = WidgetSettings
+            val contentStyle = settings.getContentStyle(context)
+            val bgColor = settings.getBackgroundColor(context)
+            val iconColor = settings.getIconColor(context)
+            val textColor = settings.getTextColor(context)
+            val iconShape = settings.getIconShape(context)
+
+            val showIcon = contentStyle in listOf("icon_only", "icon_code", "icon_text")
+            val showText = contentStyle in listOf("icon_text", "text_only", "text_code")
+            val showCode = contentStyle in listOf("icon_code", "text_code")
+
+            // Background color via setColorFilter on the background ImageView
+            views.setInt(R.id.tile_bg_view, "setColorFilter", bgColor)
+
+            // Content visibility
+            views.setViewVisibility(R.id.tile_icon_container, if (showIcon) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.tile_icon_space, if (showIcon && (showText || showCode)) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.tile_label, if (showText) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.tile_code, if (showCode) View.VISIBLE else View.GONE)
+
+            // Text content and colors
             views.setTextViewText(R.id.tile_label, code?.title?.value ?: "")
-            if (code != null) {
+            views.setTextColor(R.id.tile_label, textColor)
+            views.setTextViewText(R.id.tile_code, code?.code ?: "")
+            views.setTextColor(R.id.tile_code, textColor)
+
+            // Icon shape background drawable
+            val shapeSrc = when (iconShape) {
+                "circle" -> R.drawable.widget_icon_bg_circle
+                "square" -> R.drawable.widget_icon_bg_square
+                else -> R.drawable.widget_icon_bg_rounded
+            }
+            views.setImageViewResource(R.id.tile_icon_shape_bg, shapeSrc)
+
+            // Icon bitmap
+            if (code != null && showIcon) {
                 runCatching {
-                    imageVectorToBitmap(resolveAndroidIcon(code.icon), sizePx = 96, tintArgb = Color.WHITE)
+                    imageVectorToBitmap(resolveAndroidIcon(code.icon), sizePx = 80, tintArgb = iconColor)
                 }.getOrNull()?.let { views.setImageViewBitmap(R.id.tile_icon, it) }
             }
 
