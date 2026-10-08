@@ -414,7 +414,6 @@ private fun WidgetPreview(
     bgColor: Color,
     iconColor: Color,
     textColor: Color,
-    iconShape: String,
     contentStyle: String
 ) {
     val showIcon = contentStyle in listOf("icon_only", "icon_text")
@@ -437,25 +436,12 @@ private fun WidgetPreview(
                 verticalArrangement = Arrangement.Center
             ) {
                 if (showIcon) {
-                    val shapeClip = when (iconShape) {
-                        "circle" -> CircleShape
-                        "square" -> RoundedCornerShape(0.dp)
-                        else -> RoundedCornerShape(6.dp)
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(shapeClip)
-                            .background(Color(WidgetSettings.getIconShapeBgColor(LocalContext.current))),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = resolveAndroidIcon("Filled.AccountBalanceWallet"),
-                            contentDescription = null,
-                            tint = iconColor,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = resolveAndroidIcon("Filled.AccountBalanceWallet"),
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(24.dp)
+                    )
                     if (showText) Spacer(Modifier.height(3.dp))
                 }
                 if (showText) {
@@ -479,6 +465,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
     var iconShape by remember { mutableStateOf(WidgetSettings.getIconShape(context)) }
 
     var showContentStyleSheet by remember { mutableStateOf(false) }
+    var showIconShapeSheet by remember { mutableStateOf(false) }
     var showBgColorSheet by remember { mutableStateOf(false) }
     var showIconColorSheet by remember { mutableStateOf(false) }
     var showTextColorSheet by remember { mutableStateOf(false) }
@@ -512,7 +499,6 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                     bgColor = bgColor,
                     iconColor = iconColor,
                     textColor = textColor,
-                    iconShape = iconShape,
                     contentStyle = contentStyle
                 )
             }
@@ -536,6 +522,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
                         ListItem(
                             headlineContent = { Text("Color de fondo") },
+                            supportingContent = { Text("Fondo del área del widget", style = MaterialTheme.typography.labelSmall) },
                             trailingContent = {
                                 Box(
                                     modifier = Modifier
@@ -567,6 +554,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
                         ListItem(
                             headlineContent = { Text("Color del icono") },
+                            supportingContent = { Text("Color del ícono de la acción", style = MaterialTheme.typography.labelSmall) },
                             trailingContent = {
                                 Box(
                                     modifier = Modifier
@@ -583,6 +571,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
                         ListItem(
                             headlineContent = { Text("Color del texto") },
+                            supportingContent = { Text("Color del nombre de la acción", style = MaterialTheme.typography.labelSmall) },
                             trailingContent = {
                                 Box(
                                     modifier = Modifier
@@ -597,30 +586,15 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
+                        val shapeLabel = when (iconShape) {
+                            "circle" -> "Círculo"
+                            "square" -> "Cuadrado"
+                            else -> "Redondeado"
+                        }
                         ListItem(
                             headlineContent = { Text("Forma del widget") },
-                            supportingContent = {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.padding(top = 4.dp)
-                                ) {
-                                    listOf(
-                                        "circle" to "Círculo",
-                                        "square" to "Cuadrado",
-                                        "rounded_square" to "Redondeado"
-                                    ).forEach { (value, label) ->
-                                        FilterChip(
-                                            selected = iconShape == value,
-                                            onClick = {
-                                                iconShape = value
-                                                WidgetSettings.setIconShape(context, value)
-                                                WidgetSettings.refreshAllWidgets(context)
-                                            },
-                                            label = { Text(label) }
-                                        )
-                                    }
-                                }
-                            },
+                            supportingContent = { Text(shapeLabel, style = MaterialTheme.typography.labelSmall) },
+                            modifier = Modifier.clickable { showIconShapeSheet = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                         )
                     }
@@ -673,6 +647,33 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = contentStyle == value, onClick = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(label, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+    }
+
+    if (showIconShapeSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(onDismissRequest = { showIconShapeSheet = false }, sheetState = sheetState) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
+                Text("Forma del widget", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
+                listOf("circle" to "Círculo", "square" to "Cuadrado", "rounded_square" to "Redondeado").forEach { (value, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                iconShape = value
+                                WidgetSettings.setIconShape(context, value)
+                                WidgetSettings.refreshAllWidgets(context)
+                                showIconShapeSheet = false
+                            }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = iconShape == value, onClick = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(label, style = MaterialTheme.typography.bodyMedium)
                     }

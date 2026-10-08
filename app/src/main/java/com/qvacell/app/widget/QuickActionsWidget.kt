@@ -52,31 +52,22 @@ class QuickActionsWidget : AppWidgetProvider() {
             val iconColor = settings.getIconColor(context)
             val textColor = settings.getTextColor(context)
             val iconShape = settings.getIconShape(context)
-            val iconShapeBgColor = settings.getIconShapeBgColor(context)
 
             val showIcon = contentStyle in listOf("icon_only", "icon_text")
             val showText = contentStyle in listOf("icon_text", "text_only")
-            val showCode = false
 
             // Background color via setColorFilter on the background ImageView
             views.setInt(R.id.tile_bg_view, "setColorFilter", bgColor)
 
             // Content visibility
             views.setViewVisibility(R.id.tile_icon_container, if (showIcon) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.tile_icon_space, if (showIcon && (showText || showCode)) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.tile_icon_space, if (showIcon && showText) View.VISIBLE else View.GONE)
             views.setViewVisibility(R.id.tile_label, if (showText) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.tile_code, if (showCode) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.tile_code, View.GONE)
 
             // Text content and colors
             views.setTextViewText(R.id.tile_label, code?.title?.value ?: "")
             views.setTextColor(R.id.tile_label, textColor)
-            views.setTextViewText(R.id.tile_code, code?.code ?: "")
-            views.setTextColor(R.id.tile_code, textColor)
-
-            // Icon shape background bitmap (dynamic color + shape)
-            runCatching {
-                shapeBackgroundBitmap(72, iconShapeBgColor, iconShape)
-            }.getOrNull()?.let { views.setImageViewBitmap(R.id.tile_icon_shape_bg, it) }
 
             // Icon bitmap
             if (code != null && showIcon) {
