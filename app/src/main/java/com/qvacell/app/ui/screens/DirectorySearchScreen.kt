@@ -81,6 +81,11 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
         results = database.search(query)
         isSearching = false
         hasSearched = true
+        if (!database.isImported()) {
+            imported = false
+            results = emptyList()
+            Toast.makeText(context, "Base de datos corrupta, importa de nuevo", Toast.LENGTH_LONG).show()
+        }
     }
 
     Scaffold(

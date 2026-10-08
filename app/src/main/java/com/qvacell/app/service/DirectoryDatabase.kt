@@ -2,6 +2,7 @@ package com.qvacell.app.service
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteDatabaseCorruptException
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -29,14 +30,28 @@ class DirectoryDatabase(private val context: Context) {
             context.contentResolver.openInputStream(uri)?.use { input ->
                 importedDbFile.outputStream().use { output -> input.copyTo(output) }
             } ?: return@withContext false
+            if (!validate()) {
+                deleteImported()
+                return@withContext false
+            }
             true
         } catch (e: Exception) {
+            deleteImported()
             false
         }
     }
 
     fun deleteImported() {
         if (importedDbFile.exists()) importedDbFile.delete()
+    }
+
+    private fun validate(): Boolean {
+        val db = openDatabase() ?: return false
+        return try {
+            db.use { detectSchema(it) != SchemaVersion.UNKNOWN }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private fun openDatabase(): SQLiteDatabase? {
@@ -70,42 +85,48 @@ class DirectoryDatabase(private val context: Context) {
         val db = openDatabase() ?: return@withContext emptyList()
         val results = mutableListOf<DirectoryEntry>()
 
-        db.use {
-            when (detectSchema(it)) {
-                SchemaVersion.V1_SINGLE_TABLE -> {
-                    it.rawQuery(
-                        "SELECT number, name, is_mobile FROM contacts WHERE number LIKE ? LIMIT 200",
-                        arrayOf("$prefix%")
-                    ).use { cursor ->
-                        while (cursor.moveToNext()) {
-                            results += DirectoryEntry(
-                                number = cursor.getString(0),
-                                name = cursor.getString(1),
-                                isMobile = cursor.getInt(2) != 0
-                            )
+        try {
+            db.use {
+                when (detectSchema(it)) {
+                    SchemaVersion.V1_SINGLE_TABLE -> {
+                        it.rawQuery(
+                            "SELECT number, name, is_mobile FROM contacts WHERE number LIKE ? LIMIT 200",
+                            arrayOf("$prefix%")
+                        ).use { cursor ->
+                            while (cursor.moveToNext()) {
+                                results += DirectoryEntry(
+                                    number = cursor.getString(0),
+                                    name = cursor.getString(1),
+                                    isMobile = cursor.getInt(2) != 0
+                                )
+                            }
                         }
                     }
+                    SchemaVersion.V2_SPLIT_TABLES -> {
+                        it.rawQuery(
+                            "SELECT number, name FROM movil WHERE number LIKE ? LIMIT 200",
+                            arrayOf("$prefix%")
+                        ).use { cursor ->
+                            while (cursor.moveToNext()) {
+                                results += DirectoryEntry(cursor.getString(0), cursor.getString(1), isMobile = true)
+                            }
+                        }
+                        it.rawQuery(
+                            "SELECT number, name FROM fix WHERE number LIKE ? LIMIT 200",
+                            arrayOf("$prefix%")
+                        ).use { cursor ->
+                            while (cursor.moveToNext()) {
+                                results += DirectoryEntry(cursor.getString(0), cursor.getString(1), isMobile = false)
+                            }
+                        }
+                    }
+                    SchemaVersion.UNKNOWN -> {}
                 }
-                SchemaVersion.V2_SPLIT_TABLES -> {
-                    it.rawQuery(
-                        "SELECT number, name FROM movil WHERE number LIKE ? LIMIT 200",
-                        arrayOf("$prefix%")
-                    ).use { cursor ->
-                        while (cursor.moveToNext()) {
-                            results += DirectoryEntry(cursor.getString(0), cursor.getString(1), isMobile = true)
-                        }
-                    }
-                    it.rawQuery(
-                        "SELECT number, name FROM fix WHERE number LIKE ? LIMIT 200",
-                        arrayOf("$prefix%")
-                    ).use { cursor ->
-                        while (cursor.moveToNext()) {
-                            results += DirectoryEntry(cursor.getString(0), cursor.getString(1), isMobile = false)
-                        }
-                    }
-                }
-                SchemaVersion.UNKNOWN -> {}
             }
+        } catch (e: SQLiteDatabaseCorruptException) {
+            deleteImported()
+        } catch (e: Exception) {
+            // query failed but DB not necessarily corrupt
         }
 
         results
