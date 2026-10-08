@@ -418,9 +418,8 @@ private fun WidgetPreview(
     iconShape: String,
     contentStyle: String
 ) {
-    val showIcon = contentStyle in listOf("icon_only", "icon_code", "icon_text")
-    val showText = contentStyle in listOf("icon_text", "text_only", "text_code")
-    val showCode = contentStyle in listOf("icon_code", "text_code")
+    val showIcon = contentStyle in listOf("icon_only", "icon_text")
+    val showText = contentStyle in listOf("icon_text", "text_only")
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         Box(
@@ -458,13 +457,10 @@ private fun WidgetPreview(
                             modifier = Modifier.size(18.dp)
                         )
                     }
-                    if (showText || showCode) Spacer(Modifier.height(3.dp))
+                    if (showText) Spacer(Modifier.height(3.dp))
                 }
                 if (showText) {
                     Text("Saldo", color = textColor, fontSize = 9.sp, style = MaterialTheme.typography.labelSmall)
-                }
-                if (showCode) {
-                    Text("*222#", color = textColor.copy(alpha = 0.7f), fontSize = 7.sp, style = MaterialTheme.typography.labelSmall)
                 }
             }
             }
@@ -492,10 +488,8 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
     val contentStyleOptions = listOf(
         "icon_only" to "Solo icono",
-        "icon_code" to "Icono + código USSD",
         "icon_text" to "Icono + texto",
         "text_only" to "Solo texto",
-        "text_code" to "Texto + código USSD"
     )
     val currentStyleLabel = contentStyleOptions.firstOrNull { it.first == contentStyle }?.second ?: contentStyle
     val cardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)

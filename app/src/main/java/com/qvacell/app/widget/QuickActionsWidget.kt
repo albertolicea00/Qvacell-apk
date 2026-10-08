@@ -54,9 +54,9 @@ class QuickActionsWidget : AppWidgetProvider() {
             val iconShape = settings.getIconShape(context)
             val iconShapeBgColor = settings.getIconShapeBgColor(context)
 
-            val showIcon = contentStyle in listOf("icon_only", "icon_code", "icon_text")
-            val showText = contentStyle in listOf("icon_text", "text_only", "text_code")
-            val showCode = contentStyle in listOf("icon_code", "text_code")
+            val showIcon = contentStyle in listOf("icon_only", "icon_text")
+            val showText = contentStyle in listOf("icon_text", "text_only")
+            val showCode = false
 
             // Background color via setColorFilter on the background ImageView
             views.setInt(R.id.tile_bg_view, "setColorFilter", bgColor)
