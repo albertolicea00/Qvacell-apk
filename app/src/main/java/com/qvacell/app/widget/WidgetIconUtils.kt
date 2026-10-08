@@ -16,9 +16,49 @@ fun shapeBackgroundBitmap(sizePx: Int, color: Int, shape: String): Bitmap {
     val canvas = Canvas(bitmap)
     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
     val s = sizePx.toFloat()
+    val cx = s / 2f; val cy = s / 2f
     when (shape) {
-        "circle" -> canvas.drawCircle(s / 2f, s / 2f, s / 2f, paint)
-        "square" -> canvas.drawRect(0f, 0f, s, s, paint)
+        "circle"        -> canvas.drawCircle(cx, cy, s / 2f, paint)
+        "square"        -> canvas.drawRect(0f, 0f, s, s, paint)
+        "rounded_square"-> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.22f, s * 0.22f, paint)
+        "squircle"      -> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.40f, s * 0.40f, paint)
+        "pill"          -> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.48f, s * 0.48f, paint)
+        "hexagon" -> {
+            val path = Path(); val r = s * 0.48f
+            for (i in 0 until 6) {
+                val a = (Math.PI * i / 3 - Math.PI / 6).toFloat()
+                val x = cx + r * Math.cos(a.toDouble()).toFloat()
+                val y = cy + r * Math.sin(a.toDouble()).toFloat()
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            path.close(); canvas.drawPath(path, paint)
+        }
+        "star" -> {
+            val path = Path(); val outerR = s * 0.48f; val innerR = s * 0.22f
+            for (i in 0 until 10) {
+                val a = (Math.PI * i / 5 - Math.PI / 2).toFloat()
+                val r = if (i % 2 == 0) outerR else innerR
+                val x = cx + (Math.cos(a.toDouble()) * r).toFloat()
+                val y = cy + (Math.sin(a.toDouble()) * r).toFloat()
+                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            path.close(); canvas.drawPath(path, paint)
+        }
+        "flower" -> {
+            val path = Path(); val r = s * 0.30f; val cr = s * 0.42f
+            path.moveTo(cx, cy - r)
+            path.cubicTo(cx + cr, cy - r, cx + r, cy - cr, cx + r, cy)
+            path.cubicTo(cx + r, cy + cr, cx + cr, cy + r, cx, cy + r)
+            path.cubicTo(cx - cr, cy + r, cx - r, cy + cr, cx - r, cy)
+            path.cubicTo(cx - r, cy - cr, cx - cr, cy - r, cx, cy - r)
+            path.close(); canvas.drawPath(path, paint)
+        }
+        "diamond" -> {
+            val path = Path()
+            path.moveTo(cx, 0f); path.lineTo(s, cy)
+            path.lineTo(cx, s); path.lineTo(0f, cy)
+            path.close(); canvas.drawPath(path, paint)
+        }
         else -> canvas.drawRoundRect(RectF(0f, 0f, s, s), s * 0.22f, s * 0.22f, paint)
     }
     return bitmap

@@ -22,6 +22,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -419,10 +423,47 @@ private fun WidgetPreview(
 ) {
     val showIcon = contentStyle in listOf("icon_only", "icon_text")
     val showText = contentStyle in listOf("icon_text", "text_only")
-    val shapeClip = when (iconShape) {
-        "circle" -> CircleShape
-        "square" -> RoundedCornerShape(0.dp)
-        else -> RoundedCornerShape(16.dp)
+    val shapeClip: Shape = when (iconShape) {
+        "circle"   -> CircleShape
+        "square"   -> RoundedCornerShape(0.dp)
+        "squircle" -> RoundedCornerShape(40)
+        "pill"     -> RoundedCornerShape(50)
+        "hexagon"  -> object : Shape {
+            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+                val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f; val r = minOf(cx, cy) * 0.96f
+                for (i in 0 until 6) { val a = (PI * i / 3 - PI / 6).toFloat(); if (i == 0) path.moveTo(cx + r * cos(a), cy + r * sin(a)) else path.lineTo(cx + r * cos(a), cy + r * sin(a)) }
+                path.close(); return Outline.Generic(path)
+            }
+        }
+        "star" -> object : Shape {
+            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+                val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f
+                val outerR = minOf(cx, cy) * 0.96f; val innerR = outerR * 0.45f
+                for (i in 0 until 10) { val a = (PI * i / 5 - PI / 2).toFloat(); val r = if (i % 2 == 0) outerR else innerR; if (i == 0) path.moveTo(cx + cos(a) * r, cy + sin(a) * r) else path.lineTo(cx + cos(a) * r, cy + sin(a) * r) }
+                path.close(); return Outline.Generic(path)
+            }
+        }
+        "flower" -> object : Shape {
+            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+                val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f
+                val r = minOf(cx, cy) * 0.60f; val cr = minOf(cx, cy) * 0.84f
+                path.moveTo(cx, cy - r)
+                path.cubicTo(cx + cr, cy - r, cx + r, cy - cr, cx + r, cy)
+                path.cubicTo(cx + r, cy + cr, cx + cr, cy + r, cx, cy + r)
+                path.cubicTo(cx - cr, cy + r, cx - r, cy + cr, cx - r, cy)
+                path.cubicTo(cx - r, cy - cr, cx - cr, cy - r, cx, cy - r)
+                path.close(); return Outline.Generic(path)
+            }
+        }
+        "diamond" -> object : Shape {
+            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+                val path = Path()
+                path.moveTo(size.width / 2f, 0f); path.lineTo(size.width, size.height / 2f)
+                path.lineTo(size.width / 2f, size.height); path.lineTo(0f, size.height / 2f)
+                path.close(); return Outline.Generic(path)
+            }
+        }
+        else -> RoundedCornerShape(16.dp) // rounded_square
     }
 
     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -595,11 +636,18 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
-                        val shapeLabel = when (iconShape) {
-                            "circle" -> "Círculo"
-                            "square" -> "Cuadrado"
-                            else -> "Redondeado"
-                        }
+                        val shapeOptions = listOf(
+                            "rounded_square" to "Redondeado",
+                            "squircle"       to "Squircle (Pixel)",
+                            "circle"         to "Círculo",
+                            "square"         to "Cuadrado",
+                            "pill"           to "Píldora",
+                            "hexagon"        to "Hexágono",
+                            "star"           to "Estrella",
+                            "flower"         to "Flor",
+                            "diamond"        to "Diamante",
+                        )
+                        val shapeLabel = shapeOptions.firstOrNull { it.first == iconShape }?.second ?: "Redondeado"
                         ListItem(
                             headlineContent = { Text("Forma del widget") },
                             supportingContent = { Text(shapeLabel, style = MaterialTheme.typography.labelSmall) },
@@ -669,7 +717,17 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
         ModalBottomSheet(onDismissRequest = { showIconShapeSheet = false }, sheetState = sheetState) {
             Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
                 Text("Forma del widget", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
-                listOf("circle" to "Círculo", "square" to "Cuadrado", "rounded_square" to "Redondeado").forEach { (value, label) ->
+                listOf(
+                    "rounded_square" to "Redondeado",
+                    "squircle"       to "Squircle (Pixel)",
+                    "circle"         to "Círculo",
+                    "square"         to "Cuadrado",
+                    "pill"           to "Píldora",
+                    "hexagon"        to "Hexágono",
+                    "star"           to "Estrella",
+                    "flower"         to "Flor",
+                    "diamond"        to "Diamante",
+                ).forEach { (value, label) ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
