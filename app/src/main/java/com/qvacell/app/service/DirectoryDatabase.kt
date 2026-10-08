@@ -112,17 +112,50 @@ class DirectoryDatabase(private val context: Context) {
         }
     }
 
-    suspend fun search(prefix: String): List<DirectoryEntry> = withContext(Dispatchers.IO) {
+    companion object {
+        const val MIN_NUMBER_QUERY_LENGTH = 3
+        // name isn't indexed → full-table scan; shorter query = unbounded scan for no signal.
+        const val MIN_NAME_QUERY_LENGTH = 5
+    }
+
+    fun hasSearchableInput(numberQuery: String, nameQuery: String): Boolean =
+        numberQuery.trim().length >= MIN_NUMBER_QUERY_LENGTH ||
+            nameQuery.trim().length >= MIN_NAME_QUERY_LENGTH
+
+    // Name search disabled for privacy — nameQuery stays "" in the UI. The code supports it;
+    // re-enable by adding a name text field and passing its value here.
+    suspend fun search(
+        numberQuery: String,
+        nameQuery: String = "",
+        limit: Int = 100
+    ): List<DirectoryEntry> = withContext(Dispatchers.IO) {
+        val number = numberQuery.trim()
+        val name = nameQuery.trim()
+        if (!hasSearchableInput(number, name)) return@withContext emptyList()
+
         val db = openDatabase() ?: return@withContext emptyList()
         val results = mutableListOf<DirectoryEntry>()
 
         try {
             db.use {
+                val clauses = mutableListOf<String>()
+                val params = mutableListOf<String>()
+                if (number.isNotEmpty()) {
+                    clauses += "number LIKE ?"
+                    params += "$number%"
+                }
+                if (name.isNotEmpty()) {
+                    clauses += "name LIKE ?"
+                    params += "%$name%"
+                }
+                val where = clauses.joinToString(" AND ")
+                val args = params.toTypedArray()
+
                 when (detectSchema(it)) {
                     SchemaVersion.V1_SINGLE_TABLE -> {
                         it.rawQuery(
-                            "SELECT number, name, is_mobile FROM contacts WHERE number LIKE ? LIMIT 200",
-                            arrayOf("$prefix%")
+                            "SELECT number, name, is_mobile FROM contacts WHERE $where LIMIT $limit",
+                            args
                         ).use { cursor ->
                             while (cursor.moveToNext()) {
                                 results += DirectoryEntry(
@@ -135,19 +168,22 @@ class DirectoryDatabase(private val context: Context) {
                     }
                     SchemaVersion.V2_SPLIT_TABLES -> {
                         it.rawQuery(
-                            "SELECT number, name FROM movil WHERE number LIKE ? LIMIT 200",
-                            arrayOf("$prefix%")
+                            "SELECT number, name FROM movil WHERE $where LIMIT $limit",
+                            args
                         ).use { cursor ->
                             while (cursor.moveToNext()) {
                                 results += DirectoryEntry(cursor.getString(0), cursor.getString(1), isMobile = true)
                             }
                         }
-                        it.rawQuery(
-                            "SELECT number, name FROM fix WHERE number LIKE ? LIMIT 200",
-                            arrayOf("$prefix%")
-                        ).use { cursor ->
-                            while (cursor.moveToNext()) {
-                                results += DirectoryEntry(cursor.getString(0), cursor.getString(1), isMobile = false)
+                        val remaining = limit - results.size
+                        if (remaining > 0) {
+                            it.rawQuery(
+                                "SELECT number, name FROM fix WHERE $where LIMIT $remaining",
+                                args
+                            ).use { cursor ->
+                                while (cursor.moveToNext()) {
+                                    results += DirectoryEntry(cursor.getString(0), cursor.getString(1), isMobile = false)
+                                }
                             }
                         }
                     }
@@ -163,5 +199,6 @@ class DirectoryDatabase(private val context: Context) {
         results
     }
 
-    suspend fun findByNumber(number: String): DirectoryEntry? = search(number).firstOrNull { it.number == number }
+    suspend fun findByNumber(number: String): DirectoryEntry? =
+        search(numberQuery = number).firstOrNull { it.number == number }
 }

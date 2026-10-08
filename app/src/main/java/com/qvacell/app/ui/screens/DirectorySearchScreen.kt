@@ -47,7 +47,7 @@ import com.qvacell.app.ui.components.DirectoryEntryRow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private const val MIN_QUERY_LENGTH = 3
+import com.qvacell.app.service.DirectoryDatabase.Companion.MIN_NUMBER_QUERY_LENGTH
 
 @Composable
 fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
@@ -90,8 +90,12 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
         }
     }
 
-    LaunchedEffect(query, imported) {
-        if (!imported || query.length < MIN_QUERY_LENGTH) {
+    // Name search disabled for privacy — see iOS README. nameQuery stays "" forever.
+    // To re-enable: add a name text field and pass its value here.
+    val nameQuery = ""
+
+    LaunchedEffect(query, nameQuery, imported) {
+        if (!imported || !database.hasSearchableInput(query, nameQuery)) {
             results = emptyList()
             hasSearched = false
             isSearching = false
@@ -99,7 +103,7 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
         }
         isSearching = true
         delay(400)
-        results = database.search(query)
+        results = database.search(numberQuery = query, nameQuery = nameQuery)
         isSearching = false
         hasSearched = true
         if (!database.isImported()) {
@@ -188,7 +192,7 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
                             CircularProgressIndicator()
                         }
                     }
-                    query.length < MIN_QUERY_LENGTH -> {
+                    query.length < MIN_NUMBER_QUERY_LENGTH -> {
                         Box(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
