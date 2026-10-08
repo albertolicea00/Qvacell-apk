@@ -1,17 +1,27 @@
 package com.qvacell.app.ui.screens
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ManageSearch
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,14 +33,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.service.DirectoryDatabase
 import com.qvacell.app.service.DirectoryEntry
 import com.qvacell.app.ui.components.BackNavigationIcon
 import com.qvacell.app.ui.components.DirectoryEntryRow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+private const val MIN_QUERY_LENGTH = 3
 
 @Composable
 fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
@@ -40,49 +56,167 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
     var imported by remember { mutableStateOf(database.isImported()) }
     var query by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<DirectoryEntry>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var hasSearched by remember { mutableStateOf(false) }
 
-    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let {
-            scope.launch { imported = database.importFrom(it) }
+    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val success = database.importFrom(uri)
+                imported = success
+                val msg = if (success) "Base de datos importada" else "Error al importar"
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
     LaunchedEffect(query, imported) {
-        results = if (imported && query.isNotBlank()) database.search(query) else emptyList()
+        if (!imported || query.length < MIN_QUERY_LENGTH) {
+            results = emptyList()
+            hasSearched = false
+            return@LaunchedEffect
+        }
+        isSearching = true
+        delay(400)
+        results = database.search(query)
+        isSearching = false
+        hasSearched = true
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("Búsqueda en Base de Datos") },
-                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) },
-                actions = {
-                    Icon(
-                        Icons.Filled.ManageSearch,
-                        contentDescription = null,
-                        modifier = Modifier.padding(end = 16.dp)
-                    )
-                }
+                title = { Text("Buscar en BBDD") },
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (!imported) {
-                Text("Importa un archivo .db para buscar números.")
-                Button(
-                    onClick = { importLauncher.launch(arrayOf("*/*")) },
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
-                ) { Text("Importar base de datos") }
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Filled.Storage,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                        )
+                        Text(
+                            "Sin base de datos",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                        Text(
+                            "Importa un archivo .db para buscar números",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        Button(
+                            onClick = { importLauncher.launch("*/*") },
+                            modifier = Modifier.padding(top = 16.dp)
+                        ) { Text("Importar base de datos") }
+                    }
+                }
             } else {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    label = { Text("Buscar por prefijo de número") },
-                    modifier = Modifier.fillMaxWidth()
+                    placeholder = { Text("Número") },
+                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                    trailingIcon = {
+                        if (query.isNotEmpty()) {
+                            IconButton(onClick = { query = "" }) {
+                                Icon(Icons.Filled.Close, contentDescription = "Limpiar")
+                            }
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 )
-                LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
-                    items(results) { entry -> DirectoryEntryRow(entry = entry, onClick = {}) }
+
+                when {
+                    isSearching -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    query.length < MIN_QUERY_LENGTH -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    Icons.Filled.Storage,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                                Text(
+                                    "Buscar en Base de Datos",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(top = 16.dp)
+                                )
+                                Text(
+                                    "Escribe un número para buscar",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                    hasSearched && results.isEmpty() -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    Icons.Filled.Search,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                )
+                                Text(
+                                    "Sin resultados para \"$query\"",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(top = 16.dp, start = 32.dp, end = 32.dp)
+                                )
+                                Text(
+                                    "Revisa el número o intenta otra búsqueda",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                    else -> {
+                        LazyColumn {
+                            items(results) { entry ->
+                                DirectoryEntryRow(entry = entry, onClick = {})
+                            }
+                        }
+                    }
                 }
             }
         }
