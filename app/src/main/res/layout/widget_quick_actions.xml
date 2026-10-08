@@ -43,7 +43,7 @@
 
         </FrameLayout>
 
-        <Space
+        <View
             android:id="@+id/tile_icon_space"
             android:layout_width="match_parent"
             android:layout_height="4dp"
