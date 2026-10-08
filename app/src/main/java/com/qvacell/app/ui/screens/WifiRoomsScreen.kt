@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -29,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.service.DialService
@@ -59,34 +62,56 @@ fun WifiProvinceListScreen(onProvinceSelected: (String) -> Unit, onBack: (() -> 
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.padding(padding),
-            contentPadding = PaddingValues(vertical = 8.dp)
-        ) {
-            item {
-                Card(
-                    modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-                ) {
-                    filteredProvinces.forEachIndexed { index, province ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onProvinceSelected(province.province) }
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(province.province, style = MaterialTheme.typography.bodyLarge)
-                                Text(
-                                    "${province.rooms.size} salas · ${province.hotspots.size} municipios con WiFi",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+        if (filteredProvinces.isEmpty() && query.isNotBlank()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.SearchOff,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(48.dp)
+                )
+                Text(
+                    "Sin resultados para \"$query\"",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.padding(padding),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                item {
+                    Card(
+                        modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                    ) {
+                        filteredProvinces.forEachIndexed { index, province ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onProvinceSelected(province.province) }
+                                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(province.province, style = MaterialTheme.typography.bodyLarge)
+                                    Text(
+                                        "${province.rooms.size} salas · ${province.hotspots.size} municipios con WiFi",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
-                        }
-                        if (index != filteredProvinces.lastIndex) {
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            if (index != filteredProvinces.lastIndex) {
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
                         }
                     }
                 }
@@ -139,6 +164,27 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
             )
         }
     ) { padding ->
+        if (filteredRooms.isEmpty() && filteredHotspots.isEmpty() && query.isNotBlank()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.SearchOff,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(48.dp)
+                )
+                Text(
+                    "Sin resultados para \"$query\"",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
+                )
+            }
+        } else {
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(vertical = 8.dp),
@@ -271,6 +317,7 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
                     }
                 }
             }
+        }
         }
     }
 }
