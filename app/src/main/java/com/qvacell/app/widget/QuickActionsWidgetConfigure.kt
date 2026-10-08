@@ -5,15 +5,28 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -25,9 +38,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.UssdCode
+import com.qvacell.app.ui.resolveAndroidIcon
 import com.qvacell.app.ui.theme.QvacellTheme
 
 class QuickActionsWidgetConfigure : ComponentActivity() {
@@ -50,17 +70,18 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
 
         val catalog = CatalogRepository(this).loadCatalog()
 
-        // Flat list of (categoryName, code) with category headers interleaved as null codes
         data class ListItem(val categoryHeader: String? = null, val code: UssdCode? = null)
 
         val listItems = buildList {
-            catalog.categories.forEach { cat ->
-                val codes = cat.groups.flatMap { it.codes }
-                if (codes.isNotEmpty()) {
-                    add(ListItem(categoryHeader = cat.name.value))
-                    codes.forEach { add(ListItem(code = it)) }
+            catalog.categories
+                .filter { it.id != "sms" }
+                .forEach { cat ->
+                    val codes = cat.groups.flatMap { it.codes }
+                    if (codes.isNotEmpty()) {
+                        add(ListItem(categoryHeader = cat.name.value))
+                        codes.forEach { add(ListItem(code = it)) }
+                    }
                 }
-            }
         }
 
         val initialCodeId = WidgetPrefs.getCodeId(this, widgetId)
@@ -68,10 +89,86 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
         setContent {
             QvacellTheme {
                 var selectedCodeId by remember { mutableStateOf(initialCodeId) }
+                var searchActive by remember { mutableStateOf(false) }
+                var query by remember { mutableStateOf("") }
+                val focusRequester = remember { FocusRequester() }
+
+                val filtered = if (query.isBlank()) {
+                    listItems
+                } else {
+                    listItems.filter { item ->
+                        item.categoryHeader != null ||
+                            (item.code != null && (
+                                item.code.title.value.contains(query, ignoreCase = true) ||
+                                item.code.details.value.contains(query, ignoreCase = true) ||
+                                item.code.code.contains(query, ignoreCase = true)
+                            ))
+                    }.let { filtered ->
+                        // drop orphan category headers (no codes after them)
+                        val result = mutableListOf<ListItem>()
+                        filtered.forEachIndexed { i, item ->
+                            if (item.categoryHeader != null) {
+                                val hasCodesAfter = filtered.drop(i + 1).any { it.code != null }
+                                if (hasCodesAfter) result.add(item)
+                            } else {
+                                result.add(item)
+                            }
+                        }
+                        result
+                    }
+                }
 
                 Scaffold(
                     topBar = {
-                        TopAppBar(title = { Text("Seleccionar acción") })
+                        if (searchActive) {
+                            TopAppBar(
+                                title = {
+                                    BasicTextField(
+                                        value = query,
+                                        onValueChange = { query = it },
+                                        singleLine = true,
+                                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                        textStyle = TextStyle(
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            fontSize = 16.sp
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .focusRequester(focusRequester),
+                                        decorationBox = { inner ->
+                                            if (query.isEmpty()) {
+                                                Text(
+                                                    "Buscar acción...",
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    fontSize = 16.sp
+                                                )
+                                            }
+                                            inner()
+                                        }
+                                    )
+                                },
+                                actions = {
+                                    IconButton(onClick = {
+                                        searchActive = false
+                                        query = ""
+                                    }) {
+                                        Icon(Icons.Filled.Close, contentDescription = "Cerrar búsqueda")
+                                    }
+                                }
+                            )
+                            androidx.compose.runtime.LaunchedEffect(Unit) {
+                                focusRequester.requestFocus()
+                            }
+                        } else {
+                            TopAppBar(
+                                title = { Text("Seleccionar acción") },
+                                actions = {
+                                    IconButton(onClick = { searchActive = true }) {
+                                        Icon(Icons.Filled.Search, contentDescription = "Buscar")
+                                    }
+                                }
+                            )
+                        }
                     }
                 ) { innerPadding ->
                     LazyColumn(
@@ -80,7 +177,36 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                             .padding(innerPadding),
                         contentPadding = PaddingValues(bottom = 16.dp)
                     ) {
-                        listItems.forEachIndexed { index, item ->
+                        if (!searchActive) {
+                            item {
+                                Text(
+                                    text = "Elige la operación que se ejecutará al tocar el widget.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                            }
+                        }
+
+                        val hasResults = filtered.any { it.code != null }
+                        if (!hasResults && query.isNotBlank()) {
+                            item(key = "empty") {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 48.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "Sin resultados para \"$query\"",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+
+                        filtered.forEachIndexed { index, item ->
                             if (item.categoryHeader != null) {
                                 item(key = "header_$index") {
                                     Text(
@@ -122,17 +248,48 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                                 )
                                                 finish()
                                             }
-                                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                                            .padding(horizontal = 16.dp, vertical = 8.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
+                                        // Icon circle
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = resolveAndroidIcon(code.icon),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(12.dp))
+
+                                        // Title + description + dial code
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = code.title.value,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            Text(
+                                                text = code.details.value,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Text(
+                                                text = code.code,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                            )
+                                        }
+
                                         RadioButton(
                                             selected = code.id == selectedCodeId,
                                             onClick = null
-                                        )
-                                        Text(
-                                            text = code.title.value,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier.padding(start = 8.dp)
                                         )
                                     }
                                     HorizontalDivider(
