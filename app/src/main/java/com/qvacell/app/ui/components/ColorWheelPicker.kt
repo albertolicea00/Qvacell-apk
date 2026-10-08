@@ -99,17 +99,14 @@ fun ColorWheelPicker(color: Color, onColorChange: (Color) -> Unit, modifier: Mod
             drawCircle(color = Color.Black.copy(alpha = 0.5f), radius = 10.dp.toPx(), center = dot, style = Stroke(width = 1.dp.toPx()))
         }
 
-        Slider(
+        GradientSlider(
             value = value,
             onValueChange = {
                 value = it
                 onColorChange(Color.hsv(hue, saturation, value))
             },
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            colors = SliderDefaults.colors(
-                thumbColor = Color.hsv(hue, saturation, 1f),
-                activeTrackColor = Color.hsv(hue, saturation, 1f)
-            )
+            colors = listOf(Color.Black, Color.hsv(hue, saturation, 1f)),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
         )
     }
 }
