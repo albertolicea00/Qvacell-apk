@@ -42,6 +42,11 @@ class QuickActionsWidget : AppWidgetProvider() {
 
     companion object {
         fun updateWidget(context: Context, manager: AppWidgetManager, widgetId: Int) {
+            try { updateWidgetInternal(context, manager, widgetId) }
+            catch (e: Exception) { android.util.Log.e("QvaWidget", "update failed", e) }
+        }
+
+        private fun updateWidgetInternal(context: Context, manager: AppWidgetManager, widgetId: Int) {
             val codeId = WidgetPrefs.getCodeId(context, widgetId)
             val code = CatalogRepository(context).findCodeById(codeId)
             val views = RemoteViews(context.packageName, R.layout.widget_quick_actions)
@@ -56,10 +61,13 @@ class QuickActionsWidget : AppWidgetProvider() {
             val showIcon = contentStyle in listOf("icon_only", "icon_text")
             val showText = contentStyle in listOf("icon_text", "text_only")
 
-            // Background: colored bitmap with correct shape
-            runCatching {
-                shapeBackgroundBitmap(200, bgColor, iconShape)
-            }.getOrNull()?.let { views.setImageViewBitmap(R.id.tile_bg_view, it) }
+            // Background: try shaped bitmap, fall back to plain color filter
+            val bgBitmap = runCatching { shapeBackgroundBitmap(200, bgColor, iconShape) }.getOrNull()
+            if (bgBitmap != null) {
+                views.setImageViewBitmap(R.id.tile_bg_view, bgBitmap)
+            } else {
+                views.setInt(R.id.tile_bg_view, "setColorFilter", bgColor)
+            }
 
             // Content visibility
             views.setViewVisibility(R.id.tile_icon_container, if (showIcon) View.VISIBLE else View.GONE)
