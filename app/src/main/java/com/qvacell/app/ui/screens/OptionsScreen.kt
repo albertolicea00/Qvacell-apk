@@ -130,6 +130,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val quickPurchaseNoConfirm by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
+    val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     // Persisted (not local @State) so the unlock survives across launches, and one-way only —
     // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
@@ -159,6 +160,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showDefaultTabSheet by remember { mutableStateOf(false) }
     var showAccentColorSheet by remember { mutableStateOf(false) }
     var showDashboardModeSheet by remember { mutableStateOf(false) }
+    var showQuickActionsStyleSheet by remember { mutableStateOf(false) }
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
@@ -200,7 +202,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val dashboardModeLabel = when (dashboardMode) {
         "dynamic" -> "Dashboard Dinámico"
         "manual" -> "Marcación Rápida"
+        "list" -> "Lista"
         else -> "No configurado"
+    }
+    val quickActionsStyleLabel = when (quickActionsStyle) {
+        "outline" -> "Contorno"
+        else -> "Rellenas"
     }
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
         ?: accentColor
@@ -349,6 +356,14 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         supporting = defaultTabLabel,
                         onClick = { showDefaultTabSheet = true }
                     )
+                    if (dashboardMode == "manual") {
+                        OptionsDivider()
+                        OptionsRow(
+                            headline = "Estilo de acciones",
+                            supporting = quickActionsStyleLabel,
+                            onClick = { showQuickActionsStyleSheet = true }
+                        )
+                    }
                     OptionsDivider()
                     OptionsRow(
                         headline = "Acción sin Confirmación",
@@ -654,7 +669,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 )
                 listOf(
                     "dynamic" to "Dashboard Dinámico",
-                    "manual" to "Marcación Rápida"
+                    "manual" to "Marcación Rápida",
+                    "list" to "Lista"
                 ).forEach { (mode, label) ->
                     Row(
                         modifier = Modifier
@@ -667,6 +683,37 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = dashboardMode == mode, onClick = null)
+                        Text(label, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+
+    if (showQuickActionsStyleSheet) {
+        ModalBottomSheet(onDismissRequest = { showQuickActionsStyleSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "Estilo de acciones",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                listOf(
+                    "filled" to "Rellenas",
+                    "outline" to "Contorno"
+                ).forEach { (style, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { settings.setQuickActionsStyle(style) }
+                                showQuickActionsStyleSheet = false
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = quickActionsStyle == style, onClick = null)
                         Text(label, modifier = Modifier.padding(start = 8.dp))
                     }
                 }

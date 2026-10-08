@@ -18,7 +18,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -63,6 +67,7 @@ import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.TransferPinStore
+import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.resolveAndroidIcon
 
 private data class QuickTile(val codeId: String, val label: String)
@@ -87,7 +92,8 @@ private val TILE_MIN = 44.dp
 fun ManualDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
-    ussdCaptureEnabled: Boolean
+    ussdCaptureEnabled: Boolean,
+    tileStyle: String = "filled"
 ) {
     val context = LocalContext.current
     val pinStore = remember { TransferPinStore(context) }
@@ -145,6 +151,7 @@ fun ManualDashboardContent(
                                     code = code,
                                     label = tile.label,
                                     size = tileSize,
+                                    outline = tileStyle == "outline",
                                     onClick = {
                                         DashboardCapture.captureOrDial(
                                             context, code, dashboardRepository, ussdCaptureEnabled
@@ -408,15 +415,19 @@ private fun QuickActionTile(
     code: UssdCode,
     label: String,
     size: Dp,
+    outline: Boolean = false,
     onClick: () -> Unit
 ) {
+    val shape = RoundedCornerShape(percent = 20)
+    val contentColor = if (outline) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onPrimary
     Surface(
         modifier = Modifier
             .width(size)
             .height(size * 0.72f)
+            .then(if (outline) Modifier.border(1.dp, MaterialTheme.colorScheme.primary, shape) else Modifier)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(percent = 20),
-        color = MaterialTheme.colorScheme.primary
+        shape = shape,
+        color = if (outline) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.primary
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -426,7 +437,7 @@ private fun QuickActionTile(
             Icon(
                 imageVector = resolveAndroidIcon(code.icon),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
+                tint = contentColor,
                 modifier = Modifier.size((size.value * 0.28f).dp)
             )
             Spacer(Modifier.height(5.dp))
@@ -434,11 +445,35 @@ private fun QuickActionTile(
                 label,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onPrimary,
+                color = contentColor,
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(horizontal = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun ListDashboardContent(
+    repository: CatalogRepository,
+    dashboardRepository: DashboardDataRepository,
+    ussdCaptureEnabled: Boolean
+) {
+    val context = LocalContext.current
+    val resolvedCodes = remember {
+        QUICK_TILES.mapNotNull { tile -> repository.findCodeById(tile.codeId) }
+    }
+    LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
+        items(resolvedCodes, key = { it.id }) { code ->
+            CodeRow(
+                code = code,
+                onClick = {
+                    DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
+                },
+                contactStyle = true,
+                showDescription = true
             )
         }
     }
