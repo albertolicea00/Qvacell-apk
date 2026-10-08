@@ -71,14 +71,14 @@ private data class QuickTile(val codeId: String, val label: String)
 
 private val QUICK_TILES = listOf(
     QuickTile("main-balance",            "Saldo"),
+    QuickTile("national-recharge-limit", "Límite"),
+    QuickTile("bonus-usd-plans",         "Bono"),
     QuickTile("data-plan",               "Datos"),
     QuickTile("voice-balance",           "Voz"),
     QuickTile("sms-balance",             "SMS"),
-    QuickTile("national-recharge-limit", "Límite"),
-    QuickTile("friends-plan",            "Plan Amigo"),
-    QuickTile("bonus-usd-plans",         "Bonos"),
-    QuickTile("postpaid-balance",        "Pospago"),
+    QuickTile("friends-plan",            "Amigo"),
     QuickTile("tfa",                     "TFA"),
+    QuickTile("postpaid-balance",        "Pospago"),
 )
 
 private const val TILE_COLUMNS = 3
