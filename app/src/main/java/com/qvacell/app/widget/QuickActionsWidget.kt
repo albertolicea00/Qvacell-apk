@@ -23,6 +23,17 @@ class QuickActionsWidget : AppWidgetProvider() {
         }
     }
 
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+            val manager = AppWidgetManager.getInstance(context)
+            val ids = manager.getAppWidgetIds(
+                android.content.ComponentName(context, QuickActionsWidget::class.java)
+            )
+            for (id in ids) updateWidget(context, manager, id)
+        }
+    }
+
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         for (widgetId in appWidgetIds) {
             WidgetPrefs.deleteConfig(context, widgetId)
@@ -37,12 +48,9 @@ class QuickActionsWidget : AppWidgetProvider() {
 
             views.setTextViewText(R.id.tile_label, code?.title?.value ?: "")
             if (code != null) {
-                val iconBitmap = imageVectorToBitmap(
-                    resolveAndroidIcon(code.icon),
-                    sizePx = 96,
-                    tintArgb = Color.WHITE
-                )
-                views.setImageViewBitmap(R.id.tile_icon, iconBitmap)
+                runCatching {
+                    imageVectorToBitmap(resolveAndroidIcon(code.icon), sizePx = 96, tintArgb = Color.WHITE)
+                }.getOrNull()?.let { views.setImageViewBitmap(R.id.tile_icon, it) }
             }
 
             val intent = Intent(context, DialTrampolineActivity::class.java).apply {
