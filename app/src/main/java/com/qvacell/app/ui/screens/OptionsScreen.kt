@@ -346,15 +346,15 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Tipo de Dashboard",
-                        supporting = dashboardModeLabel,
-                        onClick = { showDashboardModeSheet = true }
-                    )
-                    OptionsDivider()
-                    OptionsRow(
                         headline = "Pestaña predeterminada",
                         supporting = defaultTabLabel,
                         onClick = { showDefaultTabSheet = true }
+                    )
+                    OptionsDivider()
+                    OptionsRow(
+                        headline = "Tipo de Dashboard",
+                        supporting = dashboardModeLabel,
+                        onClick = { showDashboardModeSheet = true }
                     )
                     if (dashboardMode == "manual") {
                         OptionsDivider()
