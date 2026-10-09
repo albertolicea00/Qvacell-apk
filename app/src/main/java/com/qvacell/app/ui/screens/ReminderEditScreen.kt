@@ -1,27 +1,43 @@
 package com.qvacell.app.ui.screens
 
+import android.content.Intent
+import android.provider.ContactsContract
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowOutward
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -38,10 +54,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.Reminder
 import com.qvacell.app.model.ReminderRecurrence
 import com.qvacell.app.model.ReminderTemplate
@@ -85,6 +105,20 @@ fun ReminderEditScreen(
     val dateFormatter = remember { SimpleDateFormat("d MMM yyyy", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
+    val pickContactLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val uri = result.data?.data ?: return@rememberLauncherForActivityResult
+        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                if (idx >= 0) {
+                    CubanPhoneNumber.normalize(cursor.getString(idx))?.let { phoneNumber = it }
+                }
+            }
+        }
+    }
+
     LaunchedEffect(reminderId) {
         if (reminderId != null) {
             repository.getById(reminderId)?.let { r ->
@@ -117,163 +151,222 @@ fun ReminderEditScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp)
+                .padding(vertical = 8.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Recordatorio section
-            Text(
-                "RECORDATORIO",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 4.dp)
-            )
-            Card(
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-            ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { Text("Título") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-                    OutlinedTextField(
-                        value = message,
-                        onValueChange = { message = it },
-                        label = { Text("Mensaje") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            Column {
+                SectionHeader("Recordatorio")
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    Column {
+                        EditorInputField(
+                            value = title,
+                            onValueChange = { title = it },
+                            placeholder = "Título",
+                            singleLine = true
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        EditorInputField(
+                            value = message,
+                            onValueChange = { message = it },
+                            placeholder = "Mensaje",
+                            singleLine = false,
+                            minHeight = 72.dp
+                        )
+                    }
                 }
             }
 
             // Phone number section (only for transfer template)
             if (template.needsPhoneNumber) {
-                Text(
-                    "NÚMERO DE TELÉFONO",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
-                Card(
-                    shape = MaterialTheme.shapes.large,
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        OutlinedTextField(
-                            value = phoneNumber,
-                            onValueChange = { phoneNumber = it },
-                            label = { Text("Ej: 51234567") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
-                        Text(
-                            "Se usará como destino al ejecutar la transferencia.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
+                Column {
+                    SectionHeader("Número de Teléfono")
+                    Card(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                    ) {
+                        Column {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                BasicTextField(
+                                    value = phoneNumber,
+                                    onValueChange = { phoneNumber = it },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(start = 16.dp),
+                                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    ),
+                                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                                    singleLine = true,
+                                    decorationBox = { inner ->
+                                        if (phoneNumber.isEmpty()) {
+                                            Text(
+                                                "Número (+53 ...)",
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                            )
+                                        }
+                                        inner()
+                                    }
+                                )
+                                IconButton(
+                                    onClick = {
+                                        pickContactLauncher.launch(
+                                            Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                                        )
+                                    },
+                                    modifier = Modifier.size(40.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Person,
+                                        contentDescription = "Elegir de contactos",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Spacer(Modifier.width(4.dp))
+                            }
+                        }
                     }
+                    Text(
+                        "Se usará como destino al ejecutar la transferencia.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
+                    )
                 }
             }
 
             // Cuándo section
-            Text(
-                "CUÁNDO",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 4.dp)
-            )
-            Card(
-                shape = MaterialTheme.shapes.large,
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
-            ) {
-                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(
-                            value = dateFormatter.format(Date(dateMillis)),
-                            onValueChange = {},
-                            label = { Text("Fecha") },
-                            readOnly = true,
-                            modifier = Modifier
-                                .weight(1f),
-                            singleLine = true,
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }.also {
-                                LaunchedEffect(it) {
-                                    it.interactions.collect { interaction ->
-                                        if (interaction is androidx.compose.foundation.interaction.PressInteraction.Release) {
-                                            showDatePicker = true
-                                        }
-                                    }
+            Column {
+                SectionHeader("Cuándo")
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+                ) {
+                    Column {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            PickerRowItem(
+                                label = "Fecha",
+                                value = dateFormatter.format(Date(dateMillis)),
+                                onClick = { showDatePicker = true },
+                                modifier = Modifier.weight(1f)
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .width(1.dp)
+                                    .height(52.dp)
+                                    .padding(vertical = 8.dp)
+                            ) {
+                                HorizontalDivider(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                )
+                            }
+                            PickerRowItem(
+                                label = "Hora",
+                                value = timeFormatter.format(Date(dateMillis)),
+                                onClick = { showTimePicker = true },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                        var recurrenceExpanded by remember { mutableStateOf(false) }
+
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { recurrenceExpanded = true }
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Repetir",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        recurrence.label,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Icon(
+                                        Icons.Filled.ArrowDropDown,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                    )
                                 }
                             }
-                        )
-                        OutlinedTextField(
-                            value = timeFormatter.format(Date(dateMillis)),
-                            onValueChange = {},
-                            label = { Text("Hora") },
-                            readOnly = true,
-                            modifier = Modifier
-                                .weight(1f),
-                            singleLine = true,
-                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }.also {
-                                LaunchedEffect(it) {
-                                    it.interactions.collect { interaction ->
-                                        if (interaction is androidx.compose.foundation.interaction.PressInteraction.Release) {
-                                            showTimePicker = true
+
+                            DropdownMenu(
+                                expanded = recurrenceExpanded,
+                                onDismissRequest = { recurrenceExpanded = false }
+                            ) {
+                                ReminderRecurrence.entries.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option.label) },
+                                        onClick = {
+                                            recurrence = option
+                                            recurrenceExpanded = false
                                         }
-                                    }
+                                    )
                                 }
                             }
-                        )
-                    }
+                        }
 
-                    var recurrenceExpanded by remember { mutableStateOf(false) }
-
-                    ExposedDropdownMenuBox(
-                        expanded = recurrenceExpanded,
-                        onExpandedChange = { recurrenceExpanded = it },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = recurrence.label,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Repetir") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = recurrenceExpanded) },
-                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
-                            modifier = Modifier
-                                .menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryNotEditable)
-                                .fillMaxWidth()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = recurrenceExpanded,
-                            onDismissRequest = { recurrenceExpanded = false }
-                        ) {
-                            ReminderRecurrence.entries.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option.label) },
-                                    onClick = {
-                                        recurrence = option
-                                        recurrenceExpanded = false
-                                    }
+                        if (recurrence == ReminderRecurrence.CUSTOM) {
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 16.dp, end = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Cada cuántos días",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                BasicTextField(
+                                    value = customDays.toString(),
+                                    onValueChange = { customDays = it.toIntOrNull()?.coerceIn(2, 365) ?: 30 },
+                                    modifier = Modifier
+                                        .width(60.dp)
+                                        .height(52.dp)
+                                        .wrapContentHeight(Alignment.CenterVertically),
+                                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.End
+                                    ),
+                                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                    singleLine = true
                                 )
                             }
                         }
-                    }
-
-                    if (recurrence == ReminderRecurrence.CUSTOM) {
-                        OutlinedTextField(
-                            value = customDays.toString(),
-                            onValueChange = { customDays = it.toIntOrNull()?.coerceIn(2, 365) ?: 30 },
-                            label = { Text("Cada cuántos días") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                        )
                     }
                 }
             }
@@ -299,7 +392,9 @@ fun ReminderEditScreen(
                         onDone()
                     }
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
                 enabled = title.isNotBlank()
             ) {
                 Text("Guardar")
@@ -367,3 +462,82 @@ fun ReminderEditScreen(
         )
     }
 }
+
+@Composable
+private fun SectionHeader(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+    )
+}
+
+@Composable
+private fun EditorInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    singleLine: Boolean = true,
+    minHeight: Dp = 52.dp
+) {
+    val accentColor = MaterialTheme.colorScheme.primary
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = minHeight)
+            .padding(horizontal = 16.dp, vertical = if (singleLine) 0.dp else 12.dp),
+        verticalAlignment = if (singleLine) Alignment.CenterVertically else Alignment.Top
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (singleLine) Modifier.height(minHeight).wrapContentHeight(Alignment.CenterVertically) else Modifier),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            cursorBrush = SolidColor(accentColor),
+            singleLine = singleLine,
+            decorationBox = { inner ->
+                if (value.isEmpty()) {
+                    Text(
+                        placeholder,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                }
+                inner()
+            }
+        )
+    }
+}
+
+@Composable
+private fun PickerRowItem(
+    label: String,
+    value: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+

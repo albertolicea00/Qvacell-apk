@@ -26,7 +26,7 @@ data class ReminderTemplate(
             ReminderTemplate("transfer-direct", "Hacer Transferencia", "Recuerda hacer tu transferencia de saldo.", "arrow.left.arrow.right", "transfer-direct", true, ReminderRecurrence.NONE),
             ReminderTemplate("recharge-card", "Recargar Saldo", "Recuerda recargar tu saldo con una tarjeta.", "creditcard.fill", "recharge-card", false, ReminderRecurrence.NONE),
         )
-        val custom = ReminderTemplate("custom", "Personalizado", "", "bell.fill", null, false, ReminderRecurrence.NONE)
+        val custom = ReminderTemplate("custom", "", "", "bell.fill", null, false, ReminderRecurrence.NONE)
 
         fun forKey(key: String?): ReminderTemplate =
             quickTemplates.find { it.key == key } ?: custom
