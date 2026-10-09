@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -521,51 +522,103 @@ private fun WidgetPreview(
         else -> Alignment.Center
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(110.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
-        contentAlignment = previewAlignment
-    ) {
-        val sizeModifier = if (alignment == "fill") {
-            Modifier.fillMaxWidth().height(110.dp).padding(4.dp)
-        } else {
-            Modifier.size(80.dp).padding(4.dp)
-        }
+    val gridLineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    val cellBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
         Box(
-            modifier = sizeModifier
-                .clip(shapeClip)
-                .background(bgColor),
-            contentAlignment = Alignment.Center
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(130.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.12f))
         ) {
-            Box(
-                modifier = Modifier.matchParentSize(),
-                contentAlignment = Alignment.Center
-            ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                if (showIcon) {
-                    val iconSize = if (showText) 28.dp else 38.dp
-                    Icon(
-                        imageVector = resolveAndroidIcon("Filled.AccountBalanceWallet"),
-                        contentDescription = null,
-                        tint = contentColor,
-                        modifier = Modifier.size(iconSize)
+            // Cuadrícula que simula las celdas del launcher
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val step = 20.dp.toPx()
+                var x = 0f
+                while (x <= size.width) {
+                    drawLine(
+                        color = gridLineColor,
+                        start = Offset(x, 0f),
+                        end = Offset(x, size.height),
+                        strokeWidth = 1f
                     )
-                    if (showText) Spacer(Modifier.height(3.dp))
+                    x += step
                 }
-                if (showText) {
-                    val textSize = if (showIcon) 9.sp else 13.sp
-                    Text("Saldo", color = contentColor, fontSize = textSize, style = MaterialTheme.typography.labelSmall)
+                var y = 0f
+                while (y <= size.height) {
+                    drawLine(
+                        color = gridLineColor,
+                        start = Offset(0f, y),
+                        end = Offset(size.width, y),
+                        strokeWidth = 1f
+                    )
+                    y += step
                 }
             }
+
+            // Celda 1x1 del launcher (área rectangular típica)
+            Box(
+                modifier = Modifier
+                    .width(96.dp)
+                    .height(120.dp)
+                    .align(Alignment.Center)
+                    .border(
+                        width = 1.dp,
+                        color = cellBorderColor,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .padding(4.dp),
+                contentAlignment = previewAlignment
+            ) {
+                val sizeModifier = if (alignment == "fill") {
+                    Modifier.fillMaxSize()
+                } else {
+                    Modifier.size(80.dp)
+                }
+
+                Box(
+                    modifier = sizeModifier
+                        .clip(shapeClip)
+                        .background(bgColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier.matchParentSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            if (showIcon) {
+                                val iconSize = if (showText) 28.dp else 38.dp
+                                Icon(
+                                    imageVector = resolveAndroidIcon("Filled.AccountBalanceWallet"),
+                                    contentDescription = null,
+                                    tint = contentColor,
+                                    modifier = Modifier.size(iconSize)
+                                )
+                                if (showText) Spacer(Modifier.height(3.dp))
+                            }
+                            if (showText) {
+                                val textSize = if (showIcon) 9.sp else 13.sp
+                                Text(
+                                    "Saldo",
+                                    color = contentColor,
+                                    fontSize = textSize,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     }
 }
 
