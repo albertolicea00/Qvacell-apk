@@ -139,6 +139,7 @@ Incluye un directorio offline de salas de navegación oficiales de ETECSA y punt
 ## 🚧 Limitaciones Conocidas
 
 - **El Identificador de Llamadas no puede mostrar un nombre personalizado en la interfaz del sistema.** A diferencia de la extensión CallKit Call Directory de iOS, la API `CallScreeningService` de Android no permite que una app que no sea el marcador predeterminado inyecte un nombre en la pantalla de llamada entrante del propio sistema. Esta app en su lugar muestra el nombre resuelto mediante una notificación emergente cuando suena una llamada `*99` envuelta. Convertir la app en el marcador predeterminado del usuario para lograr la inyección completa del nombre se descartó deliberadamente — es un compromiso mucho mayor (reemplazar la interfaz principal del teléfono) por una sola función.
+- **Es posible que el número telefónico de la SIM no se detecte automáticamente.** La mayoría de las tarjetas SIM (especialmente Cubacel / ETECSA) no vienen con el número de teléfono (MSISDN) grabado directamente en el chip por la operadora. En tales casos, las APIs de telefonía de Android devuelven `null` o vacío, por lo que la aplicación recurre a mostrar el nombre de la operadora o la ranura (ej. `SIM 1` / `SIM 2`).
 - **Los marcadores de operador/fabricante pueden interceptar los códigos USSD** antes de que el intent `ACTION_DIAL` de esta app llegue al módem, según el dispositivo y la ROM. Este es un comportamiento de la plataforma/fabricante de Android fuera del control de la app.
 
 ## 🤝 Contribuir

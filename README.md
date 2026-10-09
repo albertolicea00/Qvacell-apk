@@ -139,6 +139,7 @@ Includes an offline directory of official ETECSA navigation rooms and public Wi-
 ## 🚧 Known Limitations
 
 - **Caller ID cannot show a custom name in the system in-call UI.** Unlike iOS's CallKit Call Directory Extension, Android's `CallScreeningService` API does not let a non-default-dialer app inject a caller name into the system's own incoming-call screen. This app instead surfaces the resolved name via a heads-up notification when a wrapped `*99` collect call rings. Becoming the user's default dialer app to get full name injection was deliberately not pursued — it's a much larger commitment (replacing core phone UI) for one feature.
+- **SIM phone numbers may not be detected automatically.** Most SIM cards (especially Cubacel / ETECSA) do not have the phone number (MSISDN) written directly onto the SIM chip by the carrier. In such cases, Android's telephony APIs return `null` or empty, so the app falls back to displaying the carrier name or slot index (e.g. `SIM 1` / `SIM 2`).
 - **Carrier/OEM dialer apps may intercept USSD codes** before this app's `ACTION_DIAL` intent reaches the modem, depending on device and ROM. This is an Android platform/OEM behavior outside the app's control.
 
 ## 🤝 Contributing
