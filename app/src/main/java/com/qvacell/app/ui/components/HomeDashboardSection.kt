@@ -620,6 +620,7 @@ fun ConsultCardsRow(
             title = "PLAN AMIGO",
             icon = Icons.Filled.People,
             modifier = Modifier.fillMaxWidth(),
+            fullWidth = true,
             onClick = onPlanAmigoQuery
         )
     }
@@ -630,6 +631,7 @@ private fun ConsultCard(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier,
+    fullWidth: Boolean = false,
     onClick: () -> Unit
 ) {
     val cardShape = RoundedCornerShape(20.dp)
@@ -640,42 +642,70 @@ private fun ConsultCard(
         shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(14.dp)
-                )
-                Text(
-                    title,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 6.dp)
-                )
-            }
+        if (fullWidth) {
             Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 8.dp)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    "UI Próximamente",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 9.sp,
-                        fontStyle = FontStyle.Italic
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
-                Icon(
-                    Icons.Filled.ArrowOutward,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier
-                        .padding(start = 4.dp)
-                        .size(11.dp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
                     )
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
+                ComingSoonBadge()
+            }
+        } else {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
+                ComingSoonBadge(modifier = Modifier.padding(top = 8.dp))
             }
         }
+    }
+}
+
+@Composable
+private fun ComingSoonBadge(modifier: Modifier = Modifier) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        Text(
+            "UI Próximamente",
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.sp,
+                fontStyle = FontStyle.Italic
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
+        Icon(
+            Icons.Filled.ArrowOutward,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            modifier = Modifier
+                .padding(start = 4.dp)
+                .size(11.dp)
+        )
     }
 }
