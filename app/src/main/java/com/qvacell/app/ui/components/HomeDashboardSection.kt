@@ -1,6 +1,7 @@
 package com.qvacell.app.ui.components
 
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.NetworkCell
@@ -50,11 +57,16 @@ fun MainBalanceCard(
     balance: String,
     currency: String,
     lineActiveUntil: String,
-    accountDueDate: String
+    accountDueDate: String,
+    onQuery: (() -> Unit)? = null
 ) {
+    val cardShape = RoundedCornerShape(20.dp)
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(cardShape)
+            .then(if (onQuery != null) Modifier.clickable { onQuery() } else Modifier),
+        shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Column(
@@ -156,11 +168,20 @@ private fun parseDmyDate(value: String): LocalDate? {
 
 /** Standalone card — shown above [MainBalanceCard] only while the monthly recharge limit is hit. */
 @Composable
-fun RechargeLimitCard(reached: Boolean, limitAmount: String, availableFrom: String) {
+fun RechargeLimitCard(
+    reached: Boolean,
+    limitAmount: String,
+    availableFrom: String,
+    onQuery: (() -> Unit)? = null
+) {
     if (!reached) return
+    val cardShape = RoundedCornerShape(20.dp)
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(cardShape)
+            .then(if (onQuery != null) Modifier.clickable { onQuery() } else Modifier),
+        shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Row(
@@ -239,11 +260,16 @@ fun RechargeLimitCard(reached: Boolean, limitAmount: String, availableFrom: Stri
 fun DataUsageCard(
     daysRemaining: String,
     packageGb: String,
-    tariffStatus: String
+    tariffStatus: String,
+    onQuery: (() -> Unit)? = null
 ) {
+    val cardShape = RoundedCornerShape(20.dp)
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(cardShape)
+            .then(if (onQuery != null) Modifier.clickable { onQuery() } else Modifier),
+        shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Column(
@@ -340,10 +366,18 @@ fun DataUsageCard(
 
 /** Standalone card — pulled out of [DataUsageCard] to sit between it and [VoiceSmsRow]. */
 @Composable
-fun NationalBonusCard(amount: String, expiry: String) {
+fun NationalBonusCard(
+    amount: String,
+    expiry: String,
+    onQuery: (() -> Unit)? = null
+) {
+    val cardShape = RoundedCornerShape(20.dp)
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(cardShape)
+            .then(if (onQuery != null) Modifier.clickable { onQuery() } else Modifier),
+        shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -443,7 +477,9 @@ fun VoiceSmsRow(
     voiceDaysRemaining: String,
     voiceDuration: String,
     smsDaysRemaining: String,
-    smsCount: String
+    smsCount: String,
+    onVoiceQuery: (() -> Unit)? = null,
+    onSmsQuery: (() -> Unit)? = null
 ) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         UsageStatCard(
@@ -452,7 +488,8 @@ fun VoiceSmsRow(
             accentColor = MaterialTheme.colorScheme.primary,
             badge = voiceDaysRemaining,
             label = "VOZ",
-            value = voiceDuration
+            value = voiceDuration,
+            onQuery = onVoiceQuery
         )
         UsageStatCard(
             modifier = Modifier.weight(1f),
@@ -460,7 +497,8 @@ fun VoiceSmsRow(
             accentColor = MaterialTheme.colorScheme.primary,
             badge = smsDaysRemaining,
             label = "SMS",
-            value = smsCount
+            value = smsCount,
+            onQuery = onSmsQuery
         )
     }
 }
@@ -472,11 +510,15 @@ private fun UsageStatCard(
     accentColor: Color,
     badge: String,
     label: String,
-    value: String
+    value: String,
+    onQuery: (() -> Unit)? = null
 ) {
+    val cardShape = RoundedCornerShape(20.dp)
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
+        modifier = modifier
+            .clip(cardShape)
+            .then(if (onQuery != null) Modifier.clickable { onQuery() } else Modifier),
+        shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Row(
@@ -553,34 +595,72 @@ private fun formatSpanishDate(date: LocalDate): String =
 
 /** Two side-by-side placeholder cards — pulled out of the request to sit below [NationalBonusCard]. */
 @Composable
-fun ConsultCardsRow(onPlanAmigoQuery: () -> Unit = {}, onPrepagoQuery: () -> Unit = {}) {
+fun ConsultCardsRow(onPlanAmigoQuery: () -> Unit = {}, onPostpagoQuery: () -> Unit = {}) {
+    var pendingAction by remember { mutableStateOf<Pair<String, () -> Unit>?>(null) }
+
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         ConsultCard(
             title = "PLAN AMIGO",
             icon = Icons.Filled.People,
             modifier = Modifier.weight(1f),
-            onDoubleTap = onPlanAmigoQuery
+            onClick = {
+                pendingAction = Pair("Plan Amigo", onPlanAmigoQuery)
+            }
         )
         ConsultCard(
-            title = "PREPAGO",
+            title = "POSTPAGO",
             icon = Icons.Filled.CreditCard,
             modifier = Modifier.weight(1f),
-            onDoubleTap = onPrepagoQuery
+            onClick = {
+                pendingAction = Pair("Saldo postpago", onPostpagoQuery)
+            }
+        )
+    }
+
+    pendingAction?.let { (title, action) ->
+        AlertDialog(
+            onDismissRequest = { pendingAction = null },
+            icon = {
+                Icon(
+                    if (title.contains("Amigo")) Icons.Filled.People else Icons.Filled.CreditCard,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            },
+            title = { Text("Consultar $title") },
+            text = { Text("¿Deseas realizar la consulta de $title?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        pendingAction = null
+                        action()
+                    }
+                ) {
+                    Text("Consultar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingAction = null }) {
+                    Text("Cancelar")
+                }
+            }
         )
     }
 }
 
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun ConsultCard(
     title: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     modifier: Modifier = Modifier,
-    onDoubleTap: () -> Unit
+    onClick: () -> Unit
 ) {
+    val cardShape = RoundedCornerShape(20.dp)
     Card(
-        modifier = modifier.combinedClickable(onClick = {}, onDoubleClick = onDoubleTap),
-        shape = RoundedCornerShape(20.dp),
+        modifier = modifier
+            .clip(cardShape)
+            .clickable(onClick = onClick),
+        shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -598,7 +678,6 @@ private fun ConsultCard(
                     modifier = Modifier.padding(start = 6.dp)
                 )
             }
-            // Doble tap para consultar — sin acción de un solo toque que confundiría con esto.
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(top = 8.dp)
@@ -618,7 +697,7 @@ private fun ConsultCard(
                     modifier = Modifier
                         .padding(start = 4.dp)
                         .size(11.dp)
-                )
+                    )
             }
         }
     }
