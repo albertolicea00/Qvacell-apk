@@ -16,8 +16,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -229,21 +231,37 @@ fun ReminderEditScreen(
                         )
                     }
 
-                    Text(
-                        "Repetir",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    var recurrenceExpanded by remember { mutableStateOf(false) }
+
+                    ExposedDropdownMenuBox(
+                        expanded = recurrenceExpanded,
+                        onExpandedChange = { recurrenceExpanded = it },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        ReminderRecurrence.entries.forEach { option ->
-                            FilterChip(
-                                selected = recurrence == option,
-                                onClick = { recurrence = option },
-                                label = { Text(option.label, style = MaterialTheme.typography.labelSmall) }
-                            )
+                        OutlinedTextField(
+                            value = recurrence.label,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Repetir") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = recurrenceExpanded) },
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                            modifier = Modifier
+                                .menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryNotEditable)
+                                .fillMaxWidth()
+                        )
+                        ExposedDropdownMenu(
+                            expanded = recurrenceExpanded,
+                            onDismissRequest = { recurrenceExpanded = false }
+                        ) {
+                            ReminderRecurrence.entries.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option.label) },
+                                    onClick = {
+                                        recurrence = option
+                                        recurrenceExpanded = false
+                                    }
+                                )
+                            }
                         }
                     }
 
