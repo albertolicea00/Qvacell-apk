@@ -265,13 +265,21 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
 
             composable(Routes.REMINDERS) {
                 ReminderListScreen(
-                    onAdd = { navController.navigate(Routes.REMINDER_EDIT) },
-                    onEdit = {},
+                    onAdd = { templateKey -> navController.navigate(Routes.reminderEdit(templateKey = templateKey)) },
+                    onEdit = { reminder -> navController.navigate(Routes.reminderEdit(templateKey = reminder.templateKey, reminderId = reminder.id)) },
                     onBack = { navController.popBackStack() }
                 )
             }
-            composable(Routes.REMINDER_EDIT) {
+            composable(
+                Routes.REMINDER_EDIT,
+                arguments = listOf(
+                    navArgument("templateKey") { type = NavType.StringType; nullable = true; defaultValue = null },
+                    navArgument("reminderId") { type = NavType.StringType; nullable = true; defaultValue = null }
+                )
+            ) { backStackEntry ->
                 ReminderEditScreen(
+                    templateKey = backStackEntry.arguments?.getString("templateKey"),
+                    reminderId = backStackEntry.arguments?.getString("reminderId"),
                     onDone = { navController.popBackStack() },
                     onBack = { navController.popBackStack() }
                 )
