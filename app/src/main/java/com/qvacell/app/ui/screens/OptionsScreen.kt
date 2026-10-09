@@ -415,7 +415,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         OptionsRow(
                             headline = "SIM predeterminada",
                             supporting = simLabel,
-                            icon = Icons.Filled.SimCard,
                             onClick = { showSimSheet = true }
                         )
                     }
