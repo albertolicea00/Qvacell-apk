@@ -73,8 +73,8 @@ private fun templateIcon(key: String): ImageVector = when (key) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderListScreen(
-    onAdd: (templateKey: String) -> Unit,
-    onEdit: (Reminder) -> Unit,
+    onAdd: (templateKey: String) -> Unit = {},
+    onEdit: (Reminder) -> Unit = {},
     onBack: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -85,6 +85,7 @@ fun ReminderListScreen(
     val formatter = remember { SimpleDateFormat("d MMM yyyy, HH:mm", Locale.getDefault()) }
 
     var reminderToDelete by remember { mutableStateOf<Reminder?>(null) }
+    var editingReminder by remember { mutableStateOf<Pair<String?, String?>?>(null) } // Pair(templateKey, reminderId)
 
     Scaffold(
         topBar = {
@@ -95,6 +96,15 @@ fun ReminderListScreen(
             )
         }
     ) { padding ->
+        editingReminder?.let { (templateKey, reminderId) ->
+            ReminderEditScreen(
+                templateKey = templateKey,
+                reminderId = reminderId,
+                onDone = { editingReminder = null },
+                onBack = { editingReminder = null }
+            )
+        }
+
         if (reminderToDelete != null) {
             AlertDialog(
                 onDismissRequest = { reminderToDelete = null },
@@ -167,7 +177,10 @@ fun ReminderListScreen(
                                     ReminderRowSwipeable(
                                         reminder = reminder,
                                         formatter = formatter,
-                                        onTap = { onEdit(reminder) },
+                                        onTap = {
+                                            editingReminder = Pair(reminder.templateKey, reminder.id)
+                                            onEdit(reminder)
+                                        },
                                         onToggle = { enabled ->
                                             scope.launch {
                                                 repository.setEnabled(reminder, enabled)
@@ -190,7 +203,10 @@ fun ReminderListScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { onAdd(template.key) }
+                                    .clickable {
+                                        editingReminder = Pair(template.key, null)
+                                        onAdd(template.key)
+                                    }
                                     .padding(horizontal = 16.dp, vertical = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -254,7 +270,10 @@ fun ReminderListScreen(
                                 ReminderRowSwipeable(
                                     reminder = reminder,
                                     formatter = formatter,
-                                    onTap = { onEdit(reminder) },
+                                    onTap = {
+                                        editingReminder = Pair(reminder.templateKey, reminder.id)
+                                        onEdit(reminder)
+                                    },
                                     onToggle = { enabled ->
                                         scope.launch {
                                             repository.setEnabled(reminder, enabled)
@@ -276,7 +295,10 @@ fun ReminderListScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onAdd("custom") }
+                                .clickable {
+                                    editingReminder = Pair("custom", null)
+                                    onAdd("custom")
+                                }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {

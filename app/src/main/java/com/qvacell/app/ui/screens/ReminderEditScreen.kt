@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,16 +38,17 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -70,7 +72,7 @@ import com.qvacell.app.model.ReminderRecurrence
 import com.qvacell.app.model.ReminderTemplate
 import com.qvacell.app.service.ReminderRepository
 import com.qvacell.app.service.ReminderScheduler
-import com.qvacell.app.ui.components.BackNavigationIcon
+import com.qvacell.app.ui.components.DialogActionRow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -142,23 +144,32 @@ fun ReminderEditScreen(
 
     if (!loaded) return
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                modifier = Modifier.padding(top = 12.dp),
-                title = { Text(if (isEditing) "Editar Recordatorio" else template.title) },
-                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
-            )
-        }
-    ) { padding ->
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = { onBack?.invoke() ?: onDone() },
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(vertical = 8.dp)
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(
+                text = when {
+                    isEditing -> "Editar Recordatorio"
+                    template.title.isNotBlank() -> template.title
+                    else -> "Nuevo Recordatorio"
+                },
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 4.dp, bottom = 4.dp)
+            )
+
             // Recordatorio section
             Column {
                 SectionHeader("Recordatorio")
@@ -265,29 +276,30 @@ fun ReminderEditScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
                 ) {
                     Column {
-                        Row(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             PickerRowItem(
                                 label = "Fecha",
                                 value = dateFormatter.format(Date(dateMillis)),
                                 onClick = { showDatePicker = true },
-                                modifier = Modifier.weight(1f)
-                            )
-                            Box(
                                 modifier = Modifier
-                                    .width(1.dp)
-                                    .height(52.dp)
-                                    .padding(vertical = 8.dp)
-                            ) {
-                                HorizontalDivider(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                )
-                            }
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                            )
+                            VerticalDivider(
+                                modifier = Modifier.padding(vertical = 10.dp)
+                            )
                             PickerRowItem(
                                 label = "Hora",
                                 value = timeFormatter.format(Date(dateMillis)),
                                 onClick = { showTimePicker = true },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
                             )
                         }
 
@@ -375,50 +387,62 @@ fun ReminderEditScreen(
                 }
             }
 
-            Button(
-                onClick = {
-                    val reminder = Reminder(
-                        id = reminderId ?: UUID.randomUUID().toString(),
-                        title = title.ifBlank { template.title },
-                        message = message,
-                        iconName = template.iconName,
-                        ussdCodeId = template.ussdCodeId,
-                        phoneNumber = phoneNumber,
-                        date = dateMillis,
-                        recurrence = recurrence,
-                        customIntervalDays = customDays,
-                        isEnabled = true,
-                        templateKey = if (template.key == "custom") null else template.key
-                    )
-                    scope.launch {
-                        repository.save(reminder)
-                        scheduler.schedule(reminder)
-                        onDone()
-                    }
-                },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
-                enabled = title.isNotBlank()
-            ) {
-                Text("Guardar")
-            }
-
             if (isEditing) {
-                OutlinedButton(
-                    onClick = { showDeleteConfirm = true },
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Eliminar recordatorio")
-                }
+                DialogActionRow(
+                    cancelText = "Eliminar",
+                    confirmText = "Guardar",
+                    onCancel = { showDeleteConfirm = true },
+                    onConfirm = {
+                        val reminder = Reminder(
+                            id = reminderId,
+                            title = title.ifBlank { template.title },
+                            message = message,
+                            iconName = template.iconName,
+                            ussdCodeId = template.ussdCodeId,
+                            phoneNumber = phoneNumber,
+                            date = dateMillis,
+                            recurrence = recurrence,
+                            customIntervalDays = customDays,
+                            isEnabled = true,
+                            templateKey = if (template.key == "custom") null else template.key
+                        )
+                        scope.launch {
+                            repository.save(reminder)
+                            scheduler.schedule(reminder)
+                            onDone()
+                        }
+                    },
+                    confirmEnabled = title.isNotBlank(),
+                    cancelColor = MaterialTheme.colorScheme.error
+                )
+            } else {
+                DialogActionRow(
+                    cancelText = "Cancelar",
+                    confirmText = "Guardar",
+                    onCancel = { onBack?.invoke() ?: onDone() },
+                    onConfirm = {
+                        val reminder = Reminder(
+                            id = UUID.randomUUID().toString(),
+                            title = title.ifBlank { template.title },
+                            message = message,
+                            iconName = template.iconName,
+                            ussdCodeId = template.ussdCodeId,
+                            phoneNumber = phoneNumber,
+                            date = dateMillis,
+                            recurrence = recurrence,
+                            customIntervalDays = customDays,
+                            isEnabled = true,
+                            templateKey = if (template.key == "custom") null else template.key
+                        )
+                        scope.launch {
+                            repository.save(reminder)
+                            scheduler.schedule(reminder)
+                            onDone()
+                        }
+                    },
+                    confirmEnabled = title.isNotBlank()
+                )
             }
-
-            Spacer(Modifier.height(16.dp))
         }
     }
 
