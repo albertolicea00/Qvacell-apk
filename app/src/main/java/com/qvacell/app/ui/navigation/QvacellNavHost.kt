@@ -265,8 +265,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
 
             composable(Routes.REMINDERS) {
                 ReminderListScreen(
-                    onAdd = { templateKey -> navController.navigate(Routes.reminderEdit(templateKey = templateKey)) },
-                    onEdit = { reminder -> navController.navigate(Routes.reminderEdit(templateKey = reminder.templateKey, reminderId = reminder.id)) },
                     onBack = { navController.popBackStack() }
                 )
             }

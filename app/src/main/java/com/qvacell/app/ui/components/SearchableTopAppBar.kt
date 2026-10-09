@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -42,7 +43,8 @@ fun SearchableTopAppBar(
     // screen's title belongs to, when that's worth spelling out separately from the title.
     subtitle: String? = null,
     // Non-null only for screens pushed on top of another (never the bottom-tab roots).
-    onBack: (() -> Unit)? = null
+    onBack: (() -> Unit)? = null,
+    extraActions: @Composable RowScope.() -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -81,6 +83,7 @@ fun SearchableTopAppBar(
             if (onBack != null) BackNavigationIcon(onBack)
         },
         actions = {
+            if (!searching) { extraActions() }
             if (showSearchAction || searching) {
                 IconButton(onClick = {
                     if (searching) {

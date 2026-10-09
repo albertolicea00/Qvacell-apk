@@ -50,6 +50,7 @@ import com.qvacell.app.ui.components.ContactOptionsSheet
 import com.qvacell.app.ui.components.ContactRow
 import com.qvacell.app.ui.components.GroupHeader
 import com.qvacell.app.ui.components.SearchableTopAppBar
+import com.qvacell.app.ui.components.SimSelectorIcon
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -88,7 +89,8 @@ fun ContactsListScreen() {
                 onQueryChange = { query = it },
                 searching = searching,
                 onSearchingChange = { searching = it },
-                showSearchAction = hasPermission && contacts.isNotEmpty()
+                showSearchAction = hasPermission && contacts.isNotEmpty(),
+                extraActions = { SimSelectorIcon() }
             )
         }
     ) { padding ->

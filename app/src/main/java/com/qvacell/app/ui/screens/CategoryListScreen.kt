@@ -42,6 +42,7 @@ import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.components.GroupHeader
 
 import com.qvacell.app.ui.components.SearchableTopAppBar
+import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 // import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
 
@@ -90,7 +91,8 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
                 onQueryChange = { query = it },
                 searching = searching,
                 onSearchingChange = { searching = it },
-                onBack = onBack
+                onBack = onBack,
+                extraActions = { if (onBack == null) SimSelectorIcon() }
             )
         }
     ) { padding ->

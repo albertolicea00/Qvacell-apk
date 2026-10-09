@@ -3,6 +3,7 @@ package com.qvacell.app.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
@@ -25,6 +26,7 @@ class SettingsDataStore(private val context: Context) {
     private val hasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
     private val dashboardModeKey = stringPreferencesKey("dashboard_mode")
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
+    private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
 
     val themeMode = context.dataStore.data.map {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
@@ -70,6 +72,9 @@ class SettingsDataStore(private val context: Context) {
 
     // "filled" (default) or "outline" — tile card style for "manual" dashboard mode.
     val quickActionsStyle = context.dataStore.data.map { it[quickActionsStyleKey] ?: "filled" }
+
+    // 0-based SIM slot index (-1 = system default). Only meaningful on multi-SIM devices.
+    val selectedSimSlot = context.dataStore.data.map { it[selectedSimSlotKey] ?: -1 }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[themeModeKey] = mode.name }
@@ -117,6 +122,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setQuickActionsStyle(style: String) {
         context.dataStore.edit { it[quickActionsStyleKey] = style }
+    }
+
+    suspend fun setSelectedSimSlot(slot: Int) {
+        context.dataStore.edit { it[selectedSimSlotKey] = slot }
     }
 
     companion object {

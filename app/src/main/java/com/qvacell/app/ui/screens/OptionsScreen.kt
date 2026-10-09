@@ -8,6 +8,7 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SimCard
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Warning
@@ -70,6 +72,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -83,6 +86,7 @@ import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DialService
+import com.qvacell.app.service.SimUtils
 import com.qvacell.app.ui.components.ColorWheelPicker
 import com.qvacell.app.ui.components.DialogActionRow
 import com.qvacell.app.ui.components.rememberCodeActionHandler
@@ -163,12 +167,16 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         }
     }
 
+    val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    val activeSims = remember { SimUtils.getActiveSubscriptions(context) }
+
     var showThemeSheet by remember { mutableStateOf(false) }
     var showDefaultTabSheet by remember { mutableStateOf(false) }
     var showAccentColorSheet by remember { mutableStateOf(false) }
     var showDashboardModeSheet by remember { mutableStateOf(false) }
     var showQuickActionsStyleSheet by remember { mutableStateOf(false) }
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
+    var showSimSheet by remember { mutableStateOf(false) }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
@@ -218,6 +226,11 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     }
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
         ?: accentColor
+    val simLabel = if (activeSims.size < 2) null
+    else {
+        val idx = activeSims.indexOfFirst { it.simSlotIndex == selectedSimSlot }
+        if (idx >= 0) SimUtils.simLabel(activeSims[idx]) else "Predeterminada del sistema"
+    }
 
     Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Opciones") }) }) { padding ->
         LazyColumn(
@@ -397,6 +410,15 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             )
                         }
                     )
+                    if (simLabel != null) {
+                        OptionsDivider()
+                        OptionsRow(
+                            headline = "SIM predeterminada",
+                            supporting = simLabel,
+                            icon = Icons.Filled.SimCard,
+                            onClick = { showSimSheet = true }
+                        )
+                    }
                 }
             }
 
@@ -517,6 +539,64 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         textAlign = TextAlign.Center
                     )
                 }
+            }
+        }
+    }
+
+    if (showSimSheet && activeSims.size >= 2) {
+        ModalBottomSheet(onDismissRequest = { showSimSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "SIM predeterminada",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                activeSims.forEachIndexed { _, sim ->
+                    val bitmap = remember(sim.subscriptionId) {
+                        try { sim.createIconBitmap(context) } catch (_: Exception) { null }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { settings.setSelectedSimSlot(sim.simSlotIndex) }
+                                showSimSheet = false
+                            }
+                            .padding(vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = selectedSimSlot == sim.simSlotIndex, onClick = null)
+                        if (bitmap != null) {
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier.padding(start = 8.dp).size(28.dp)
+                            )
+                        } else {
+                            Icon(
+                                Icons.Filled.SimCard,
+                                contentDescription = null,
+                                modifier = Modifier.padding(start = 8.dp).size(28.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                            Text(SimUtils.simLabel(sim), style = MaterialTheme.typography.bodyLarge)
+                            val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
+                            @Suppress("DEPRECATION")
+                            val number = sim.number?.takeIf { it.isNotBlank() }
+                            val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
+                            if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim)) {
+                                Text(
+                                    subtitle,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
             }
         }
     }

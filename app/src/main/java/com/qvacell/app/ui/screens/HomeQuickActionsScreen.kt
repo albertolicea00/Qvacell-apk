@@ -18,6 +18,7 @@ import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.ui.components.RechargeBottomSheet
+import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.TransferBottomSheet
 
 @Composable
@@ -34,7 +35,13 @@ fun HomeQuickActionsScreen() {
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Qvacell") }) }) { padding ->
+    Scaffold(topBar = {
+        TopAppBar(
+            modifier = Modifier.padding(top = 12.dp),
+            title = { Text("Qvacell") },
+            actions = { SimSelectorIcon() }
+        )
+    }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             when (dashboardMode) {
                 "dynamic" -> DynamicDashboardContent(

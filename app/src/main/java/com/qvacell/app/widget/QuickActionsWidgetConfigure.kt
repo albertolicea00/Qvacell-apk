@@ -26,11 +26,15 @@ import com.qvacell.app.widget.WidgetSettings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SimCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,8 +52,12 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.telephony.SubscriptionInfo
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.UssdCode
+import com.qvacell.app.service.SimUtils
 import com.qvacell.app.ui.resolveAndroidIcon
 import com.qvacell.app.ui.theme.QvacellTheme
 
@@ -100,6 +108,29 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                 var searchActive by remember { mutableStateOf(false) }
                 var query by remember { mutableStateOf("") }
                 val focusRequester = remember { FocusRequester() }
+
+                val activeSims = remember { SimUtils.getActiveSubscriptions(this@QuickActionsWidgetConfigure) }
+                val initialSimSlot = remember { WidgetPrefs.getSimSlot(this@QuickActionsWidgetConfigure, widgetId) }
+                var showSimSheet by remember { mutableStateOf(false) }
+                var pendingCodeId by remember { mutableStateOf<String?>(null) }
+
+                fun finishWithCode(codeId: String) {
+                    WidgetPrefs.saveCodeId(this@QuickActionsWidgetConfigure, widgetId, codeId)
+                    val manager = AppWidgetManager.getInstance(this@QuickActionsWidgetConfigure)
+                    QuickActionsWidget.updateWidget(this@QuickActionsWidgetConfigure, manager, widgetId)
+                    setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
+                    finish()
+                }
+
+                fun onCodeSelected(codeId: String) {
+                    if (activeSims.size >= 2) {
+                        pendingCodeId = codeId
+                        WidgetPrefs.saveCodeId(this@QuickActionsWidgetConfigure, widgetId, codeId)
+                        showSimSheet = true
+                    } else {
+                        finishWithCode(codeId)
+                    }
+                }
 
                 val filtered = if (query.isBlank()) {
                     listItems
@@ -234,27 +265,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                             .fillMaxWidth()
                                             .clickable {
                                                 selectedCodeId = code.id
-                                                WidgetPrefs.saveCodeId(
-                                                    this@QuickActionsWidgetConfigure,
-                                                    widgetId,
-                                                    code.id
-                                                )
-                                                val manager = AppWidgetManager.getInstance(
-                                                    this@QuickActionsWidgetConfigure
-                                                )
-                                                QuickActionsWidget.updateWidget(
-                                                    this@QuickActionsWidgetConfigure,
-                                                    manager,
-                                                    widgetId
-                                                )
-                                                setResult(
-                                                    RESULT_OK,
-                                                    Intent().putExtra(
-                                                        AppWidgetManager.EXTRA_APPWIDGET_ID,
-                                                        widgetId
-                                                    )
-                                                )
-                                                finish()
+                                                onCodeSelected(code.id)
                                              }
                                             .padding(horizontal = 16.dp, vertical = 8.dp),
                                         verticalAlignment = Alignment.CenterVertically
@@ -298,6 +309,92 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                     HorizontalDivider(
                                         modifier = Modifier.padding(horizontal = 16.dp)
                                     )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (showSimSheet) {
+                    ModalBottomSheet(onDismissRequest = {
+                        showSimSheet = false
+                        val codeId = pendingCodeId ?: return@ModalBottomSheet
+                        finishWithCode(codeId)
+                    }) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                "SIM para este widget",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        WidgetPrefs.saveSimSlot(this@QuickActionsWidgetConfigure, widgetId, -1)
+                                        showSimSheet = false
+                                        finishWithCode(pendingCodeId ?: return@clickable)
+                                    }
+                                    .padding(vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(selected = initialSimSlot < 0, onClick = null)
+                                Icon(
+                                    Icons.Filled.SimCard,
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(start = 8.dp).size(28.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Text("Predeterminada (ajuste global)", modifier = Modifier.padding(start = 12.dp))
+                            }
+                            activeSims.forEachIndexed { _, sim ->
+                                val bitmap = remember(sim.subscriptionId) {
+                                    try { sim.createIconBitmap(this@QuickActionsWidgetConfigure) } catch (_: Exception) { null }
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            WidgetPrefs.saveSimSlot(this@QuickActionsWidgetConfigure, widgetId, sim.simSlotIndex)
+                                            showSimSheet = false
+                                            finishWithCode(pendingCodeId ?: return@clickable)
+                                        }
+                                        .padding(vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(selected = initialSimSlot == sim.simSlotIndex, onClick = null)
+                                    if (bitmap != null) {
+                                        Image(
+                                            bitmap = bitmap.asImageBitmap(),
+                                            contentDescription = null,
+                                            modifier = Modifier.padding(start = 8.dp).size(28.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.Filled.SimCard,
+                                            contentDescription = null,
+                                            modifier = Modifier.padding(start = 8.dp).size(28.dp),
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                                        Text(SimUtils.simLabel(sim), style = MaterialTheme.typography.bodyLarge)
+                                        val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
+                                        @Suppress("DEPRECATION")
+                                        val number = sim.number?.takeIf { it.isNotBlank() }
+                                        val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
+                                        if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim)) {
+                                            Text(
+                                                subtitle,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

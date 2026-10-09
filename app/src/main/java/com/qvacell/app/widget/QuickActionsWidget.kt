@@ -140,6 +140,7 @@ class QuickActionsWidget : AppWidgetProvider() {
 
             val intent = Intent(context, DialTrampolineActivity::class.java).apply {
                 putExtra(DialTrampolineActivity.EXTRA_CODE_ID, codeId)
+                putExtra(DialTrampolineActivity.EXTRA_WIDGET_ID, widgetId)
             }
             val pi = PendingIntent.getActivity(
                 context, widgetId, intent,

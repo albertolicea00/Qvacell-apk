@@ -18,7 +18,18 @@ object WidgetPrefs {
     fun getCodeId(context: Context, widgetId: Int): String =
         prefs(context).getString("${widgetId}_code", null) ?: DEFAULT_CODE_ID
 
+    fun saveSimSlot(context: Context, widgetId: Int, slot: Int) {
+        prefs(context).edit { putInt("${widgetId}_sim_slot", slot) }
+    }
+
+    // -1 = use global default from SettingsDataStore
+    fun getSimSlot(context: Context, widgetId: Int): Int =
+        prefs(context).getInt("${widgetId}_sim_slot", -1)
+
     fun deleteConfig(context: Context, widgetId: Int) {
-        prefs(context).edit { remove("${widgetId}_code") }
+        prefs(context).edit {
+            remove("${widgetId}_code")
+            remove("${widgetId}_sim_slot")
+        }
     }
 }

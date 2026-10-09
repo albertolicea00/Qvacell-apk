@@ -5,30 +5,29 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.telecom.PhoneAccountHandle
+import android.telecom.TelecomManager
 import androidx.core.content.ContextCompat
+import com.qvacell.app.data.SettingsDataStore
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
-/**
- * Builds tel: URIs and dials. `dial()` always uses ACTION_DIAL (opens the system dialer, user
- * taps to confirm — no CALL_PHONE permission needed, matching iOS's tel:// UX); used everywhere
- * except Compras' own purchase confirmation flow (`CodeActionHandler`), which calls
- * `dialDirect()` — ACTION_CALL, places the call immediately with no dialer step — since that flow
- * already shows its own in-app confirmation sheet first.
- */
 object DialService {
     fun hasCallPermission(context: Context): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) ==
             PackageManager.PERMISSION_GRANTED
 
-    fun dial(context: Context, code: String) {
+    fun dial(context: Context, code: String, simSlot: Int? = null) {
         val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(code)))
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        attachSimAccount(context, intent, simSlot)
         context.startActivity(intent)
     }
 
-    /** ACTION_CALL — caller must have already confirmed CALL_PHONE is granted (see [hasCallPermission]). */
-    fun dialDirect(context: Context, code: String) {
+    fun dialDirect(context: Context, code: String, simSlot: Int? = null) {
         val intent = Intent(Intent.ACTION_CALL, Uri.parse("tel:" + Uri.encode(code)))
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        attachSimAccount(context, intent, simSlot)
         context.startActivity(intent)
     }
 
@@ -44,5 +43,31 @@ object DialService {
         val intent = Intent(Intent.ACTION_VIEW, uri)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
+    }
+
+    private fun attachSimAccount(context: Context, intent: Intent, explicitSlot: Int?) {
+        val handle = resolvePhoneAccountHandle(context, explicitSlot) ?: return
+        intent.putExtra("android.telecom.extra.PHONE_ACCOUNT_HANDLE", handle)
+    }
+
+    private fun resolvePhoneAccountHandle(context: Context, explicitSlot: Int?): PhoneAccountHandle? {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
+            != PackageManager.PERMISSION_GRANTED
+        ) return null
+
+        val slot = explicitSlot ?: runBlocking {
+            SettingsDataStore(context).selectedSimSlot.first()
+        }
+        if (slot < 0) return null
+
+        val telecomManager = context.getSystemService(Context.TELECOM_SERVICE)
+            as? TelecomManager ?: return null
+        val accounts = try {
+            telecomManager.callCapablePhoneAccounts
+        } catch (_: SecurityException) {
+            return null
+        }
+        if (accounts.size < 2) return null
+        return accounts.getOrNull(slot)
     }
 }
