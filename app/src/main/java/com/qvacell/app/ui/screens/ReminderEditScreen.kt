@@ -195,8 +195,9 @@ fun ReminderEditScreen(
                             onValueChange = { message = it },
                             placeholder = "Mensaje",
                             singleLine = false,
-                            minHeight = 72.dp
+                            // minHeight = 72.dp
                         )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     }
                 }
             }
@@ -394,6 +395,8 @@ fun ReminderEditScreen(
                 }
             }
         }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (isEditing) {
                 DialogActionRow(
