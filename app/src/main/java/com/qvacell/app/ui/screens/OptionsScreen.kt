@@ -561,6 +561,32 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            scope.launch { settings.setSelectedSimSlot(-1) }
+                            showSimSheet = false
+                        }
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(selected = selectedSimSlot < 0, onClick = null)
+                    Icon(
+                        Icons.Filled.SimCard,
+                        contentDescription = null,
+                        modifier = Modifier.padding(start = 8.dp).size(28.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text("Predeterminada", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            "Usar ajuste o selección del sistema",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 activeSims.forEachIndexed { _, sim ->
                     val bitmap = remember(sim.subscriptionId) {
                         try { sim.createIconBitmap(context) } catch (_: Exception) { null }
