@@ -54,16 +54,12 @@ fun SimSelectorIcon() {
 
     if (activeSims.size < 2) return
 
-    val currentIndex = activeSims.indexOfFirst { it.simSlotIndex == selectedSlot }
-        .let { if (it == -1) 0 else it }
-    val currentSim = activeSims[currentIndex]
-
-    val simBitmap = remember(currentSim.subscriptionId) {
-        try { currentSim.createIconBitmap(context) } catch (_: Exception) { null }
-    }
+    val isDefault = selectedSlot < 0
+    val currentIndex = if (isDefault) -1 else activeSims.indexOfFirst { it.simSlotIndex == selectedSlot }
+    val currentSim = if (currentIndex >= 0) activeSims[currentIndex] else null
 
     val currentNumber = remember(currentSim, activeSims) {
-        SimUtils.getPhoneNumber(context, currentSim)
+        currentSim?.let { SimUtils.getPhoneNumber(context, it) }
     }
 
     Surface(
@@ -78,12 +74,12 @@ fun SimSelectorIcon() {
         ) {
             Icon(
                 Icons.Filled.SimCard,
-                contentDescription = SimUtils.simLabel(context, currentSim),
+                contentDescription = currentSim?.let { SimUtils.simLabel(context, it) } ?: "Predeterminada",
                 modifier = Modifier.size(18.dp),
-                tint = SimUtils.simColor(currentSim.simSlotIndex)
+                tint = currentSim?.let { SimUtils.simColor(it.simSlotIndex) } ?: MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = currentNumber ?: "SIM ${currentSim.simSlotIndex + 1}",
+                text = if (isDefault) "Auto" else (currentNumber ?: "SIM ${(currentSim?.simSlotIndex ?: 0) + 1}"),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(start = 6.dp)
@@ -103,11 +99,43 @@ fun SimSelectorIcon() {
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
+                // Opción Predeterminada
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            scope.launch { settings.setSelectedSimSlot(-1) }
+                            showSheet = false
+                        }
+                        .padding(vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(selected = isDefault, onClick = null)
+                    Icon(
+                        Icons.Filled.SimCard,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .size(28.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Column(modifier = Modifier.padding(start = 12.dp)) {
+                        Text(
+                            "Predeterminada",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            "Usar ajuste o selección del sistema",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 activeSims.forEachIndexed { index, sim ->
                     val bitmap = remember(sim.subscriptionId) {
                         try { sim.createIconBitmap(context) } catch (_: Exception) { null }
                     }
-                    val selected = sim.simSlotIndex == activeSims[currentIndex].simSlotIndex
+                    val selected = !isDefault && sim.simSlotIndex == selectedSlot
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
