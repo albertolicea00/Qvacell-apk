@@ -412,9 +412,20 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     )
                     if (simLabel != null) {
                         OptionsDivider()
+                        val selectedSim = activeSims.firstOrNull { it.simSlotIndex == selectedSimSlot }
                         OptionsRow(
                             headline = "SIM predeterminada",
                             supporting = simLabel,
+                            trailingContent = selectedSim?.let { sim ->
+                                {
+                                    Icon(
+                                        Icons.Filled.SimCard,
+                                        contentDescription = null,
+                                        tint = SimUtils.simColor(sim.simSlotIndex),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            },
                             onClick = { showSimSheet = true }
                         )
                     }
