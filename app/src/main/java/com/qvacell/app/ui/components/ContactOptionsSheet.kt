@@ -48,20 +48,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.qvacell.app.service.DeviceContact
+import com.qvacell.app.service.ContactEntry
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.TransferPinStore
 
-/**
- * Bottom sheet shown when a contact row is tapped — call the contact (collect via `*99` or
- * hidden caller ID via `#31#`), transfer balance to it, or add/remove it from the Plan de
- * Amigos. Mirrors iOS's `ContactCallOptionsSheet`.
- */
 @Composable
-fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
+fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val pinStore = remember { TransferPinStore(context) }
-    val number = contact.cubanNumbers.firstOrNull()
+    val number: String? = entry.number
 
     var pin by remember { mutableStateOf(pinStore.load() ?: "") }
     var amount by remember { mutableStateOf("") }
@@ -88,7 +83,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                     modifier = Modifier.padding(14.dp).size(28.dp)
                 )
             }
-            Text(contact.name, style = MaterialTheme.typography.titleMedium)
+            Text(entry.contact.name, style = MaterialTheme.typography.titleMedium)
             if (number != null) {
                 Text(
                     number,

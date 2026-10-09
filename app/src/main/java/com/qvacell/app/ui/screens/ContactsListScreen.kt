@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import com.qvacell.app.service.ContactEntry
 import com.qvacell.app.service.ContactsRepository
 import com.qvacell.app.service.DeviceContact
 import com.qvacell.app.service.DialService
@@ -58,7 +59,7 @@ import com.qvacell.app.ui.components.SimSelectorIcon
 fun ContactsListScreen() {
     val context = LocalContext.current
     val repository = remember { ContactsRepository(context) }
-    var selectedContact by remember { mutableStateOf<DeviceContact?>(null) }
+    var selectedEntry by remember { mutableStateOf<ContactEntry?>(null) }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -163,12 +164,15 @@ fun ContactsListScreen() {
                     )
                 }
             } else {
-                val filteredContacts = remember(contacts, query) {
+                val entries = remember(contacts) { repository.flattenToEntries(contacts) }
+                val filteredEntries = remember(entries, query) {
                     val q = query.trim()
-                    if (q.isEmpty()) contacts else contacts.filter { it.name.contains(q, ignoreCase = true) }
+                    if (q.isEmpty()) entries else entries.filter {
+                        it.contact.name.contains(q, ignoreCase = true) || it.number.contains(q)
+                    }
                 }
 
-                if (filteredContacts.isEmpty() && query.isNotBlank()) {
+                if (filteredEntries.isEmpty() && query.isNotBlank()) {
                     Column(
                         modifier = Modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -189,11 +193,11 @@ fun ContactsListScreen() {
                         )
                     }
                 } else {
-                    val grouped = remember(filteredContacts) {
-                        filteredContacts
-                            .sortedBy { it.name.lowercase() }
-                            .groupBy { contact ->
-                                contact.name.firstOrNull()?.uppercaseChar()
+                    val grouped = remember(filteredEntries) {
+                        filteredEntries
+                            .sortedBy { it.contact.name.lowercase() }
+                            .groupBy { entry ->
+                                entry.contact.name.firstOrNull()?.uppercaseChar()
                                     ?.takeIf { it.isLetter() }
                                     ?.toString() ?: "#"
                             }
@@ -209,13 +213,12 @@ fun ContactsListScreen() {
                     ) {
                         grouped.forEach { (letter, group) ->
                             stickyHeader(key = "header_$letter") { GroupHeader(letter) }
-                            items(group, key = { it.id }) { contact ->
-                                val number = contact.cubanNumbers.firstOrNull()
+                            items(group, key = { "${it.contact.id}_${it.number}" }) { entry ->
                                 ContactRow(
-                                    contact = contact,
-                                    onClick = { selectedContact = contact },
-                                    onCallCollect = { if (number != null) DialService.dial(context, "*99$number") },
-                                    onCallAnonymous = { if (number != null) DialService.dial(context, "#31#$number") }
+                                    entry = entry,
+                                    onClick = { selectedEntry = entry },
+                                    onCallCollect = { DialService.dial(context, "*99${entry.number}") },
+                                    onCallAnonymous = { DialService.dial(context, "#31#${entry.number}") }
                                 )
                             }
                         }
@@ -225,7 +228,7 @@ fun ContactsListScreen() {
         }
     }
 
-    selectedContact?.let { contact ->
-        ContactOptionsSheet(contact = contact, onDismiss = { selectedContact = null })
+    selectedEntry?.let { entry ->
+        ContactOptionsSheet(entry = entry, onDismiss = { selectedEntry = null })
     }
 }

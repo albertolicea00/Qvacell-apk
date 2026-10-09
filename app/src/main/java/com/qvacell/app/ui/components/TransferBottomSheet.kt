@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -31,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +62,7 @@ fun TransferBottomSheet(
     var pin by remember { mutableStateOf(pinStore.load() ?: "") }
     var amount by remember { mutableStateOf("") }
     var pinVisible by remember { mutableStateOf(false) }
+    var showNonCubanError by remember { mutableStateOf(false) }
 
     val pickContactLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -68,7 +71,11 @@ fun TransferBottomSheet(
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
                 val idx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                if (idx >= 0) CubanPhoneNumber.normalize(cursor.getString(idx))?.let { number = it }
+                if (idx >= 0) {
+                    val raw = cursor.getString(idx)
+                    val normalized = CubanPhoneNumber.normalize(raw)
+                    if (normalized != null) number = normalized else showNonCubanError = true
+                }
             }
         }
     }
@@ -222,5 +229,16 @@ fun TransferBottomSheet(
                 }
             }
         }
+    }
+
+    if (showNonCubanError) {
+        AlertDialog(
+            onDismissRequest = { showNonCubanError = false },
+            title = { Text("Número no válido") },
+            text = { Text("El número seleccionado no es un número cubano (+53). Solo se puede transferir saldo a números cubanos.") },
+            confirmButton = {
+                TextButton(onClick = { showNonCubanError = false }) { Text("Aceptar") }
+            }
+        )
     }
 }

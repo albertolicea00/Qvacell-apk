@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -40,6 +41,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -110,6 +112,7 @@ fun ManualDashboardContent(
     var transferAmount by remember { mutableStateOf("") }
     var transferPinVisible by remember { mutableStateOf(false) }
     var cardNumber by remember { mutableStateOf("") }
+    var showNonCubanError by remember { mutableStateOf(false) }
 
     val pickContactLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -119,7 +122,13 @@ fun ManualDashboardContent(
             if (cursor.moveToFirst()) {
                 val idx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 if (idx >= 0) {
-                    CubanPhoneNumber.normalize(cursor.getString(idx))?.let { transferNumber = it }
+                    val raw = cursor.getString(idx)
+                    val normalized = CubanPhoneNumber.normalize(raw)
+                    if (normalized != null) {
+                        transferNumber = normalized
+                    } else {
+                        showNonCubanError = true
+                    }
                 }
             }
         }
@@ -440,6 +449,17 @@ fun ManualDashboardContent(
                 }
             }
         }
+    }
+
+    if (showNonCubanError) {
+        AlertDialog(
+            onDismissRequest = { showNonCubanError = false },
+            title = { Text("Número no válido") },
+            text = { Text("El número seleccionado no es un número cubano (+53). Solo se puede transferir saldo a números cubanos.") },
+            confirmButton = {
+                TextButton(onClick = { showNonCubanError = false }) { Text("Aceptar") }
+            }
+        )
     }
 }
 

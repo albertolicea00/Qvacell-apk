@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -30,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
@@ -61,16 +63,19 @@ fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
 
     var addFriendNumber by remember { mutableStateOf("") }
     var removeFriendNumber by remember { mutableStateOf("") }
+    var showNonCubanError by remember { mutableStateOf(false) }
 
     val addContactLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        pickedNumber(context, result)?.let { addFriendNumber = it }
+        val n = pickedNumber(context, result)
+        if (n != null) addFriendNumber = n else if (result.data?.data != null) showNonCubanError = true
     }
     val removeContactLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        pickedNumber(context, result)?.let { removeFriendNumber = it }
+        val n = pickedNumber(context, result)
+        if (n != null) removeFriendNumber = n else if (result.data?.data != null) showNonCubanError = true
     }
 
     fun dial(code: UssdCode?, input: String? = null) {
@@ -131,6 +136,17 @@ fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
                 }
             )
         }
+    }
+
+    if (showNonCubanError) {
+        AlertDialog(
+            onDismissRequest = { showNonCubanError = false },
+            title = { Text("Número no válido") },
+            text = { Text("El número seleccionado no es un número cubano (+53). Solo se puede usar números cubanos en el Plan Amigo.") },
+            confirmButton = {
+                TextButton(onClick = { showNonCubanError = false }) { Text("Aceptar") }
+            }
+        )
     }
 }
 
