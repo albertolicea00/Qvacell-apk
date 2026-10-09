@@ -220,7 +220,7 @@ private fun ColorWheelCanvas(
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-private fun ColorPickerSheet(
+fun ColorPickerSheet(
     title: String,
     initialColor: Color,
     showAlpha: Boolean = false,
