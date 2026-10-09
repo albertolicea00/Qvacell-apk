@@ -11,6 +11,8 @@
          the user accepts the in-app confirmation sheet) — every other call in the app goes
          through ACTION_DIAL and needs no permission. -->
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.telephony" required="false" />
 
     <application
