@@ -105,13 +105,18 @@ fun DynamicDashboardContent(
             onQuery = { requestQuery("Bonos", Icons.Filled.CardGiftcard, "bonus-usd-plans") }
         )
         ConsultCardsRow(
-            onPlanAmigoQuery = {
-                catalogRepository.findCodeById("friends-plan")?.let { code ->
+            onPostpagoQuery = {
+                catalogRepository.findCodeById("postpaid-balance")?.let { code ->
                     DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
                 }
             },
-            onPostpagoQuery = {
-                catalogRepository.findCodeById("postpaid-balance")?.let { code ->
+            onTfaQuery = {
+                catalogRepository.findCodeById("tfa")?.let { code ->
+                    DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
+                }
+            },
+            onPlanAmigoQuery = {
+                catalogRepository.findCodeById("friends-plan")?.let { code ->
                     DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
                 }
             }

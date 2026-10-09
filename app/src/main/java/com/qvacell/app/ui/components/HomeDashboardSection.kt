@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.NetworkCell
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Warning
@@ -593,36 +594,50 @@ private val SPANISH_MONTH_ABBREVIATIONS = listOf(
 private fun formatSpanishDate(date: LocalDate): String =
     "${date.dayOfMonth} ${SPANISH_MONTH_ABBREVIATIONS[date.monthValue - 1]} ${date.year}"
 
-/** Two side-by-side placeholder cards — pulled out of the request to sit below [NationalBonusCard]. */
+/** Two side-by-side cards (POSTPAGO and TFA) with full-width PLAN AMIGO card below. */
 @Composable
-fun ConsultCardsRow(onPlanAmigoQuery: () -> Unit = {}, onPostpagoQuery: () -> Unit = {}) {
-    var pendingAction by remember { mutableStateOf<Pair<String, () -> Unit>?>(null) }
+fun ConsultCardsRow(
+    onPostpagoQuery: () -> Unit = {},
+    onTfaQuery: () -> Unit = {},
+    onPlanAmigoQuery: () -> Unit = {}
+) {
+    var pendingAction by remember { mutableStateOf<Triple<String, androidx.compose.ui.graphics.vector.ImageVector, () -> Unit>?>(null) }
 
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ConsultCard(
+                title = "POSTPAGO",
+                icon = Icons.Filled.CreditCard,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    pendingAction = Triple("Saldo Postpago", Icons.Filled.CreditCard, onPostpagoQuery)
+                }
+            )
+            ConsultCard(
+                title = "TFA",
+                icon = Icons.Filled.PhoneAndroid,
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    pendingAction = Triple("Servicio TFA", Icons.Filled.PhoneAndroid, onTfaQuery)
+                }
+            )
+        }
         ConsultCard(
             title = "PLAN AMIGO",
             icon = Icons.Filled.People,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.fillMaxWidth(),
             onClick = {
-                pendingAction = Pair("Plan Amigo", onPlanAmigoQuery)
-            }
-        )
-        ConsultCard(
-            title = "POSTPAGO",
-            icon = Icons.Filled.CreditCard,
-            modifier = Modifier.weight(1f),
-            onClick = {
-                pendingAction = Pair("Saldo postpago", onPostpagoQuery)
+                pendingAction = Triple("Plan Amigo", Icons.Filled.People, onPlanAmigoQuery)
             }
         )
     }
 
-    pendingAction?.let { (title, action) ->
+    pendingAction?.let { (title, icon, action) ->
         AlertDialog(
             onDismissRequest = { pendingAction = null },
             icon = {
                 Icon(
-                    if (title.contains("Amigo")) Icons.Filled.People else Icons.Filled.CreditCard,
+                    icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary
                 )
