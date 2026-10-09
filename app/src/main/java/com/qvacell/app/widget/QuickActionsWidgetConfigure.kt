@@ -77,6 +77,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
 
         val listItems = buildList {
             catalog.categories
+                .filter { it.id != "sms" }
                 .forEach { cat ->
                     val codes = cat.groups.flatMap { it.codes }
                     if (codes.isNotEmpty()) {
