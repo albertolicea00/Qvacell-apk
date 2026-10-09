@@ -171,7 +171,8 @@
                 "en": "Transfer balance to another number with your transfer PIN."
               },
               "type": "ussd",
-              "requiresInput": true
+              "requiresInput": true,
+              "icon": "Filled.Payments"
             },
             {
               "id": "transfer-pin-change",
@@ -185,7 +186,8 @@
                 "en": "Change the PIN you use to transfer balance to other numbers."
               },
               "type": "ussd",
-              "requiresInput": true
+              "requiresInput": true,
+              "icon": "Filled.LockReset"
             }
           ]
         },
@@ -208,7 +210,8 @@
               },
               "type": "ussd",
               "requiresInput": true,
-              "inputPlaceholder": "Número de tarjeta"
+              "inputPlaceholder": "Número de tarjeta",
+              "icon": "Filled.CreditCard"
             },
             {
               "id": "recharge-call",
@@ -222,7 +225,8 @@
                 "en": "Recharge your balance by calling this number."
               },
               "type": "call",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.PhoneInTalk"
             }
           ]
         },
@@ -245,7 +249,8 @@
                 "en": "Advance $25 of balance."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.AttachMoney"
             },
             {
               "id": "advance-balance-50",
@@ -260,7 +265,8 @@
                 "en": "Advance $50 of balance."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.AttachMoney"
             }
           ]
         },
@@ -283,7 +289,8 @@
               },
               "price": "$25.00",
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.PersonAdd"
             },
             {
               "id": "friends-plan-deactivate",
@@ -297,7 +304,8 @@
                 "en": "Deactivate the Friends Plan."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.PersonRemove"
             },
             {
               "id": "friends-plan-add-member",
@@ -312,7 +320,8 @@
               },
               "type": "ussd",
               "requiresInput": true,
-              "inputPlaceholder": "Número del amigo"
+              "inputPlaceholder": "Número del amigo",
+              "icon": "Filled.PersonAdd"
             },
             {
               "id": "friends-plan-remove-member",
@@ -327,7 +336,8 @@
               },
               "type": "ussd",
               "requiresInput": true,
-              "inputPlaceholder": "Número del amigo"
+              "inputPlaceholder": "Número del amigo",
+              "icon": "Filled.PersonRemove"
             },
             {
               "id": "friends-plan-status-settings",
@@ -341,7 +351,8 @@
                 "en": "Check the status of your Friends Plan."
               },
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.Group"
             }
           ]
         },
@@ -425,7 +436,8 @@
               },
               "compact": true,
               "type": "ussd",
-              "requiresInput": false
+              "requiresInput": false,
+              "icon": "Filled.DataUsage"
             }
           ]
         }
@@ -459,7 +471,8 @@
               "price": "$240.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*1*4*1*1#"
+              "noConfirmCode": "*133*1*4*1*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "data-daily-plan",
@@ -475,7 +488,8 @@
               "price": "$25.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*1*3*1#"
+              "noConfirmCode": "*133*1*3*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "data-todus-plan",
@@ -491,7 +505,8 @@
               "price": "$25.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*1*2*1#"
+              "noConfirmCode": "*133*1*2*1#",
+              "icon": "Filled.ShoppingCart"
             }
           ],
           "icon": "Filled.Wifi"
@@ -516,7 +531,8 @@
               "price": "$120.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*1*4*2*1#"
+              "noConfirmCode": "*133*1*4*2*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "data-bundle-4gb-combo",
@@ -532,7 +548,8 @@
               "price": "$240.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*1*4*3*1#"
+              "noConfirmCode": "*133*1*4*3*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "data-bundle-6gb-combo",
@@ -548,7 +565,8 @@
               "price": "$360.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*1*4*4*1#"
+              "noConfirmCode": "*133*1*4*4*1#",
+              "icon": "Filled.ShoppingCart"
             }
           ],
           "icon": "Filled.Inventory2"
@@ -573,7 +591,8 @@
               "price": "$15.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*2*1*1#"
+              "noConfirmCode": "*133*2*1*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "sms-bundle-50",
@@ -589,7 +608,8 @@
               "price": "$30.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*2*2*1#"
+              "noConfirmCode": "*133*2*2*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "sms-bundle-90",
@@ -605,7 +625,8 @@
               "price": "$50.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*2*3*1#"
+              "noConfirmCode": "*133*2*3*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "sms-bundle-120",
@@ -621,7 +642,8 @@
               "price": "$60.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*2*4*1#"
+              "noConfirmCode": "*133*2*4*1#",
+              "icon": "Filled.ShoppingCart"
             }
           ],
           "icon": "Filled.Sms"
@@ -646,7 +668,8 @@
               "price": "$37.50",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*3*1*1#"
+              "noConfirmCode": "*133*3*1*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "voice-bundle-10min",
@@ -662,7 +685,8 @@
               "price": "$72.50",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*3*2*1#"
+              "noConfirmCode": "*133*3*2*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "voice-bundle-15min",
@@ -678,7 +702,8 @@
               "price": "$105.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*3*3*1#"
+              "noConfirmCode": "*133*3*3*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "voice-bundle-25min",
@@ -694,7 +719,8 @@
               "price": "$162.50",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*3*4*1#"
+              "noConfirmCode": "*133*3*4*1#",
+              "icon": "Filled.ShoppingCart"
             },
             {
               "id": "voice-bundle-40min",
@@ -710,7 +736,8 @@
               "price": "$250.00",
               "type": "ussd",
               "requiresInput": false,
-              "noConfirmCode": "*133*3*5*1#"
+              "noConfirmCode": "*133*3*5*1#",
+              "icon": "Filled.ShoppingCart"
             }
           ],
           "icon": "Filled.Call"
@@ -1096,7 +1123,8 @@
               },
               "type": "sms",
               "requiresInput": false,
-              "compact": true
+              "compact": true,
+              "icon": "Filled.Help"
             },
             {
               "id": "sms-2266-planes",
@@ -1112,7 +1140,8 @@
               },
               "type": "sms",
               "requiresInput": false,
-              "compact": true
+              "compact": true,
+              "icon": "Filled.ShoppingBag"
             },
             {
               "id": "sms-2266-amigo",
@@ -1128,7 +1157,8 @@
               },
               "type": "sms",
               "requiresInput": false,
-              "compact": true
+              "compact": true,
+              "icon": "Filled.Group"
             },
             {
               "id": "sms-2266-resumen",
@@ -1144,7 +1174,8 @@
               },
               "type": "sms",
               "requiresInput": false,
-              "compact": true
+              "compact": true,
+              "icon": "Filled.ReceiptLong"
             }
           ],
           "icon": "Filled.Info"
@@ -1171,7 +1202,8 @@
               "requiresInput": true,
               "inputPlaceholder": "Número de guía",
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.LocalShipping"
             },
             {
               "id": "sms-8888-vuelo",
@@ -1189,7 +1221,8 @@
               "requiresInput": true,
               "inputPlaceholder": "Número de vuelo",
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.Flight"
             }
           ],
           "icon": "Filled.Flight"
@@ -1215,7 +1248,8 @@
               "type": "sms",
               "requiresInput": false,
               "price": "$0.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.Email"
             },
             {
               "id": "sms-8000-onat",
@@ -1232,7 +1266,8 @@
               "type": "sms",
               "requiresInput": false,
               "price": "$0.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.AccountBalance"
             },
             {
               "id": "sms-8000-turismo",
@@ -1249,7 +1284,8 @@
               "type": "sms",
               "requiresInput": false,
               "price": "$0.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.TravelExplore"
             },
             {
               "id": "sms-8888-embajada",
@@ -1267,7 +1303,8 @@
               "requiresInput": true,
               "inputPlaceholder": "Texto de la consulta",
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.AccountBalance"
             },
             {
               "id": "sms-8888-cambio",
@@ -1285,7 +1322,8 @@
               "requiresInput": true,
               "inputPlaceholder": "Moneda y monto (opcional)",
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.CurrencyExchange"
             },
             {
               "id": "sms-2266-oferta",
@@ -1301,7 +1339,8 @@
               },
               "type": "sms",
               "requiresInput": false,
-              "compact": true
+              "compact": true,
+              "icon": "Filled.LocalOffer"
             },
             {
               "id": "sms-2266-tarifa",
@@ -1317,7 +1356,8 @@
               },
               "type": "sms",
               "requiresInput": false,
-              "compact": true
+              "compact": true,
+              "icon": "Filled.LocalOffer"
             },
             {
               "id": "sms-8888-telectrica",
@@ -1335,7 +1375,8 @@
               "requiresInput": true,
               "inputPlaceholder": "Rate de consumo",
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.ElectricBolt"
             }
           ],
           "icon": "Filled.Receipt"
@@ -1377,7 +1418,8 @@
                   },
                   "smsBody": "PELOTA POS"
                 }
-              ]
+              ],
+              "icon": "Filled.SportsBaseball"
             },
             {
               "id": "sms-8888-mlb",
@@ -1410,7 +1452,8 @@
                   },
                   "smsBody": "MLB POS"
                 }
-              ]
+              ],
+              "icon": "Filled.SportsBaseball"
             },
             {
               "id": "sms-8888-bundesliga",
@@ -1450,7 +1493,8 @@
                   },
                   "smsBody": "BUNDESLIGA GOL"
                 }
-              ]
+              ],
+              "icon": "Filled.SportsSoccer"
             },
             {
               "id": "sms-8888-chanpion",
@@ -1490,7 +1534,8 @@
                   },
                   "smsBody": "CHANPION GOL"
                 }
-              ]
+              ],
+              "icon": "Filled.SportsSoccer"
             },
             {
               "id": "sms-8888-rey",
@@ -1530,7 +1575,8 @@
                   },
                   "smsBody": "REY GOL"
                 }
-              ]
+              ],
+              "icon": "Filled.SportsSoccer"
             },
             {
               "id": "sms-8888-liga1",
@@ -1570,7 +1616,8 @@
                   },
                   "smsBody": "LIGA1 GOL"
                 }
-              ]
+              ],
+              "icon": "Filled.SportsSoccer"
             },
             {
               "id": "sms-8888-premier",
@@ -1610,7 +1657,8 @@
                   },
                   "smsBody": "PREMIER GOL"
                 }
-              ]
+              ],
+              "icon": "Filled.SportsSoccer"
             },
             {
               "id": "sms-8888-seriea",
@@ -1650,7 +1698,8 @@
                   },
                   "smsBody": "SerieA GOL"
                 }
-              ]
+              ],
+              "icon": "Filled.SportsSoccer"
             }
           ],
           "icon": "Filled.SportsSoccer"
@@ -1676,7 +1725,8 @@
               "type": "sms",
               "requiresInput": false,
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.WbSunny"
             },
             {
               "id": "sms-8888-tiempo-zona",
@@ -1694,7 +1744,8 @@
               "requiresInput": true,
               "inputPlaceholder": "OCC, CEN, ORI, Camagüey...)",
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.WbSunny"
             },
             {
               "id": "sms-8888-noticias",
@@ -1711,7 +1762,8 @@
               "type": "sms",
               "requiresInput": false,
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.Newspaper"
             },
             {
               "id": "sms-8888-titulares",
@@ -1728,7 +1780,8 @@
               "type": "sms",
               "requiresInput": false,
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.Newspaper"
             },
             {
               "id": "sms-8888-pl",
@@ -1745,7 +1798,8 @@
               "type": "sms",
               "requiresInput": false,
               "price": "$4.00",
-              "compact": true
+              "compact": true,
+              "icon": "Filled.Newspaper"
             },
             {
               "id": "sms-8100-marti",
@@ -1763,7 +1817,8 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "isSubscription": true
+              "isSubscription": true,
+              "icon": "Filled.Newspaper"
             },
             {
               "id": "sms-8100-cubadebate",
@@ -1781,7 +1836,8 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "isSubscription": true
+              "isSubscription": true,
+              "icon": "Filled.Newspaper"
             },
             {
               "id": "sms-8100-cdeportes",
@@ -1799,7 +1855,8 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "isSubscription": true
+              "isSubscription": true,
+              "icon": "Filled.SportsSoccer"
             },
             {
               "id": "sms-8100-granma",
@@ -1817,7 +1874,8 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "isSubscription": true
+              "isSubscription": true,
+              "icon": "Filled.Newspaper"
             },
             {
               "id": "sms-8100-pl",
@@ -1835,7 +1893,8 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "isSubscription": true
+              "isSubscription": true,
+              "icon": "Filled.Newspaper"
             }
           ],
           "icon": "Filled.Article"
@@ -1876,7 +1935,8 @@
                 "REPOSTERIA",
                 "SALMON",
                 "SALSAS"
-              ]
+              ],
+              "icon": "Filled.MenuBook"
             },
             {
               "id": "sms-8888-frases",
@@ -1930,7 +1990,8 @@
                 "NERUDA",
                 "CHE",
                 "PITAGORAS"
-              ]
+              ],
+              "icon": "Filled.MenuBook"
             },
             {
               "id": "sms-8888-horoscopo",
@@ -1961,7 +2022,8 @@
                 "CAPRICORNIO",
                 "ACUARIO",
                 "PISCIS"
-              ]
+              ],
+              "icon": "Filled.AutoAwesome"
             },
             {
               "id": "sms-8888-horoscopo-chino",
@@ -1992,7 +2054,8 @@
                 "PERRO",
                 "RATA",
                 "CERDO"
-              ]
+              ],
+              "icon": "Filled.AutoAwesome"
             }
           ],
           "icon": "Filled.MenuBook"
