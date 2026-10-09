@@ -98,7 +98,7 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            if (categoryId == "purchase") {
+            if (categoryId == "purchase" && !quickActionEnabled) {
                 Card(
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 8.dp)
