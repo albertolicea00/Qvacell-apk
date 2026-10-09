@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
 import com.qvacell.app.R
@@ -34,6 +35,16 @@ class QuickActionsWidget : AppWidgetProvider() {
         }
     }
 
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        updateWidget(context, appWidgetManager, appWidgetId)
+    }
+
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         for (widgetId in appWidgetIds) {
             WidgetPrefs.deleteConfig(context, widgetId)
@@ -57,9 +68,44 @@ class QuickActionsWidget : AppWidgetProvider() {
             val iconColor = settings.getIconColor(context)
             val textColor = settings.getTextColor(context)
             val iconShape = settings.getIconShape(context)
+            val alignment = settings.getAlignment(context)
 
             val showIcon = contentStyle in listOf("icon_only", "icon_text")
             val showText = contentStyle in listOf("icon_text", "text_only")
+
+            // Alignment handling: LinearLayout supports setGravity(int)
+            val gravity = when (alignment) {
+                "top" -> android.view.Gravity.TOP or android.view.Gravity.CENTER_HORIZONTAL
+                "bottom" -> android.view.Gravity.BOTTOM or android.view.Gravity.CENTER_HORIZONTAL
+                "center" -> android.view.Gravity.CENTER
+                else -> android.view.Gravity.FILL
+            }
+            views.setInt(R.id.widget_root, "setGravity", gravity)
+
+            val options = manager.getAppWidgetOptions(widgetId)
+            val minW = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+            val minH = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 0)
+            val maxW = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, 0)
+            val maxH = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
+
+            val effectiveW = if (minW > 0) minW else maxW
+            val effectiveH = if (minH > 0) minH else maxH
+            val density = context.resources.displayMetrics.density
+
+            if (alignment == "fill") {
+                views.setViewLayoutWidth(R.id.widget_alignment_container, -1f, android.util.TypedValue.COMPLEX_UNIT_PX) // MATCH_PARENT (-1)
+                views.setViewLayoutHeight(R.id.widget_alignment_container, -1f, android.util.TypedValue.COMPLEX_UNIT_PX)
+            } else {
+                if (effectiveW > 0 && effectiveH > 0) {
+                    val sideDp = minOf(effectiveW, effectiveH).toFloat()
+                    val sidePx = sideDp * density
+                    views.setViewLayoutWidth(R.id.widget_alignment_container, sidePx, android.util.TypedValue.COMPLEX_UNIT_PX)
+                    views.setViewLayoutHeight(R.id.widget_alignment_container, sidePx, android.util.TypedValue.COMPLEX_UNIT_PX)
+                } else {
+                    views.setViewLayoutWidth(R.id.widget_alignment_container, -2f, android.util.TypedValue.COMPLEX_UNIT_PX) // WRAP_CONTENT (-2)
+                    views.setViewLayoutHeight(R.id.widget_alignment_container, -2f, android.util.TypedValue.COMPLEX_UNIT_PX)
+                }
+            }
 
             // Background: try shaped bitmap, fall back to plain color filter
             val bgBitmap = runCatching { shapeBackgroundBitmap(200, bgColor, iconShape) }.getOrNull()
@@ -105,3 +151,4 @@ class QuickActionsWidget : AppWidgetProvider() {
         }
     }
 }
+

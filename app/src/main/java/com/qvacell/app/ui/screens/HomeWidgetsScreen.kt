@@ -418,7 +418,8 @@ private fun WidgetPreview(
     bgColor: Color,
     contentColor: Color,
     iconShape: String,
-    contentStyle: String
+    contentStyle: String,
+    alignment: String
 ) {
     val showIcon = contentStyle in listOf("icon_only", "icon_text")
     val showText = contentStyle in listOf("icon_text", "text_only")
@@ -514,10 +515,28 @@ private fun WidgetPreview(
         else -> RoundedCornerShape(16.dp) // rounded_square
     }
 
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+    val previewAlignment = when (alignment) {
+        "top" -> Alignment.TopCenter
+        "bottom" -> Alignment.BottomCenter
+        else -> Alignment.Center
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(110.dp)
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(16.dp)),
+        contentAlignment = previewAlignment
+    ) {
+        val sizeModifier = if (alignment == "fill") {
+            Modifier.fillMaxWidth().height(110.dp).padding(4.dp)
+        } else {
+            Modifier.size(80.dp).padding(4.dp)
+        }
+
         Box(
-            modifier = Modifier
-                .size(80.dp)
+            modifier = sizeModifier
                 .clip(shapeClip)
                 .background(bgColor),
             contentAlignment = Alignment.Center
@@ -559,11 +578,14 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
     var bgColor by remember { mutableStateOf(Color(WidgetSettings.getBackgroundColor(context))) }
     var contentColor by remember { mutableStateOf(Color(WidgetSettings.getIconColor(context))) }
     var iconShape by remember { mutableStateOf(WidgetSettings.getIconShape(context)) }
+    var alignment by remember { mutableStateOf(WidgetSettings.getAlignment(context)) }
 
     var showContentStyleSheet by remember { mutableStateOf(false) }
     var showIconShapeSheet by remember { mutableStateOf(false) }
     var showBgColorSheet by remember { mutableStateOf(false) }
     var showContentColorSheet by remember { mutableStateOf(false) }
+    var showAlignmentSheet by remember { mutableStateOf(false) }
+
 
     val contentStyleOptions = listOf(
         "icon_only" to "Solo icono",
@@ -594,7 +616,8 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                     bgColor = bgColor,
                     contentColor = contentColor,
                     iconShape = iconShape,
-                    contentStyle = contentStyle
+                    contentStyle = contentStyle,
+                    alignment = alignment
                 )
             }
 
@@ -705,9 +728,25 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                             modifier = Modifier.clickable { showIconShapeSheet = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                         )
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+
+                        val alignmentOptions = listOf(
+                            "fill"   to "Llenar cuadrícula (Completo)",
+                            "center" to "Centrado (Mantener proporción)",
+                            "top"    to "Arriba",
+                            "bottom" to "Abajo",
+                        )
+                        val alignmentLabel = alignmentOptions.firstOrNull { it.first == alignment }?.second ?: "Llenar cuadrícula"
+                        ListItem(
+                            headlineContent = { Text("Alineación y tamaño") },
+                            supportingContent = { Text(alignmentLabel, style = MaterialTheme.typography.labelSmall) },
+                            modifier = Modifier.clickable { showAlignmentSheet = true },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                        )
                     }
                 }
             }
+
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
         }
@@ -806,4 +845,37 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
         )
     }
 
+    if (showAlignmentSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(onDismissRequest = { showAlignmentSheet = false }, sheetState = sheetState) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
+                Text("Alineación y tamaño", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
+                listOf(
+                    "fill"   to "Llenar cuadrícula (Completo)",
+                    "center" to "Centrado (Mantener proporción)",
+                    "top"    to "Arriba (Mantener proporción)",
+                    "bottom" to "Abajo (Mantener proporción)",
+                ).forEach { (value, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                alignment = value
+                                WidgetSettings.setAlignment(context, value)
+                                WidgetSettings.refreshAllWidgets(context)
+                                showAlignmentSheet = false
+                            }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = alignment == value, onClick = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(label, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+    }
+
 }
+

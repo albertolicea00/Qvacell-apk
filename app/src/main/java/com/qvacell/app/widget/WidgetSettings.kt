@@ -69,6 +69,14 @@ object WidgetSettings {
         prefs(context).edit { putInt("icon_shape_bg_color", value) }
     }
 
+    // Alignment: "fill" | "center" | "top" | "bottom"
+    fun getAlignment(context: Context): String =
+        prefs(context).getString("alignment", "fill") ?: "fill"
+
+    fun setAlignment(context: Context, value: String) {
+        prefs(context).edit { putString("alignment", value) }
+    }
+
     // Refresh all existing widgets after a setting change
     fun refreshAllWidgets(context: Context) {
         val manager = AppWidgetManager.getInstance(context)
@@ -78,3 +86,4 @@ object WidgetSettings {
         }
     }
 }
+
