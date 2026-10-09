@@ -99,6 +99,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
             return
         }
 
+        val settings = SettingsDataStore(applicationContext)
         val catalog = CatalogRepository(this).loadCatalog()
 
         data class ListItemData(val categoryHeader: String? = null, val code: UssdCode? = null)
@@ -263,12 +264,14 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                     text = { Text("Estilo") },
                                     icon = { Icon(Icons.Filled.Palette, contentDescription = null) }
                                 )
-                                Tab(
-                                    selected = selectedTab == 2,
-                                    onClick = { selectedTab = 2; searchActive = false },
-                                    text = { Text("SIM") },
-                                    icon = { Icon(Icons.Filled.SimCard, contentDescription = null) }
-                                )
+                                if (activeSims.size >= 2) {
+                                    Tab(
+                                        selected = selectedTab == 2,
+                                        onClick = { selectedTab = 2; searchActive = false },
+                                        text = { Text("SIM") },
+                                        icon = { Icon(Icons.Filled.SimCard, contentDescription = null) }
+                                    )
+                                }
                             }
                         }
                     }
