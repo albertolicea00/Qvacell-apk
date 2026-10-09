@@ -128,7 +128,7 @@ class QuickActionsWidget : AppWidgetProvider() {
 
             // Icon bitmap
             if (code != null && showIcon) {
-                val iconSizePx = if (showText) 110 else 140
+                val iconSizePx = if (showText) 100 else 180
                 runCatching {
                     imageVectorToBitmap(resolveAndroidIcon(code.icon), sizePx = iconSizePx, tintArgb = iconColor)
                 }.getOrNull()?.let { views.setImageViewBitmap(R.id.tile_icon, it) }

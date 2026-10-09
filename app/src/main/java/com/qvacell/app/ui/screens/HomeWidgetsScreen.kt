@@ -594,7 +594,7 @@ private fun WidgetPreview(
                             verticalArrangement = Arrangement.Center
                         ) {
                             if (showIcon) {
-                                val iconSize = if (showText) 28.dp else 38.dp
+                                val iconSize = if (showText) 30.dp else 46.dp
                                 Icon(
                                     imageVector = resolveAndroidIcon("Filled.AccountBalanceWallet"),
                                     contentDescription = null,
