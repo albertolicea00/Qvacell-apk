@@ -67,6 +67,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.SideEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qvacell.app.data.SettingsDataStore
+import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.UssdCode
 import com.qvacell.app.service.SimUtils
@@ -80,6 +85,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         val widgetId = intent?.getIntExtra(
             AppWidgetManager.EXTRA_APPWIDGET_ID,
@@ -116,7 +122,16 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
         val initialIconColor = WidgetPrefs.getIconColor(this, widgetId)
 
         setContent {
-            QvacellTheme {
+            val themeMode by settings.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
+            val accentColor by settings.accentColor.collectAsStateWithLifecycle(initialValue = SettingsDataStore.DEFAULT_ACCENT_COLOR)
+
+            QvacellTheme(themeMode = themeMode, accentColorHex = accentColor) {
+                val navBarColor = MaterialTheme.colorScheme.surface
+                SideEffect {
+                    @Suppress("DEPRECATION")
+                    window.navigationBarColor = navBarColor.toArgb()
+                }
+
                 val activeSims = remember { SimUtils.getActiveSubscriptions(this@QuickActionsWidgetConfigure) }
 
                 var selectedCodeId by remember { mutableStateOf(initialCodeId) }
