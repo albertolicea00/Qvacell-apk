@@ -414,6 +414,98 @@ private fun ColorPickerSheet(
     }
 }
 
+fun getWidgetShape(iconShape: String): Shape = when (iconShape) {
+    "circle"   -> CircleShape
+    "square"   -> RoundedCornerShape(0.dp)
+    "squircle" -> RoundedCornerShape(40)
+    "hexagon"  -> object : Shape {
+        override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+            val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f; val r = minOf(cx, cy) * 0.96f
+            for (i in 0 until 6) { val a = (PI * i / 3 - PI / 6).toFloat(); if (i == 0) path.moveTo(cx + r * cos(a), cy + r * sin(a)) else path.lineTo(cx + r * cos(a), cy + r * sin(a)) }
+            path.close(); return Outline.Generic(path)
+        }
+    }
+    "star" -> object : Shape {
+        override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+            val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f
+            val outerR = minOf(cx, cy) * 0.96f; val innerR = outerR * 0.45f
+            for (i in 0 until 10) { val a = (PI * i / 5 - PI / 2).toFloat(); val r = if (i % 2 == 0) outerR else innerR; if (i == 0) path.moveTo(cx + cos(a) * r, cy + sin(a) * r) else path.lineTo(cx + cos(a) * r, cy + sin(a) * r) }
+            path.close(); return Outline.Generic(path)
+        }
+    }
+    "flower" -> object : Shape {
+        override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+            val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f
+            val r = minOf(cx, cy) * 0.60f; val cr = minOf(cx, cy) * 0.84f
+            path.moveTo(cx, cy - r)
+            path.cubicTo(cx + cr, cy - r, cx + r, cy - cr, cx + r, cy)
+            path.cubicTo(cx + r, cy + cr, cx + cr, cy + r, cx, cy + r)
+            path.cubicTo(cx - cr, cy + r, cx - r, cy + cr, cx - r, cy)
+            path.cubicTo(cx - r, cy - cr, cx - cr, cy - r, cx, cy - r)
+            path.close(); return Outline.Generic(path)
+        }
+    }
+    "diamond" -> object : Shape {
+        override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+            val path = Path()
+            path.moveTo(size.width / 2f, 0f); path.lineTo(size.width, size.height / 2f)
+            path.lineTo(size.width / 2f, size.height); path.lineTo(0f, size.height / 2f)
+            path.close(); return Outline.Generic(path)
+        }
+    }
+    "badge" -> object : Shape {
+        override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+            val path = Path()
+            val cx = size.width / 2f; val cy = size.height / 2f
+            val outerR = minOf(cx, cy) * 0.96f; val innerR = minOf(cx, cy) * 0.63f
+            val pts = Array(16) { i ->
+                val a = (PI * i / 8 - PI / 2).toFloat()
+                val r = if (i % 2 == 0) outerR else innerR
+                floatArrayOf(cx + r * cos(a), cy + r * sin(a))
+            }
+            fun mid(a: FloatArray, b: FloatArray) = floatArrayOf((a[0]+b[0])/2f, (a[1]+b[1])/2f)
+            val mids = Array(16) { i -> mid(pts[i], pts[(i+1) % 16]) }
+            path.moveTo(mids[15][0], mids[15][1])
+            for (i in 0 until 16) path.quadraticBezierTo(pts[i][0], pts[i][1], mids[i][0], mids[i][1])
+            path.close(); return Outline.Generic(path)
+        }
+    }
+    "rounded_diamond" -> object : Shape {
+        override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+            val path = Path()
+            val cx = size.width / 2f; val cy = size.height / 2f
+            val d = size.width * 0.10f / sqrt(2f)
+            path.moveTo(cx - d, d); path.quadraticBezierTo(cx, 0f, cx + d, d)
+            path.lineTo(size.width - d, cy - d); path.quadraticBezierTo(size.width, cy, size.width - d, cy + d)
+            path.lineTo(cx + d, size.height - d); path.quadraticBezierTo(cx, size.height, cx - d, size.height - d)
+            path.lineTo(d, cy + d); path.quadraticBezierTo(0f, cy, d, cy - d)
+            path.close(); return Outline.Generic(path)
+        }
+    }
+    "rounded_hexagon" -> object : Shape {
+        override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
+            val path = Path()
+            val cx = size.width / 2f; val cy = size.height / 2f
+            val r = minOf(cx, cy) * 0.94f; val cr = minOf(cx, cy) * 0.14f
+            val verts = Array(6) { i ->
+                val a = (PI * i / 3 - PI / 6).toFloat()
+                floatArrayOf(cx + r * cos(a), cy + r * sin(a))
+            }
+            for (i in 0 until 6) {
+                val prev = verts[(i + 5) % 6]; val curr = verts[i]; val next = verts[(i + 1) % 6]
+                val dx1 = curr[0] - prev[0]; val dy1 = curr[1] - prev[1]; val l1 = sqrt(dx1 * dx1 + dy1 * dy1)
+                val dx2 = next[0] - curr[0]; val dy2 = next[1] - curr[1]; val l2 = sqrt(dx2 * dx2 + dy2 * dy2)
+                val fx = curr[0] - cr * dx1 / l1; val fy = curr[1] - cr * dy1 / l1
+                val tx = curr[0] + cr * dx2 / l2; val ty = curr[1] + cr * dy2 / l2
+                if (i == 0) path.moveTo(fx, fy) else path.lineTo(fx, fy)
+                path.quadraticBezierTo(curr[0], curr[1], tx, ty)
+            }
+            path.close(); return Outline.Generic(path)
+        }
+    }
+    else -> RoundedCornerShape(16.dp) // rounded_square
+}
+
 @Composable
 private fun WidgetPreview(
     bgColor: Color,
@@ -424,97 +516,8 @@ private fun WidgetPreview(
 ) {
     val showIcon = contentStyle in listOf("icon_only", "icon_text")
     val showText = contentStyle in listOf("icon_text", "text_only")
-    val shapeClip: Shape = when (iconShape) {
-        "circle"   -> CircleShape
-        "square"   -> RoundedCornerShape(0.dp)
-        "squircle" -> RoundedCornerShape(40)
-        "hexagon"  -> object : Shape {
-            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-                val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f; val r = minOf(cx, cy) * 0.96f
-                for (i in 0 until 6) { val a = (PI * i / 3 - PI / 6).toFloat(); if (i == 0) path.moveTo(cx + r * cos(a), cy + r * sin(a)) else path.lineTo(cx + r * cos(a), cy + r * sin(a)) }
-                path.close(); return Outline.Generic(path)
-            }
-        }
-        "star" -> object : Shape {
-            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-                val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f
-                val outerR = minOf(cx, cy) * 0.96f; val innerR = outerR * 0.45f
-                for (i in 0 until 10) { val a = (PI * i / 5 - PI / 2).toFloat(); val r = if (i % 2 == 0) outerR else innerR; if (i == 0) path.moveTo(cx + cos(a) * r, cy + sin(a) * r) else path.lineTo(cx + cos(a) * r, cy + sin(a) * r) }
-                path.close(); return Outline.Generic(path)
-            }
-        }
-        "flower" -> object : Shape {
-            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-                val path = Path(); val cx = size.width / 2f; val cy = size.height / 2f
-                val r = minOf(cx, cy) * 0.60f; val cr = minOf(cx, cy) * 0.84f
-                path.moveTo(cx, cy - r)
-                path.cubicTo(cx + cr, cy - r, cx + r, cy - cr, cx + r, cy)
-                path.cubicTo(cx + r, cy + cr, cx + cr, cy + r, cx, cy + r)
-                path.cubicTo(cx - cr, cy + r, cx - r, cy + cr, cx - r, cy)
-                path.cubicTo(cx - r, cy - cr, cx - cr, cy - r, cx, cy - r)
-                path.close(); return Outline.Generic(path)
-            }
-        }
-        "diamond" -> object : Shape {
-            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-                val path = Path()
-                path.moveTo(size.width / 2f, 0f); path.lineTo(size.width, size.height / 2f)
-                path.lineTo(size.width / 2f, size.height); path.lineTo(0f, size.height / 2f)
-                path.close(); return Outline.Generic(path)
-            }
-        }
-        "badge" -> object : Shape {
-            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-                val path = Path()
-                val cx = size.width / 2f; val cy = size.height / 2f
-                val outerR = minOf(cx, cy) * 0.96f; val innerR = minOf(cx, cy) * 0.63f
-                val pts = Array(16) { i ->
-                    val a = (PI * i / 8 - PI / 2).toFloat()
-                    val r = if (i % 2 == 0) outerR else innerR
-                    floatArrayOf(cx + r * cos(a), cy + r * sin(a))
-                }
-                fun mid(a: FloatArray, b: FloatArray) = floatArrayOf((a[0]+b[0])/2f, (a[1]+b[1])/2f)
-                val mids = Array(16) { i -> mid(pts[i], pts[(i+1) % 16]) }
-                path.moveTo(mids[15][0], mids[15][1])
-                for (i in 0 until 16) path.quadraticBezierTo(pts[i][0], pts[i][1], mids[i][0], mids[i][1])
-                path.close(); return Outline.Generic(path)
-            }
-        }
-        "rounded_diamond" -> object : Shape {
-            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-                val path = Path()
-                val cx = size.width / 2f; val cy = size.height / 2f
-                val d = size.width * 0.10f / sqrt(2f)
-                path.moveTo(cx - d, d); path.quadraticBezierTo(cx, 0f, cx + d, d)
-                path.lineTo(size.width - d, cy - d); path.quadraticBezierTo(size.width, cy, size.width - d, cy + d)
-                path.lineTo(cx + d, size.height - d); path.quadraticBezierTo(cx, size.height, cx - d, size.height - d)
-                path.lineTo(d, cy + d); path.quadraticBezierTo(0f, cy, d, cy - d)
-                path.close(); return Outline.Generic(path)
-            }
-        }
-        "rounded_hexagon" -> object : Shape {
-            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-                val path = Path()
-                val cx = size.width / 2f; val cy = size.height / 2f
-                val r = minOf(cx, cy) * 0.94f; val cr = minOf(cx, cy) * 0.14f
-                val verts = Array(6) { i ->
-                    val a = (PI * i / 3 - PI / 6).toFloat()
-                    floatArrayOf(cx + r * cos(a), cy + r * sin(a))
-                }
-                for (i in 0 until 6) {
-                    val prev = verts[(i + 5) % 6]; val curr = verts[i]; val next = verts[(i + 1) % 6]
-                    val dx1 = curr[0] - prev[0]; val dy1 = curr[1] - prev[1]; val l1 = sqrt(dx1 * dx1 + dy1 * dy1)
-                    val dx2 = next[0] - curr[0]; val dy2 = next[1] - curr[1]; val l2 = sqrt(dx2 * dx2 + dy2 * dy2)
-                    val fx = curr[0] - cr * dx1 / l1; val fy = curr[1] - cr * dy1 / l1
-                    val tx = curr[0] + cr * dx2 / l2; val ty = curr[1] + cr * dy2 / l2
-                    if (i == 0) path.moveTo(fx, fy) else path.lineTo(fx, fy)
-                    path.quadraticBezierTo(curr[0], curr[1], tx, ty)
-                }
-                path.close(); return Outline.Generic(path)
-            }
-        }
-        else -> RoundedCornerShape(16.dp) // rounded_square
-    }
+    val shapeClip: Shape = getWidgetShape(iconShape)
+
 
     val previewAlignment = when (alignment) {
         "top" -> Alignment.TopCenter

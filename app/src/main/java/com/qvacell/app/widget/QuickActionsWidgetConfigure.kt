@@ -20,6 +20,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.graphics.Color
+import com.qvacell.app.ui.screens.getWidgetShape
+import com.qvacell.app.widget.WidgetSettings
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -87,6 +90,11 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
 
         setContent {
             QvacellTheme {
+                val widgetBgColor = remember { Color(WidgetSettings.getBackgroundColor(this@QuickActionsWidgetConfigure)) }
+                val widgetIconColor = remember { Color(WidgetSettings.getIconColor(this@QuickActionsWidgetConfigure)) }
+                val widgetIconShapeName = remember { WidgetSettings.getIconShape(this@QuickActionsWidgetConfigure) }
+                val widgetShape = remember(widgetIconShapeName) { getWidgetShape(widgetIconShapeName) }
+
                 var selectedCodeId by remember { mutableStateOf(initialCodeId) }
                 var searchActive by remember { mutableStateOf(false) }
                 var query by remember { mutableStateOf("") }
@@ -246,27 +254,27 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                                     )
                                                 )
                                                 finish()
-                                            }
+                                             }
                                             .padding(horizontal = 16.dp, vertical = 8.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        // Icon circle
+                                        // Widget-styled shape container
                                         Box(
                                             modifier = Modifier
-                                                .size(40.dp)
-                                                .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                                .size(44.dp)
+                                                .clip(widgetShape)
+                                                .background(widgetBgColor),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
                                                 imageVector = resolveAndroidIcon(code.icon),
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                modifier = Modifier.size(20.dp)
+                                                tint = widgetIconColor,
+                                                modifier = Modifier.size(24.dp)
                                             )
                                         }
 
-                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Spacer(modifier = Modifier.width(14.dp))
 
                                         // Title + description + dial code
                                         Column(modifier = Modifier.weight(1f)) {
@@ -285,11 +293,6 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                                             )
                                         }
-
-                                        RadioButton(
-                                            selected = code.id == selectedCodeId,
-                                            onClick = null
-                                        )
                                     }
                                     HorizontalDivider(
                                         modifier = Modifier.padding(horizontal = 16.dp)
