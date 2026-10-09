@@ -1124,7 +1124,7 @@
               "type": "sms",
               "requiresInput": false,
               "compact": true,
-              "icon": "Filled.Help"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-2266-planes",
@@ -1141,7 +1141,7 @@
               "type": "sms",
               "requiresInput": false,
               "compact": true,
-              "icon": "Filled.ShoppingBag"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-2266-amigo",
@@ -1158,7 +1158,7 @@
               "type": "sms",
               "requiresInput": false,
               "compact": true,
-              "icon": "Filled.Group"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-2266-resumen",
@@ -1175,7 +1175,7 @@
               "type": "sms",
               "requiresInput": false,
               "compact": true,
-              "icon": "Filled.ReceiptLong"
+              "icon": "Filled.Sms"
             }
           ],
           "icon": "Filled.Info"
@@ -1203,7 +1203,7 @@
               "inputPlaceholder": "Número de guía",
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.LocalShipping"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-vuelo",
@@ -1222,7 +1222,7 @@
               "inputPlaceholder": "Número de vuelo",
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.Flight"
+              "icon": "Filled.Sms"
             }
           ],
           "icon": "Filled.Flight"
@@ -1249,7 +1249,7 @@
               "requiresInput": false,
               "price": "$0.00",
               "compact": true,
-              "icon": "Filled.Email"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8000-onat",
@@ -1267,7 +1267,7 @@
               "requiresInput": false,
               "price": "$0.00",
               "compact": true,
-              "icon": "Filled.AccountBalance"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8000-turismo",
@@ -1285,7 +1285,7 @@
               "requiresInput": false,
               "price": "$0.00",
               "compact": true,
-              "icon": "Filled.TravelExplore"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-embajada",
@@ -1304,7 +1304,7 @@
               "inputPlaceholder": "Texto de la consulta",
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.AccountBalance"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-cambio",
@@ -1323,7 +1323,7 @@
               "inputPlaceholder": "Moneda y monto (opcional)",
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.CurrencyExchange"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-2266-oferta",
@@ -1340,7 +1340,7 @@
               "type": "sms",
               "requiresInput": false,
               "compact": true,
-              "icon": "Filled.LocalOffer"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-2266-tarifa",
@@ -1357,7 +1357,7 @@
               "type": "sms",
               "requiresInput": false,
               "compact": true,
-              "icon": "Filled.LocalOffer"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-telectrica",
@@ -1376,7 +1376,7 @@
               "inputPlaceholder": "Rate de consumo",
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.ElectricBolt"
+              "icon": "Filled.Sms"
             }
           ],
           "icon": "Filled.Receipt"
@@ -1419,7 +1419,7 @@
                   "smsBody": "PELOTA POS"
                 }
               ],
-              "icon": "Filled.SportsBaseball"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-mlb",
@@ -1453,7 +1453,7 @@
                   "smsBody": "MLB POS"
                 }
               ],
-              "icon": "Filled.SportsBaseball"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-bundesliga",
@@ -1494,7 +1494,7 @@
                   "smsBody": "BUNDESLIGA GOL"
                 }
               ],
-              "icon": "Filled.SportsSoccer"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-chanpion",
@@ -1535,7 +1535,7 @@
                   "smsBody": "CHANPION GOL"
                 }
               ],
-              "icon": "Filled.SportsSoccer"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-rey",
@@ -1576,7 +1576,7 @@
                   "smsBody": "REY GOL"
                 }
               ],
-              "icon": "Filled.SportsSoccer"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-liga1",
@@ -1617,7 +1617,7 @@
                   "smsBody": "LIGA1 GOL"
                 }
               ],
-              "icon": "Filled.SportsSoccer"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-premier",
@@ -1658,7 +1658,7 @@
                   "smsBody": "PREMIER GOL"
                 }
               ],
-              "icon": "Filled.SportsSoccer"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-seriea",
@@ -1699,7 +1699,7 @@
                   "smsBody": "SerieA GOL"
                 }
               ],
-              "icon": "Filled.SportsSoccer"
+              "icon": "Filled.Sms"
             }
           ],
           "icon": "Filled.SportsSoccer"
@@ -1726,7 +1726,7 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.WbSunny"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-tiempo-zona",
@@ -1745,7 +1745,7 @@
               "inputPlaceholder": "OCC, CEN, ORI, Camagüey...)",
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.WbSunny"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-noticias",
@@ -1763,7 +1763,7 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.Newspaper"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-titulares",
@@ -1781,7 +1781,7 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.Newspaper"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-pl",
@@ -1799,7 +1799,7 @@
               "requiresInput": false,
               "price": "$4.00",
               "compact": true,
-              "icon": "Filled.Newspaper"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8100-marti",
@@ -1818,7 +1818,7 @@
               "price": "$4.00",
               "compact": true,
               "isSubscription": true,
-              "icon": "Filled.Newspaper"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8100-cubadebate",
@@ -1837,7 +1837,7 @@
               "price": "$4.00",
               "compact": true,
               "isSubscription": true,
-              "icon": "Filled.Newspaper"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8100-cdeportes",
@@ -1856,7 +1856,7 @@
               "price": "$4.00",
               "compact": true,
               "isSubscription": true,
-              "icon": "Filled.SportsSoccer"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8100-granma",
@@ -1875,7 +1875,7 @@
               "price": "$4.00",
               "compact": true,
               "isSubscription": true,
-              "icon": "Filled.Newspaper"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8100-pl",
@@ -1894,7 +1894,7 @@
               "price": "$4.00",
               "compact": true,
               "isSubscription": true,
-              "icon": "Filled.Newspaper"
+              "icon": "Filled.Sms"
             }
           ],
           "icon": "Filled.Article"
@@ -1936,7 +1936,7 @@
                 "SALMON",
                 "SALSAS"
               ],
-              "icon": "Filled.MenuBook"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-frases",
@@ -1991,7 +1991,7 @@
                 "CHE",
                 "PITAGORAS"
               ],
-              "icon": "Filled.MenuBook"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-horoscopo",
@@ -2023,7 +2023,7 @@
                 "ACUARIO",
                 "PISCIS"
               ],
-              "icon": "Filled.AutoAwesome"
+              "icon": "Filled.Sms"
             },
             {
               "id": "sms-8888-horoscopo-chino",
@@ -2055,7 +2055,7 @@
                 "RATA",
                 "CERDO"
               ],
-              "icon": "Filled.AutoAwesome"
+              "icon": "Filled.Sms"
             }
           ],
           "icon": "Filled.MenuBook"
