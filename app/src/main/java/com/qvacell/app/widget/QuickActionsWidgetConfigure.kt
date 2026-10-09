@@ -384,8 +384,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                     Column(modifier = Modifier.padding(start = 12.dp)) {
                                         Text(SimUtils.simLabel(sim), style = MaterialTheme.typography.bodyLarge)
                                         val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
-                                        @Suppress("DEPRECATION")
-                                        val number = sim.number?.takeIf { it.isNotBlank() }
+                                        val number = SimUtils.getPhoneNumber(this@QuickActionsWidgetConfigure, sim)
                                         val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
                                         if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim)) {
                                             Text(

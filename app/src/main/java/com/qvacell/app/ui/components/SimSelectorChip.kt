@@ -18,6 +18,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,18 +62,39 @@ fun SimSelectorIcon() {
         try { currentSim.createIconBitmap(context) } catch (_: Exception) { null }
     }
 
-    IconButton(onClick = { showSheet = true }) {
-        if (simBitmap != null) {
-            Image(
-                bitmap = simBitmap.asImageBitmap(),
-                contentDescription = SimUtils.simLabel(currentSim),
-                modifier = Modifier.size(24.dp)
-            )
-        } else {
-            Icon(
-                Icons.Filled.SimCard,
-                contentDescription = SimUtils.simLabel(currentSim),
-                tint = MaterialTheme.colorScheme.onSurface
+    val currentNumber = remember(currentSim, activeSims) {
+        SimUtils.getPhoneNumber(context, currentSim)
+    }
+
+    Surface(
+        onClick = { showSheet = true },
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier.padding(end = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (simBitmap != null) {
+                Image(
+                    bitmap = simBitmap.asImageBitmap(),
+                    contentDescription = SimUtils.simLabel(context, currentSim),
+                    modifier = Modifier.size(18.dp)
+                )
+            } else {
+                Icon(
+                    Icons.Filled.SimCard,
+                    contentDescription = SimUtils.simLabel(context, currentSim),
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            Text(
+                text = currentNumber ?: "SIM ${currentSim.simSlotIndex + 1}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(start = 6.dp)
             )
         }
     }
@@ -129,8 +151,7 @@ fun SimSelectorIcon() {
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
-                            @Suppress("DEPRECATION")
-                            val number = sim.number?.takeIf { it.isNotBlank() }
+                            val number = SimUtils.getPhoneNumber(context, sim)
                             val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
                             if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim)) {
                                 Text(

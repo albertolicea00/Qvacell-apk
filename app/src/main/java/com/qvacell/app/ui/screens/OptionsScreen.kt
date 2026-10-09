@@ -229,7 +229,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val simLabel = if (activeSims.size < 2) null
     else {
         val idx = activeSims.indexOfFirst { it.simSlotIndex == selectedSimSlot }
-        if (idx >= 0) SimUtils.simLabel(activeSims[idx]) else "Predeterminada del sistema"
+        if (idx >= 0) SimUtils.simLabel(context, activeSims[idx]) else "Predeterminada del sistema"
     }
 
     Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Opciones") }) }) { padding ->
@@ -583,8 +583,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         Column(modifier = Modifier.padding(start = 12.dp)) {
                             Text(SimUtils.simLabel(sim), style = MaterialTheme.typography.bodyLarge)
                             val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
-                            @Suppress("DEPRECATION")
-                            val number = sim.number?.takeIf { it.isNotBlank() }
+                            val number = SimUtils.getPhoneNumber(context, sim)
                             val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
                             if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim)) {
                                 Text(

@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
     <!-- Only used for Compras' purchase confirmation flow (dials directly via ACTION_CALL after
          the user accepts the in-app confirmation sheet) — every other call in the app goes
          through ACTION_DIAL and needs no permission. -->
