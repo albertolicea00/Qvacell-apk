@@ -627,25 +627,25 @@ private fun WidgetPreview(
 fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
 
-    var contentStyle by remember { mutableStateOf(WidgetSettings.getContentStyle(context)) }
+    // Ensure content style is fixed to icon_only
+    var contentStyle = "icon_only"
     var bgColor by remember { mutableStateOf(Color(WidgetSettings.getBackgroundColor(context))) }
     var contentColor by remember { mutableStateOf(Color(WidgetSettings.getIconColor(context))) }
     var iconShape by remember { mutableStateOf(WidgetSettings.getIconShape(context)) }
     var alignment by remember { mutableStateOf(WidgetSettings.getAlignment(context)) }
 
-    var showContentStyleSheet by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        if (WidgetSettings.getContentStyle(context) != "icon_only") {
+            WidgetSettings.setContentStyle(context, "icon_only")
+            WidgetSettings.refreshAllWidgets(context)
+        }
+    }
+
     var showIconShapeSheet by remember { mutableStateOf(false) }
     var showBgColorSheet by remember { mutableStateOf(false) }
     var showContentColorSheet by remember { mutableStateOf(false) }
     var showAlignmentSheet by remember { mutableStateOf(false) }
 
-
-    val contentStyleOptions = listOf(
-        "icon_only" to "Solo icono",
-        "icon_text" to "Icono + texto",
-        "text_only" to "Solo texto",
-    )
-    val currentStyleLabel = contentStyleOptions.firstOrNull { it.first == contentStyle }?.second ?: contentStyle
     val cardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
 
     Scaffold(
@@ -706,13 +706,14 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                 )
                 Card(modifier = Modifier.fillMaxWidth(), colors = cardColors) {
                     Column {
+                        /*
                         ListItem(
                             headlineContent = { Text("Contenido") },
-                            supportingContent = { Text(currentStyleLabel, style = MaterialTheme.typography.labelSmall) },
-                            modifier = Modifier.clickable { showContentStyleSheet = true },
+                            supportingContent = { Text("Solo icono", style = MaterialTheme.typography.labelSmall) },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                        */
 
                         ListItem(
                             headlineContent = { Text("Color de fondo") },
@@ -805,32 +806,6 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
         }
     }
 
-    if (showContentStyleSheet) {
-        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-        ModalBottomSheet(onDismissRequest = { showContentStyleSheet = false }, sheetState = sheetState) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
-                Text("Contenido del widget", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
-                contentStyleOptions.forEach { (value, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                contentStyle = value
-                                WidgetSettings.setContentStyle(context, value)
-                                WidgetSettings.refreshAllWidgets(context)
-                                showContentStyleSheet = false
-                            }
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(selected = contentStyle == value, onClick = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(label, style = MaterialTheme.typography.bodyMedium)
-                    }
-                }
-            }
-        }
-    }
 
     if (showIconShapeSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
