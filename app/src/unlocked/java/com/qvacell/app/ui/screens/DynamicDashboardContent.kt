@@ -54,13 +54,12 @@ fun DynamicDashboardContent(
     val context = LocalContext.current
     val catalogRepository = remember { repository }
 
-    var pendingAction by remember { mutableStateOf<Triple<String, androidx.compose.ui.graphics.vector.ImageVector, () -> Unit>?>(null) }
+    var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
 
-    fun requestQuery(title: String, icon: androidx.compose.ui.graphics.vector.ImageVector, codeId: String) {
-        pendingAction = Triple(title, icon) {
-            catalogRepository.findCodeById(codeId)?.let { code ->
-                DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
-            }
+    fun requestQuery(codeId: String) {
+        val code = catalogRepository.findCodeById(codeId) ?: return
+        pendingAction = Triple(code.title.value, code.details.value) {
+            DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
         }
     }
 
@@ -76,50 +75,38 @@ fun DynamicDashboardContent(
             reached = true,
             limitAmount = "360 cup",
             availableFrom = "24-10-2026",
-            onQuery = { requestQuery("Límite de Recargas", Icons.Filled.Warning, "national-recharge-limit") }
+            onQuery = { requestQuery("national-recharge-limit") }
         )
         MainBalanceCard(
             balance = "1520.21",
             currency = "",
             lineActiveUntil = "20 Ago 2027",
             accountDueDate = "16 Feb 2028",
-            onQuery = { requestQuery("Saldo Principal", Icons.Filled.AccountBalanceWallet, "main-balance") }
+            onQuery = { requestQuery("main-balance") }
         )
         VoiceSmsRow(
             voiceDaysRemaining = "35d",
             voiceDuration = "4d 23h 55m",
             smsDaysRemaining = "35d",
             smsCount = "8,419",
-            onVoiceQuery = { requestQuery("Saldo de Voz", Icons.Filled.Mic, "voice-balance") },
-            onSmsQuery = { requestQuery("Saldo de SMS", Icons.Filled.Sms, "sms-balance") }
+            onVoiceQuery = { requestQuery("voice-balance") },
+            onSmsQuery = { requestQuery("sms-balance") }
         )
         DataUsageCard(
             daysRemaining = "35 días restantes",
             packageGb = "6.00",
             tariffStatus = "No Activa",
-            onQuery = { requestQuery("Plan de Datos", Icons.Filled.NetworkCell, "data-plan") }
+            onQuery = { requestQuery("data-plan") }
         )
         NationalBonusCard(
             amount = "300 MB",
             expiry = "Vence 30 días",
-            onQuery = { requestQuery("Bonos", Icons.Filled.CardGiftcard, "bonus-usd-plans") }
+            onQuery = { requestQuery("bonus-usd-plans") }
         )
         ConsultCardsRow(
-            onPostpagoQuery = {
-                catalogRepository.findCodeById("postpaid-balance")?.let { code ->
-                    DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
-                }
-            },
-            onTfaQuery = {
-                catalogRepository.findCodeById("tfa")?.let { code ->
-                    DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
-                }
-            },
-            onPlanAmigoQuery = {
-                catalogRepository.findCodeById("friends-plan")?.let { code ->
-                    DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
-                }
-            }
+            onPostpagoQuery = { requestQuery("postpaid-balance") },
+            onTfaQuery = { requestQuery("tfa") },
+            onPlanAmigoQuery = { requestQuery("friends-plan") }
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -152,18 +139,11 @@ fun DynamicDashboardContent(
         }
     }
 
-    pendingAction?.let { (title, icon, action) ->
+    pendingAction?.let { (title, details, action) ->
         AlertDialog(
             onDismissRequest = { pendingAction = null },
-            icon = {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            title = { Text("Consultar $title") },
-            text = { Text("¿Deseas realizar la consulta de $title?") },
+            title = { Text(title) },
+            text = { Text(details) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -171,7 +151,7 @@ fun DynamicDashboardContent(
                         action()
                     }
                 ) {
-                    Text("Consultar")
+                    Text("Aceptar")
                 }
             },
             dismissButton = {

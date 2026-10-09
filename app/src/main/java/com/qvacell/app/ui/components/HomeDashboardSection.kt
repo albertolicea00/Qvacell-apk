@@ -601,64 +601,26 @@ fun ConsultCardsRow(
     onTfaQuery: () -> Unit = {},
     onPlanAmigoQuery: () -> Unit = {}
 ) {
-    var pendingAction by remember { mutableStateOf<Triple<String, androidx.compose.ui.graphics.vector.ImageVector, () -> Unit>?>(null) }
-
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ConsultCard(
                 title = "POSTPAGO",
                 icon = Icons.Filled.CreditCard,
                 modifier = Modifier.weight(1f),
-                onClick = {
-                    pendingAction = Triple("Saldo Postpago", Icons.Filled.CreditCard, onPostpagoQuery)
-                }
+                onClick = onPostpagoQuery
             )
             ConsultCard(
                 title = "TFA",
                 icon = Icons.Filled.PhoneAndroid,
                 modifier = Modifier.weight(1f),
-                onClick = {
-                    pendingAction = Triple("Servicio TFA", Icons.Filled.PhoneAndroid, onTfaQuery)
-                }
+                onClick = onTfaQuery
             )
         }
         ConsultCard(
             title = "PLAN AMIGO",
             icon = Icons.Filled.People,
             modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                pendingAction = Triple("Plan Amigo", Icons.Filled.People, onPlanAmigoQuery)
-            }
-        )
-    }
-
-    pendingAction?.let { (title, icon, action) ->
-        AlertDialog(
-            onDismissRequest = { pendingAction = null },
-            icon = {
-                Icon(
-                    icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            },
-            title = { Text("Consultar $title") },
-            text = { Text("¿Deseas realizar la consulta de $title?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        pendingAction = null
-                        action()
-                    }
-                ) {
-                    Text("Consultar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { pendingAction = null }) {
-                    Text("Cancelar")
-                }
-            }
+            onClick = onPlanAmigoQuery
         )
     }
 }
