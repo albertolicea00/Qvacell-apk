@@ -28,7 +28,9 @@ fun DialogActionRow(
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
-    confirmEnabled: Boolean = true
+    confirmEnabled: Boolean = true,
+    cancelColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    confirmColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary
 ) {
     HorizontalDivider()
     Row(modifier = modifier.fillMaxWidth().height(48.dp)) {
@@ -37,7 +39,7 @@ fun DialogActionRow(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             shape = RectangleShape
         ) {
-            Text(cancelText, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(cancelText, color = cancelColor)
         }
         VerticalDivider()
         TextButton(
@@ -46,7 +48,7 @@ fun DialogActionRow(
             modifier = Modifier.weight(1f).fillMaxHeight(),
             shape = RectangleShape
         ) {
-            Text(confirmText, color = MaterialTheme.colorScheme.primary)
+            Text(confirmText, color = confirmColor)
         }
     }
 }
