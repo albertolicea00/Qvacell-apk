@@ -59,6 +59,7 @@ import com.qvacell.app.ui.screens.OptionsScreen
 import com.qvacell.app.ui.screens.ReminderEditScreen
 import com.qvacell.app.ui.screens.ReminderListScreen
 import com.qvacell.app.ui.screens.TransferPinManageScreen
+import com.qvacell.app.ui.screens.VoiceShortcutsScreen
 import com.qvacell.app.ui.screens.WifiProvinceDetailScreen
 import com.qvacell.app.ui.screens.WifiProvinceListScreen
 
@@ -326,11 +327,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 HomeWidgetsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.VOICE_SHORTCUTS) {
-                PlaceholderScreen(
-                    title = "Atajos de Voz (Gemini)",
-                    description = "Controla Qvacell con tu voz mediante Gemini — función en desarrollo.",
-                    onBack = { navController.popBackStack() }
-                )
+                VoiceShortcutsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.CALLER_ID) {
                 PlaceholderScreen(

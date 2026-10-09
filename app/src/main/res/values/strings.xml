@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Qvacell</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_saldo_short">Consultar Saldo</string>
+    <string name="shortcut_saldo_long">Consultar saldo principal</string>
+    <string name="shortcut_bonos_short">Bonos y Planes</string>
+    <string name="shortcut_bonos_long">Consultar bonos y planes</string>
+    <string name="shortcut_cobrar_short">Llamar *99</string>
+    <string name="shortcut_cobrar_long">Llamar a cobro revertido (*99)</string>
+    <string name="shortcut_oculto_short">Llamar Oculto</string>
+    <string name="shortcut_oculto_long">Llamar con número oculto (#31#)</string>
 </resources>

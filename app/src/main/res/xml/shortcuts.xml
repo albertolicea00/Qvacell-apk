@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="consulta_saldo"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_balance"
+        android:shortcutShortLabel="@string/shortcut_saldo_short"
+        android:shortcutLongLabel="@string/shortcut_saldo_long">
+        <intent
+            android:action="com.qvacell.app.ACTION_DIAL_USSD"
+            android:targetPackage="com.qvacell.app"
+            android:targetClass="com.qvacell.app.MainActivity">
+            <extra android:name="ussd_code" android:value="*222#" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="bonos_planes"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_plans"
+        android:shortcutShortLabel="@string/shortcut_bonos_short"
+        android:shortcutLongLabel="@string/shortcut_bonos_long">
+        <intent
+            android:action="com.qvacell.app.ACTION_DIAL_USSD"
+            android:targetPackage="com.qvacell.app"
+            android:targetClass="com.qvacell.app.MainActivity">
+            <extra android:name="ussd_code" android:value="*222*266#" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="llamar_cobrar"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_call"
+        android:shortcutShortLabel="@string/shortcut_cobrar_short"
+        android:shortcutLongLabel="@string/shortcut_cobrar_long">
+        <intent
+            android:action="com.qvacell.app.ACTION_DIAL_USSD"
+            android:targetPackage="com.qvacell.app"
+            android:targetClass="com.qvacell.app.MainActivity">
+            <extra android:name="ussd_code" android:value="*99" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="llamar_oculto"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_hidden"
+        android:shortcutShortLabel="@string/shortcut_oculto_short"
+        android:shortcutLongLabel="@string/shortcut_oculto_long">
+        <intent
+            android:action="com.qvacell.app.ACTION_DIAL_USSD"
+            android:targetPackage="com.qvacell.app"
+            android:targetClass="com.qvacell.app.MainActivity">
+            <extra android:name="ussd_code" android:value="#31#" />
+        </intent>
+    </shortcut>
+
+</shortcuts>

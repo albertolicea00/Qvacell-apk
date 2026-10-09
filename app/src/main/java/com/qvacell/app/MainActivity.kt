@@ -2,6 +2,7 @@ package com.qvacell.app
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -26,6 +27,7 @@ import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.ui.navigation.QvacellNavHost
 import com.qvacell.app.ui.navigation.Routes
+import com.qvacell.app.service.DialService
 import com.qvacell.app.ui.theme.QvacellTheme
 import kotlinx.coroutines.flow.first
 
@@ -38,6 +40,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         requestNotificationPermissionIfNeeded()
+        handleShortcutIntent(intent)
 
         val settings = SettingsDataStore(applicationContext)
 
@@ -72,6 +75,19 @@ class MainActivity : ComponentActivity() {
                     onNavigationBarColor = { window.navigationBarColor = it }
                 )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleShortcutIntent(intent)
+    }
+
+    private fun handleShortcutIntent(intent: Intent?) {
+        if (intent == null) return
+        if (intent.action == "com.qvacell.app.ACTION_DIAL_USSD") {
+            val code = intent.getStringExtra("ussd_code") ?: return
+            DialService.dial(this, code)
         }
     }
 
