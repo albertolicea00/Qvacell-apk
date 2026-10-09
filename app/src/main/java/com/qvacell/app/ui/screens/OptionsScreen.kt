@@ -565,20 +565,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = selectedSimSlot == sim.simSlotIndex, onClick = null)
-                        if (bitmap != null) {
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = null,
-                                modifier = Modifier.padding(start = 8.dp).size(28.dp)
-                            )
-                        } else {
-                            Icon(
-                                Icons.Filled.SimCard,
-                                contentDescription = null,
-                                modifier = Modifier.padding(start = 8.dp).size(28.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        Icon(
+                            Icons.Filled.SimCard,
+                            contentDescription = null,
+                            modifier = Modifier.padding(start = 8.dp).size(28.dp),
+                            tint = SimUtils.simColor(sim.simSlotIndex)
+                        )
                         Column(modifier = Modifier.padding(start = 12.dp)) {
                             Text(SimUtils.simLabel(sim), style = MaterialTheme.typography.bodyLarge)
                             val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }

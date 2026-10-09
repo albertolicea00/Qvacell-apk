@@ -76,20 +76,12 @@ fun SimSelectorIcon() {
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (simBitmap != null) {
-                Image(
-                    bitmap = simBitmap.asImageBitmap(),
-                    contentDescription = SimUtils.simLabel(context, currentSim),
-                    modifier = Modifier.size(18.dp)
-                )
-            } else {
-                Icon(
-                    Icons.Filled.SimCard,
-                    contentDescription = SimUtils.simLabel(context, currentSim),
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+            Icon(
+                Icons.Filled.SimCard,
+                contentDescription = SimUtils.simLabel(context, currentSim),
+                modifier = Modifier.size(18.dp),
+                tint = SimUtils.simColor(currentSim.simSlotIndex)
+            )
             Text(
                 text = currentNumber ?: "SIM ${currentSim.simSlotIndex + 1}",
                 style = MaterialTheme.typography.labelMedium,
@@ -127,24 +119,14 @@ fun SimSelectorIcon() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = selected, onClick = null)
-                        if (bitmap != null) {
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .padding(start = 8.dp)
-                                    .size(28.dp)
-                            )
-                        } else {
-                            Icon(
-                                Icons.Filled.SimCard,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .padding(start = 8.dp)
-                                    .size(28.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        Icon(
+                            Icons.Filled.SimCard,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .size(28.dp),
+                            tint = SimUtils.simColor(sim.simSlotIndex)
+                        )
                         Column(modifier = Modifier.padding(start = 12.dp)) {
                             Text(
                                 SimUtils.simLabel(sim),

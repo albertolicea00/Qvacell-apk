@@ -55,4 +55,15 @@ object SimUtils {
         val carrier = info.carrierName?.toString()?.takeIf { it.isNotBlank() }
         return display ?: carrier ?: "SIM ${info.simSlotIndex + 1}"
     }
+
+    /**
+     * SIM colors: Amarillo para SIM 1 (slot 0) y Rosado para SIM 2 (slot 1).
+     */
+    fun simColor(slotIndex: Int): androidx.compose.ui.graphics.Color {
+        return when (slotIndex) {
+            0 -> androidx.compose.ui.graphics.Color(0xFFFFB300) // Amarillo cálido / ámbar visible
+            1 -> androidx.compose.ui.graphics.Color(0xFFE91E63) // Rosado
+            else -> androidx.compose.ui.graphics.Color(0xFFFFB300)
+        }
+    }
 }
