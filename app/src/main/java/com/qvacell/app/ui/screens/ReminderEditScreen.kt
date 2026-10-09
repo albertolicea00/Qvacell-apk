@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -154,21 +155,23 @@ fun ReminderEditScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 8.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = when {
-                    isEditing -> "Editar Recordatorio"
-                    template.title.isNotBlank() -> template.title
-                    else -> "Nuevo Recordatorio"
-                },
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 4.dp, bottom = 4.dp)
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = when {
+                        isEditing -> "Editar Recordatorio"
+                        template.title.isNotBlank() -> template.title
+                        else -> "Nuevo Recordatorio"
+                    },
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 4.dp, bottom = 4.dp)
+                )
 
             // Recordatorio section
             Column {
@@ -279,31 +282,35 @@ fun ReminderEditScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(52.dp),
+                                .height(IntrinsicSize.Min),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            PickerRowItem(
-                                label = "Fecha",
-                                value = dateFormatter.format(Date(dateMillis)),
-                                onClick = { showDatePicker = true },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                PickerRowItem(
+                                    label = "Fecha",
+                                    value = dateFormatter.format(Date(dateMillis)),
+                                    onClick = { showDatePicker = true },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(52.dp)
+                                )
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
                             VerticalDivider(
                                 modifier = Modifier.padding(vertical = 10.dp)
                             )
-                            PickerRowItem(
-                                label = "Hora",
-                                value = timeFormatter.format(Date(dateMillis)),
-                                onClick = { showTimePicker = true },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxHeight()
-                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                PickerRowItem(
+                                    label = "Hora",
+                                    value = timeFormatter.format(Date(dateMillis)),
+                                    onClick = { showTimePicker = true },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(52.dp)
+                                )
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            }
                         }
-
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                         var recurrenceExpanded by remember { mutableStateOf(false) }
 
@@ -386,6 +393,7 @@ fun ReminderEditScreen(
                     }
                 }
             }
+        }
 
             if (isEditing) {
                 DialogActionRow(
