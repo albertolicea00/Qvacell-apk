@@ -44,7 +44,7 @@ fun DataUsageCard(
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.spacedBy(1.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
