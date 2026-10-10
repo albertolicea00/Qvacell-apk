@@ -29,8 +29,10 @@ object UssdParsers {
         "national-recharge-limit"
     )
 
-    private val registry: Map<String, UssdResponseParser> =
-        KNOWN_CODE_IDS.associateWith { StubUssdResponseParser(it) }
+    private val registry: Map<String, UssdResponseParser> = buildMap {
+        KNOWN_CODE_IDS.forEach { put(it, StubUssdResponseParser(it)) }
+        put("national-recharge-limit", NationalRechargeLimitParser())
+    }
 
     fun forCode(codeId: String): UssdResponseParser = registry[codeId] ?: StubUssdResponseParser(codeId)
 }

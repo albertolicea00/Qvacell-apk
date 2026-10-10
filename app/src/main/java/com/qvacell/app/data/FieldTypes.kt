@@ -17,7 +17,10 @@ object FieldTypes {
     const val SMS_COUNT_REMAINING = "sms_count_remaining"
     const val SMS_DAYS_REMAINING = "sms_days_remaining"
     const val NATIONAL_RECHARGE_LIMIT_AMOUNT = "national_recharge_limit_amount"
+    const val NATIONAL_RECHARGE_LIMIT_REMAINING = "national_recharge_limit_remaining"
+    const val NATIONAL_RECHARGE_LIMIT_REACHED = "national_recharge_limit_reached"
     const val NATIONAL_RECHARGE_LIMIT_AVAILABLE_FROM = "national_recharge_limit_available_from"
+    const val NATIONAL_RECHARGE_LIMIT_PERIOD_DAYS = "national_recharge_limit_period_days"
 
     // Estimation-engine-only fields — Cuban-numbers-only usage since the last confirmed anchor.
     const val CALLS_MADE_ESTIMATE = "calls_made_estimate"

@@ -367,18 +367,29 @@ First-ever test infrastructure for this project (`app/src/test/java/com/qvacell/
 
 Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX(id)` grouping correctness under out-of-order backfill inserts, anchor `lastSeenAt`/`lastSuccessfulParseAt` independence (the regression test for "no single global last-known-date"), and the real-vs-estimate reconciliation precedence rule (§15.4).
 
-### 15.8 Status — done vs. planned
+### 15.8 Parser Rules
+
+Full parsing rules, verbatim ETECSA response samples, regex patterns, and field mappings live in [`app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md`](app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md). That document covers both USSD and SMS parsers. This section only tracks implementation status.
+
+**Implemented**: `national-recharge-limit` (3 variants, 11 test cases).
+**Stubbed**: `main-balance`, `bonus-usd-plans`, `data-plan`, `voice-balance`, `sms-balance`, all SMS parsers.
+
+---
+
+### 15.9 Status — done vs. planned
 
 **Done and verified** (both flavors compile, full test suite green, merged-manifest permission split confirmed):
 - Room schema, migration, DAOs, append-only enforcement.
-- Parser contract/registry scaffolding (stubbed, see below).
+- Parser contract/registry scaffolding (stubbed for 5 of 6 codes, see below).
+- `NationalRechargeLimitParser` — first real parser, all 3 ETECSA response variants (see parsing/ARCHITECTURE.md).
 - `DashboardDataRepository` with the real-beats-estimate reconciliation rule.
 - Capture services, estimation engine, AlarmManager scheduling (`unlocked` flavor).
 - `store`/`unlocked` flavor split, manifest/permission separation, `BuildConfig`-gated Options UI.
 - First-ever test suite for this project.
 
 **Explicitly stubbed, pending real-world examples from the maintainer**:
-- Every `UssdResponseParser`/`SmsBodyParser` implementation — real USSD response text and SMS body formats from ETECSA haven't been supplied yet, so every parser currently returns `Unresolved`/never-matches by design.
+- 5 remaining `UssdResponseParser` implementations (`main-balance`, `bonus-usd-plans`, `data-plan`, `voice-balance`, `sms-balance`) — real USSD response text from ETECSA hasn't been supplied yet.
+- Every `SmsBodyParser` implementation — same reason.
 - `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — placeholder pending real sender-ID/short-code examples.
 
 **Not yet done / open before this ships to real users**:
