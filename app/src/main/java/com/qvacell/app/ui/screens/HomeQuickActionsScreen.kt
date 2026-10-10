@@ -74,6 +74,7 @@ fun HomeQuickActionsScreen(
             modifier = Modifier.padding(top = 12.dp),
             title = { Text("Qvacell") },
             actions = {
+                SimSelectorIcon()
                 if (dashboardMode == "dynamic") {
                     IconButton(
                         onClick = {
@@ -127,7 +128,6 @@ fun HomeQuickActionsScreen(
                         )
                     }
                 }
-                SimSelectorIcon()
             }
         )
     }) { padding ->
