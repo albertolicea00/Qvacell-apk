@@ -27,6 +27,7 @@ class SettingsDataStore(private val context: Context) {
     private val dashboardModeKey = stringPreferencesKey("dashboard_mode")
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
     private val cardTapModeKey = stringPreferencesKey("card_tap_mode")
+    private val dashboardActionsStyleKey = stringPreferencesKey("dashboard_actions_style")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
 
     val themeMode = context.dataStore.data.map {
@@ -77,6 +78,9 @@ class SettingsDataStore(private val context: Context) {
     // How dashboard cards trigger USSD queries: tap_confirm (default), tap, double_tap,
     // long_confirm, long, triple_tap.
     val cardTapMode = context.dataStore.data.map { it[cardTapModeKey] ?: "tap_confirm" }
+
+    // "buttons" (default), "list", or "none" — how transfer/recharge actions show on dynamic dashboard.
+    val dashboardActionsStyle = context.dataStore.data.map { it[dashboardActionsStyleKey] ?: "buttons" }
 
     // 0-based SIM slot index (-1 = system default). Only meaningful on multi-SIM devices.
     val selectedSimSlot = context.dataStore.data.map { it[selectedSimSlotKey] ?: -1 }
@@ -131,6 +135,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setCardTapMode(mode: String) {
         context.dataStore.edit { it[cardTapModeKey] = mode }
+    }
+
+    suspend fun setDashboardActionsStyle(style: String) {
+        context.dataStore.edit { it[dashboardActionsStyleKey] = style }
     }
 
     suspend fun setSelectedSimSlot(slot: Int) {

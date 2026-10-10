@@ -1,5 +1,6 @@
 package com.qvacell.app.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CreditCard
@@ -61,6 +63,7 @@ fun DynamicDashboardContent(
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
     cardTapMode: String,
+    actionsStyle: String = "buttons",
     onTransfer: () -> Unit,
     onRecharge: () -> Unit
 ) {
@@ -180,33 +183,103 @@ fun DynamicDashboardContent(
                 // TODO: friends-plan (*222*264#) — parser not implemented, needs real ETECSA response samples
                 onPlanAmigoQuery = { requestQuery("friends-plan") }
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(
-                    onClick = onTransfer,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
+            when (actionsStyle) {
+                "buttons" -> Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(Icons.Filled.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Transferir Saldo", modifier = Modifier.padding(start = 8.dp))
+                    Button(
+                        onClick = onTransfer,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Icon(Icons.Filled.SwapHoriz, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text("Transferir Saldo", modifier = Modifier.padding(start = 8.dp))
+                    }
+                    Button(
+                        onClick = onRecharge,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(50),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        Icon(Icons.Filled.CreditCard, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Text("Recargar Saldo", modifier = Modifier.padding(start = 8.dp))
+                    }
                 }
-                Button(
-                    onClick = onRecharge,
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    )
-                ) {
-                    Icon(Icons.Filled.CreditCard, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Recargar Saldo", modifier = Modifier.padding(start = 8.dp))
+                "list" -> {
+                    Column {
+                        Text(
+                            "Acciones",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(bottom = 4.dp)
+                        )
+                        androidx.compose.material3.Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = androidx.compose.material3.CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(onClick = onTransfer)
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Filled.SwapHoriz,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    "Transferir Saldo",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.weight(1f).padding(start = 12.dp)
+                                )
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable(onClick = onRecharge)
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    Icons.Filled.CreditCard,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Text(
+                                    "Recargar Saldo",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.weight(1f).padding(start = 12.dp)
+                                )
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

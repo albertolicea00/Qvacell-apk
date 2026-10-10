@@ -60,6 +60,7 @@ fun HomeQuickActionsScreen(
     val dashboardMode by settings.dashboardMode.map<String, String?> { it }.collectAsStateWithLifecycle(initialValue = null)
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
+    val actionsStyle by settings.dashboardActionsStyle.collectAsStateWithLifecycle(initialValue = "buttons")
 
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
@@ -122,18 +123,34 @@ fun HomeQuickActionsScreen(
                         expanded = showDashboardMenu,
                         onDismissRequest = { showDashboardMenu = false }
                     ) {
-                        DropdownMenuItem(
-                            text = { Text("Recordatorios") },
-                            onClick = {
-                                showDashboardMenu = false
-                                onNavigateToReminders()
-                            }
-                        )
+                        if (actionsStyle == "none") {
+                            DropdownMenuItem(
+                                text = { Text("Transferir Saldo") },
+                                onClick = {
+                                    showDashboardMenu = false
+                                    showTransferSheet = true
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Recargar Saldo") },
+                                onClick = {
+                                    showDashboardMenu = false
+                                    showRechargeSheet = true
+                                }
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text("Gestionar Plan Amigo") },
                             onClick = {
                                 showDashboardMenu = false
                                 onNavigateToFriendsPlan()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Recordatorios") },
+                            onClick = {
+                                showDashboardMenu = false
+                                onNavigateToReminders()
                             }
                         )
                         DropdownMenuItem(
@@ -186,17 +203,17 @@ fun HomeQuickActionsScreen(
                         onDismissRequest = { showManualMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Recordatorios") },
-                            onClick = {
-                                showManualMenu = false
-                                onNavigateToReminders()
-                            }
-                        )
-                        DropdownMenuItem(
                             text = { Text("Gestionar Plan Amigo") },
                             onClick = {
                                 showManualMenu = false
                                 onNavigateToFriendsPlan()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Recordatorios") },
+                            onClick = {
+                                showManualMenu = false
+                                onNavigateToReminders()
                             }
                         )
                     }
@@ -228,6 +245,7 @@ fun HomeQuickActionsScreen(
                     dashboardRepository = dashboardRepository,
                     ussdCaptureEnabled = ussdCaptureEnabled,
                     cardTapMode = cardTapMode,
+                    actionsStyle = actionsStyle,
                     onTransfer = { showTransferSheet = true },
                     onRecharge = { showRechargeSheet = true }
                 )
