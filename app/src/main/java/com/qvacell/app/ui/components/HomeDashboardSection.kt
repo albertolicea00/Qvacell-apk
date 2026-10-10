@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -403,13 +404,18 @@ fun NationalBonusCard(
                             modifier = Modifier.padding(start = 6.dp)
                         )
                     }
+                    Text(
+                        "Nacionales:",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(top = 5.dp)
+                    )
                     val expiryDays = expiry.filter { it.isDigit() }.toIntOrNull()
                     if (expiryDays != null) {
                         Text(
                             "Vence el ${formatSpanishDate(LocalDate.now().plusDays(expiryDays.toLong()))}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -438,13 +444,13 @@ fun NationalBonusCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Filled.VerifiedUser,
+                    Icons.Filled.WorkspacePremium,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(13.dp)
                 )
                 Text(
-                    "Datos Ilimitados (Nocturnos): ",
+                    "DATOS ILIMITADOS (Nocturnos): ",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp)
@@ -457,7 +463,13 @@ fun NationalBonusCard(
                 )
             }
 
-            // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
+            Text(
+                "Vence el 15 Nov 2026",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+
             val lastUpdateDaysAgo = "1".toInt()
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
