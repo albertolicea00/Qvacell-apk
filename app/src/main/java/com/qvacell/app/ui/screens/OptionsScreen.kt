@@ -386,14 +386,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         supporting = dashboardModeLabel,
                         onClick = { showDashboardModeSheet = true }
                     )
-                    if (dashboardMode == "dynamic") {
-                        OptionsDivider()
-                        OptionsRow(
-                            headline = "Acción de consulta USSD",
-                            supporting = cardTapModeLabel,
-                            onClick = { showCardTapModeSheet = true }
-                        )
-                    }
                     if (dashboardMode == "manual") {
                         OptionsDivider()
                         OptionsRow(
@@ -404,19 +396,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     }
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Acción sin Confirmación",
-                        supporting = "En Compras, marca el código saltando el paso de confirmación de ETECSA.",
-                        trailingContent = {
-                            Switch(
-                                checked = quickPurchaseNoConfirm,
-                                onCheckedChange = { checked ->
-                                    scope.launch { settings.setQuickPurchaseNoConfirmDefault(checked) }
-                                }
-                            )
-                        }
-                    )
-                    OptionsDivider()
-                    OptionsRow(
                         headline = "Aviso de señal celular",
                         supporting = "Muestra un banner con la calidad de la señal antes de marcar",
                         trailingContent = {
@@ -424,6 +403,19 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                                 checked = showNetworkStatus,
                                 onCheckedChange = { checked ->
                                     scope.launch { settings.setShowNetworkStatus(checked) }
+                                }
+                            )
+                        }
+                    )
+                    OptionsDivider()
+                    OptionsRow(
+                        headline = "Acción sin Confirmación",
+                        supporting = "En Compras, marca el código saltando el paso de confirmación de ETECSA.",
+                        trailingContent = {
+                            Switch(
+                                checked = quickPurchaseNoConfirm,
+                                onCheckedChange = { checked ->
+                                    scope.launch { settings.setQuickPurchaseNoConfirmDefault(checked) }
                                 }
                             )
                         }
