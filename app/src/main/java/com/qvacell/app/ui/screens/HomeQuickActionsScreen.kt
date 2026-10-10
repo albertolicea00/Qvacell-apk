@@ -61,6 +61,7 @@ fun HomeQuickActionsScreen(
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
     val actionsStyle by settings.dashboardActionsStyle.collectAsStateWithLifecycle(initialValue = "buttons")
+    val manualHiddenSections by settings.manualHiddenSections.collectAsStateWithLifecycle(initialValue = emptySet())
 
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
@@ -202,6 +203,24 @@ fun HomeQuickActionsScreen(
                         expanded = showManualMenu,
                         onDismissRequest = { showManualMenu = false }
                     ) {
+                        if ("transferir" in manualHiddenSections) {
+                            DropdownMenuItem(
+                                text = { Text("Transferir Saldo") },
+                                onClick = {
+                                    showManualMenu = false
+                                    showTransferSheet = true
+                                }
+                            )
+                        }
+                        if ("recargar" in manualHiddenSections) {
+                            DropdownMenuItem(
+                                text = { Text("Recargar Saldo") },
+                                onClick = {
+                                    showManualMenu = false
+                                    showRechargeSheet = true
+                                }
+                            )
+                        }
                         DropdownMenuItem(
                             text = { Text("Gestionar Plan Amigo") },
                             onClick = {
@@ -253,7 +272,8 @@ fun HomeQuickActionsScreen(
                     repository = repository,
                     dashboardRepository = dashboardRepository,
                     ussdCaptureEnabled = ussdCaptureEnabled,
-                    tileStyle = quickActionsStyle
+                    tileStyle = quickActionsStyle,
+                    hiddenSections = manualHiddenSections
                 )
             }
         }

@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
 
@@ -28,6 +29,7 @@ class SettingsDataStore(private val context: Context) {
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
     private val cardTapModeKey = stringPreferencesKey("card_tap_mode")
     private val dashboardActionsStyleKey = stringPreferencesKey("dashboard_actions_style")
+    private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
 
     val themeMode = context.dataStore.data.map {
@@ -81,6 +83,9 @@ class SettingsDataStore(private val context: Context) {
 
     // "buttons" (default), "list", or "none" — how transfer/recharge actions show on dynamic dashboard.
     val dashboardActionsStyle = context.dataStore.data.map { it[dashboardActionsStyleKey] ?: "buttons" }
+
+    // Sections hidden on manual dashboard: "consultas", "transferir", "recargar", "adelanta".
+    val manualHiddenSections = context.dataStore.data.map { it[manualHiddenSectionsKey] ?: emptySet() }
 
     // 0-based SIM slot index (-1 = system default). Only meaningful on multi-SIM devices.
     val selectedSimSlot = context.dataStore.data.map { it[selectedSimSlotKey] ?: -1 }
@@ -139,6 +144,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setDashboardActionsStyle(style: String) {
         context.dataStore.edit { it[dashboardActionsStyleKey] = style }
+    }
+
+    suspend fun setManualHiddenSections(sections: Set<String>) {
+        context.dataStore.edit { it[manualHiddenSectionsKey] = sections }
     }
 
     suspend fun setSelectedSimSlot(slot: Int) {

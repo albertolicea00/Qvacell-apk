@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -136,6 +137,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
+    val manualHiddenSections by settings.manualHiddenSections.collectAsStateWithLifecycle(initialValue = emptySet())
     // Persisted (not local @State) so the unlock survives across launches, and one-way only —
     // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
@@ -176,6 +178,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showAccentColorSheet by remember { mutableStateOf(false) }
     var showDashboardModeSheet by remember { mutableStateOf(false) }
     var showQuickActionsStyleSheet by remember { mutableStateOf(false) }
+    var showManualVisibilitySheet by remember { mutableStateOf(false) }
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
     var showSimSheet by remember { mutableStateOf(false) }
 
@@ -225,6 +228,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         "list" -> "Lista"
         else -> "Rellenas"
     }
+    val manualVisibilityLabel = if (manualHiddenSections.isEmpty()) "Mostrando todo"
+        else "${manualHiddenSections.size} sección${if (manualHiddenSections.size > 1) "es" else ""} oculta${if (manualHiddenSections.size > 1) "s" else ""}"
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
         ?: accentColor
     val simLabel = if (activeSims.size < 2) null
@@ -433,6 +438,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                                 headline = "Estilo de acciones",
                                 supporting = quickActionsStyleLabel,
                                 onClick = { showQuickActionsStyleSheet = true }
+                            )
+                            OptionsDivider()
+                            OptionsRow(
+                                headline = "Secciones visibles",
+                                supporting = manualVisibilityLabel,
+                                onClick = { showManualVisibilitySheet = true }
                             )
                         }
                         if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
@@ -797,6 +808,41 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = quickActionsStyle == style, onClick = null)
+                        Text(label, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+
+    if (showManualVisibilitySheet) {
+        ModalBottomSheet(onDismissRequest = { showManualVisibilitySheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "Secciones visibles",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                listOf(
+                    // "consultas" to "Consultas",
+                    "transferir" to "Transferir Saldo",
+                    "recargar" to "Recargar Saldo",
+                    "adelanta" to "Adelanta Saldo"
+                ).forEach { (key, label) ->
+                    val isHidden = key in manualHiddenSections
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val updated = if (isHidden) manualHiddenSections - key
+                                    else manualHiddenSections + key
+                                scope.launch { settings.setManualHiddenSections(updated) }
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(checked = !isHidden, onCheckedChange = null)
                         Text(label, modifier = Modifier.padding(start = 8.dp))
                     }
                 }

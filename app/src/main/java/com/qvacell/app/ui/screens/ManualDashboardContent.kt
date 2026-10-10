@@ -92,7 +92,8 @@ fun ManualDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
-    tileStyle: String = "filled"
+    tileStyle: String = "filled",
+    hiddenSections: Set<String> = emptySet()
 ) {
     val showAsList = tileStyle == "list"
     val context = LocalContext.current
@@ -142,7 +143,7 @@ fun ManualDashboardContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Quick-action queries — tile grid or contact list
-        if (resolvedTiles.isNotEmpty()) {
+        if (resolvedTiles.isNotEmpty() && "consultas" !in hiddenSections) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     "CONSULTAS",
@@ -206,6 +207,7 @@ fun ManualDashboardContent(
         }
 
         // Transfer section
+        if ("transferir" !in hiddenSections) {
         val transferEnabled = transferNumber.isNotBlank() && transferPin.isNotBlank() && transferAmount.isNotBlank()
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -324,8 +326,10 @@ fun ManualDashboardContent(
                 }
             }
         }
+        }
 
         // Recargar por Llamada — standalone card (above tarjeta)
+        if ("recargar" !in hiddenSections) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 "RECARGAR SALDO",
@@ -424,9 +428,10 @@ fun ManualDashboardContent(
                 }
             }
         }
+        }
 
         // Advance balance section
-        if (advanceBalanceCodes.isNotEmpty()) {
+        if (advanceBalanceCodes.isNotEmpty() && "adelanta" !in hiddenSections) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     "ADELANTA SALDO",
