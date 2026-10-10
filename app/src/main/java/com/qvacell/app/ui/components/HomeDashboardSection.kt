@@ -454,11 +454,14 @@ fun NationalBonusCard(
         shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -490,11 +493,14 @@ fun NationalBonusCard(
                         )
                     }
                 }
-                Row(verticalAlignment = Alignment.Bottom) {
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    modifier = Modifier.offset(y = (-6).dp)
+                ) {
                     val (number, unit) = amount.split(" ", limit = 2).let { it[0] to it.getOrElse(1) { "" } }
                     Text(
                         number,
-                        style = MaterialTheme.typography.headlineLarge.copy(fontSize = 40.sp),
+                        style = MaterialTheme.typography.headlineLarge.copy(fontSize = 34.sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -504,7 +510,7 @@ fun NationalBonusCard(
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                            modifier = Modifier.padding(start = 3.dp, bottom = 2.dp)
                         )
                     }
                 }
