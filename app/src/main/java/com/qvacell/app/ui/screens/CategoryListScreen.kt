@@ -91,7 +91,7 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
                 onQueryChange = { query = it },
                 searching = searching,
                 onSearchingChange = { searching = it },
-                showSearchAction = categoryId != "purchase",
+                showSearchAction = true,
                 onBack = onBack,
                 extraActions = { if (onBack == null) SimSelectorIcon() }
             )
