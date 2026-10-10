@@ -90,14 +90,14 @@ fun DynamicDashboardContent(
     val pullState = rememberPullToRefreshState()
 
     PullToRefreshBox(
-        isRefreshing = false,
+        isRefreshing = isRefreshing,
         onRefresh = { DashboardRefreshService.refresh(context, catalogRepository, dashboardRepository) },
         modifier = Modifier.fillMaxSize(),
         state = pullState,
         indicator = {}
     ) {
         val activePull = pullState.distanceFraction > 0f && !isRefreshing
-        val pullOffset = if (activePull) (pullState.distanceFraction * 40).coerceAtMost(40f) else 0f
+        val pullOffset = if (activePull) (pullState.distanceFraction * 60).coerceAtMost(60f) else 0f
 
         Box(modifier = Modifier.fillMaxSize()) {
             if (activePull) {
