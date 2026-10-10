@@ -407,13 +407,13 @@ fun DataUsageCard(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 Icon(
                     Icons.Filled.VerifiedUser,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(13.dp)
+                    modifier = Modifier.size(13.dp).padding(top = 4.dp)
                 )
                 Text(
                     "Tarifa por consumo: ",
