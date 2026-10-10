@@ -60,6 +60,7 @@ fun DynamicDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
+    cardTapMode: String,
     onTransfer: () -> Unit,
     onRecharge: () -> Unit
 ) {
@@ -69,9 +70,19 @@ fun DynamicDashboardContent(
 
     var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
 
+    fun executeQuery(codeId: String) {
+        val code = catalogRepository.findCodeById(codeId) ?: return
+        DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
+    }
+
     fun requestQuery(codeId: String) {
         val code = catalogRepository.findCodeById(codeId) ?: return
-        pendingAction = Triple(code.title.value, code.details.value) {
+        val needsConfirm = cardTapMode == "tap_confirm" || cardTapMode == "long_confirm"
+        if (needsConfirm) {
+            pendingAction = Triple(code.title.value, code.details.value) {
+                DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
+            }
+        } else {
             DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
         }
     }

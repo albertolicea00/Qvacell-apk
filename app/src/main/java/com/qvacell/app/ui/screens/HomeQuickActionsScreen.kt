@@ -44,6 +44,7 @@ fun HomeQuickActionsScreen() {
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
+    val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
 
     // Bottom sheets only used by the dynamic dashboard path
     var showTransferSheet by remember { mutableStateOf(false) }
@@ -92,6 +93,7 @@ fun HomeQuickActionsScreen() {
                     repository = repository,
                     dashboardRepository = dashboardRepository,
                     ussdCaptureEnabled = ussdCaptureEnabled,
+                    cardTapMode = cardTapMode,
                     onTransfer = { showTransferSheet = true },
                     onRecharge = { showRechargeSheet = true }
                 )

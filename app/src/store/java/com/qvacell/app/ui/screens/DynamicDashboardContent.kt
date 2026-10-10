@@ -41,6 +41,7 @@ fun DynamicDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
+    cardTapMode: String = "tap_confirm",
     onTransfer: () -> Unit,
     onRecharge: () -> Unit
 ) {

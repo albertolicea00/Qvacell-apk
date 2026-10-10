@@ -26,6 +26,7 @@ class SettingsDataStore(private val context: Context) {
     private val hasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
     private val dashboardModeKey = stringPreferencesKey("dashboard_mode")
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
+    private val cardTapModeKey = stringPreferencesKey("card_tap_mode")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
 
     val themeMode = context.dataStore.data.map {
@@ -72,6 +73,10 @@ class SettingsDataStore(private val context: Context) {
 
     // "filled" (default) or "outline" — tile card style for "manual" dashboard mode.
     val quickActionsStyle = context.dataStore.data.map { it[quickActionsStyleKey] ?: "filled" }
+
+    // How dashboard cards trigger USSD queries: tap_confirm (default), tap, double_tap,
+    // long_confirm, long, triple_tap.
+    val cardTapMode = context.dataStore.data.map { it[cardTapModeKey] ?: "tap_confirm" }
 
     // 0-based SIM slot index (-1 = system default). Only meaningful on multi-SIM devices.
     val selectedSimSlot = context.dataStore.data.map { it[selectedSimSlotKey] ?: -1 }
@@ -122,6 +127,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setQuickActionsStyle(style: String) {
         context.dataStore.edit { it[quickActionsStyleKey] = style }
+    }
+
+    suspend fun setCardTapMode(mode: String) {
+        context.dataStore.edit { it[cardTapModeKey] = mode }
     }
 
     suspend fun setSelectedSimSlot(slot: Int) {
