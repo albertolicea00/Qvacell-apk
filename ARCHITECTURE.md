@@ -371,8 +371,8 @@ Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX
 
 Full parsing rules, verbatim ETECSA response samples, regex patterns, and field mappings live in [`app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md`](app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md). That document covers both USSD and SMS parsers. This section only tracks implementation status.
 
-**Implemented**: `national-recharge-limit` (3 variants, 11 tests), `voice-balance` (3 variants, 8 tests), `sms-balance` (3 variants, 8 tests).
-**Stubbed**: `main-balance`, `bonus-usd-plans`, `data-plan`, all SMS parsers.
+**Implemented**: `national-recharge-limit` (3 variants, 11 tests), `voice-balance` (3 variants, 8 tests), `sms-balance` (3 variants, 8 tests), `bonus-usd-plans` (3 variants + multi-bonus, 13 tests).
+**Stubbed**: `main-balance`, `data-plan`, all SMS parsers.
 
 ---
 

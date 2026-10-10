@@ -34,6 +34,7 @@ object UssdParsers {
         put("national-recharge-limit", NationalRechargeLimitParser())
         put("voice-balance", VoiceBalanceParser())
         put("sms-balance", SmsBalanceParser())
+        put("bonus-usd-plans", BonusUsdPlansParser())
     }
 
     fun forCode(codeId: String): UssdResponseParser = registry[codeId] ?: StubUssdResponseParser(codeId)

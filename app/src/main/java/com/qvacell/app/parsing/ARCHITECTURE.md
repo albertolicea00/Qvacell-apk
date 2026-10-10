@@ -100,7 +100,59 @@ Monthly limit fully consumed. Recharge blocked until stated date.
 
 ### `bonus-usd-plans`
 
-**Stub** — awaiting ETECSA USSD response samples.
+Code id: `bonus-usd-plans`
+USSD: `*222*266#`
+Parser: `BonusUsdPlansParser.kt`
+Tests: `BonusUsdPlansParserTest.kt` (13 cases)
+
+Multi-bonus response — one USSD reply can contain several bonus entries. Parser extracts each independently via `findAll`.
+
+#### Variant 1 — Datos.cu only
+
+```
+Datos.cu: 287 MB vence 31-10-26.
+Datos.cu: 300 MB vence 29-10-26.
+```
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `bonus_active` | 1.0 | — |
+| `bonus_datos_cu_mb` | amount (MB) | MB |
+| `bonus_datos_cu_expiry` | epoch(date) | — |
+
+GB amounts auto-converted to MB (`1 GB` → `1024.0 MB`).
+
+#### Variant 2 — No active bonuses
+
+```
+Usted no dispone de bonos activos.
+```
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `bonus_active` | 0.0 | — |
+
+#### Variant 3 — Multi-bonus (Nocturno + Datos.cu)
+
+```
+Datos: ilimitados: Nocturno vence 24-10-26. Datos.cu 285 MB vence 27-10-26.
+```
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `bonus_active` | 1.0 | — |
+| `bonus_datos_nocturno_expiry` | epoch(date) | — |
+| `bonus_datos_cu_mb` | amount (MB) | MB |
+| `bonus_datos_cu_expiry` | epoch(date) | — |
+
+Nocturno-only (without Datos.cu) also valid — emits `bonus_active` + `bonus_datos_nocturno_expiry`.
+
+#### Parser notes
+
+- Colon after `Datos.cu` optional (seen both `Datos.cu:` and `Datos.cu ` in samples).
+- Dates: dd-MM-yy and dd-MM-yyyy via shared `parseDateDmy()`.
+- New bonus types (e.g., LTE, international) → add regex + FieldType when samples arrive.
+- Text not matching any pattern and not "no dispone" → `ParseResult.Unrecognized`.
 
 ---
 
