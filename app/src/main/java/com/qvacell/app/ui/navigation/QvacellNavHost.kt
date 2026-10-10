@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -47,6 +48,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.qvacell.app.ui.screens.CategoryListScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
+import com.qvacell.app.ui.screens.DashboardSettingsScreen
 import com.qvacell.app.ui.screens.DirectorySearchScreen
 import com.qvacell.app.ui.screens.FriendsPlanManageScreen
 import com.qvacell.app.ui.screens.HelpScreen
@@ -77,7 +79,8 @@ private val OPTIONS_NESTED_ROUTES = setOf(
     Routes.FRIENDS_PLAN_MANAGE,
     Routes.TRANSFER_PIN_MANAGE,
     Routes.HOME_WIDGETS,
-    Routes.VOICE_SHORTCUTS
+    Routes.VOICE_SHORTCUTS,
+    Routes.DASHBOARD_SETTINGS
 )
 
 // Shown on the bottom bar's Options tab instead of the generic icon while inside one of
@@ -93,6 +96,7 @@ private val OPTIONS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.YELLOW_PAGES_SEARCH to Icons.Filled.Search,
     Routes.FRIENDS_PLAN_MANAGE to Icons.Filled.People,
     Routes.TRANSFER_PIN_MANAGE to Icons.Filled.Key,
+    Routes.DASHBOARD_SETTINGS to Icons.Filled.Dashboard,
     Routes.HOME_WIDGETS to Icons.Filled.Widgets,
     Routes.VOICE_SHORTCUTS to Icons.Filled.Mic,
     Routes.CALLER_ID to Icons.Filled.PhoneInTalk
@@ -238,6 +242,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                     OptionsDestination.TransferPinManage -> Routes.TRANSFER_PIN_MANAGE
                     OptionsDestination.HomeWidgets -> Routes.HOME_WIDGETS
                     OptionsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
+                    OptionsDestination.DashboardSettings -> Routes.DASHBOARD_SETTINGS
                     OptionsDestination.CallerID -> Routes.CALLER_ID
                 }
                 navController.navigate(route)
@@ -313,7 +318,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             composable(Routes.HELP) {
                 HelpScreen(
                     onBack = { navController.popBackStack() },
-                    onStartTour = { navController.navigate(Routes.ONBOARDING) }
+                    onStartTour = { navController.navigate(Routes.ONBOARDING) },
+                    onOpenSettings = { navController.navigate(Routes.DASHBOARD_SETTINGS) }
                 )
             }
             composable(Routes.YELLOW_PAGES_SEARCH) {
@@ -328,6 +334,9 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             }
             composable(Routes.TRANSFER_PIN_MANAGE) {
                 TransferPinManageScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.DASHBOARD_SETTINGS) {
+                DashboardSettingsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.HOME_WIDGETS) {
                 HomeWidgetsScreen(onBack = { navController.popBackStack() })

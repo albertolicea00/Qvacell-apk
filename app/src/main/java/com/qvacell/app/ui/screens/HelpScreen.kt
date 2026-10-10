@@ -15,8 +15,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,7 +40,11 @@ private const val REPO_URL = "https://github.com/albertolicea00/Qvacell-apk"
 private const val DEVELOPER_URL = "https://github.com/albertolicea00"
 
 @Composable
-fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) {
+fun HelpScreen(
+    onBack: (() -> Unit)? = null,
+    onStartTour: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null
+) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -109,6 +115,25 @@ fun HelpScreen(onBack: (() -> Unit)? = null, onStartTour: (() -> Unit)? = null) 
                     icon = Icons.Filled.Download,
                     onClick = { uriHandler.openUri("$REPO_URL/blob/main/app/src/main/assets/codes.json") }
                 )
+            }
+
+            if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                HelpSection("Dashboard") {
+                    HelpInfoRow(
+                        title = "Dashboard Dinámico vs Marcación Rápida",
+                        text = "El Dashboard Dinámico consulta tu saldo, datos y bonos automáticamente " +
+                            "y muestra los resultados en cards actualizables. La Marcación Rápida es el " +
+                            "modo clásico: una lista de accesos directos a los códigos USSD sin consulta " +
+                            "automática."
+                    )
+                    if (onOpenSettings != null) {
+                        HelpLinkRow(
+                            label = "Abrir Funcionamiento del Dashboard Dinámico",
+                            icon = Icons.Filled.Settings,
+                            onClick = onOpenSettings
+                        )
+                    }
+                }
             }
 
             HelpSection("Compras: Acción sin Confirmación") {

@@ -114,6 +114,7 @@ sealed class OptionsDestination {
     data object TransferPinManage : OptionsDestination()
     data object HomeWidgets : OptionsDestination()
     data object VoiceShortcuts : OptionsDestination()
+    data object DashboardSettings : OptionsDestination()
     data object CallerID : OptionsDestination()
 }
 
@@ -135,7 +136,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
-    val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
     // Persisted (not local @State) so the unlock survives across launches, and one-way only —
     // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
@@ -177,7 +177,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showDashboardModeSheet by remember { mutableStateOf(false) }
     var showQuickActionsStyleSheet by remember { mutableStateOf(false) }
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
-    var showCardTapModeSheet by remember { mutableStateOf(false) }
     var showSimSheet by remember { mutableStateOf(false) }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
@@ -220,14 +219,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         "dynamic" -> "Dashboard Dinámico"
         "manual" -> "Marcación Rápida"
         else -> "No configurado"
-    }
-    val cardTapModeLabel = when (cardTapMode) {
-        "long_confirm" -> "Presionar + confirmación"
-        "long" -> "Solo Presionar"
-        "tap" -> "Un tap"
-        "double_tap" -> "Doble tap"
-        "triple_tap" -> "Triple tap"
-        else -> "Un tap + confirmación"
     }
     val quickActionsStyleLabel = when (quickActionsStyle) {
         "outline" -> "Contorno"
@@ -444,51 +435,11 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
             if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
                 item {
-                    OptionsSection(header = "Datos del Dashboard (experimental)") {
+                    OptionsSection(header = "Dashboard Dinámico") {
                         OptionsRow(
-                            headline = "Acción de consulta USSD",
-                            supporting = cardTapModeLabel,
-                            onClick = { showCardTapModeSheet = true }
-                        )
-                        OptionsDivider()
-                        OptionsRow(
-                            headline = "Consulta automática de saldo",
-                            supporting = "Lee la respuesta USSD sin abrir el marcador, usando el mismo permiso de Compras.",
-                            trailingContent = {
-                                Switch(
-                                    checked = ussdCaptureEnabled,
-                                    onCheckedChange = { checked ->
-                                        if (checked && !DialService.hasCallPermission(context)) {
-                                            ussdCapturePermissionLauncher.launch(Manifest.permission.CALL_PHONE)
-                                        } else {
-                                            scope.launch { settings.setUssdCaptureEnabled(checked) }
-                                        }
-                                    }
-                                )
-                            }
-                        )
-                        OptionsDivider()
-                        OptionsRow(
-                            headline = "Detección automática por SMS",
-                            supporting = "Lee los SMS de saldo de ETECSA (nuevos e historial) y el registro de llamadas para estimar tu consumo.",
-                            trailingContent = {
-                                Switch(
-                                    checked = smsCaptureEnabled,
-                                    onCheckedChange = { checked ->
-                                        if (checked) {
-                                            smsCallLogPermissionLauncher.launch(
-                                                arrayOf(
-                                                    Manifest.permission.RECEIVE_SMS,
-                                                    Manifest.permission.READ_SMS,
-                                                    Manifest.permission.READ_CALL_LOG
-                                                )
-                                            )
-                                        } else {
-                                            scope.launch { settings.setSmsCaptureEnabled(false) }
-                                        }
-                                    }
-                                )
-                            }
+                            headline = "Funcionamiento del Dashboard",
+                            supporting = "Conoce y configura cómo funciona",
+                            onClick = { onNavigate(OptionsDestination.DashboardSettings) }
                         )
                     }
                 }
@@ -852,47 +803,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         }
     }
 
-    if (showCardTapModeSheet) {
-        ModalBottomSheet(onDismissRequest = { showCardTapModeSheet = false }) {
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(
-                    "Acción de consulta USSD",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(
-                    "Define cómo interactuar con las cards para realizar la marcación USSD.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                listOf(
-                    "tap_confirm" to "Un tap + confirmación",
-                    "long_confirm" to "Presionar + confirmación",
-                    "long" to "Solo Presionar",
-                    "tap" to "Un tap",
-                    "double_tap" to "Doble tap",
-                    "triple_tap" to "Triple tap"
-                ).forEach { (mode, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                scope.launch { settings.setCardTapMode(mode) }
-                                showCardTapModeSheet = false
-                            }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(selected = cardTapMode == mode, onClick = null)
-                        Text(label, modifier = Modifier.padding(start = 8.dp))
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-            }
-        }
-    }
-
     if (showAdvanceBalanceSheet && advanceBalanceCodes.isNotEmpty()) {
         ModalBottomSheet(
             onDismissRequest = { showAdvanceBalanceSheet = false },
@@ -959,7 +869,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
 /** Section header + surrounding card — same grouping style as Compras/Servicios por SMS. */
 @Composable
-private fun OptionsSection(header: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun OptionsSection(header: String, content: @Composable ColumnScope.() -> Unit) {
     Column {
         Text(
             header,
@@ -977,7 +887,7 @@ private fun OptionsSection(header: String, content: @Composable ColumnScope.() -
 }
 
 @Composable
-private fun OptionsRow(
+internal fun OptionsRow(
     headline: String,
     supporting: String? = null,
     icon: ImageVector? = null,
@@ -1010,7 +920,7 @@ private fun OptionsRow(
 }
 
 @Composable
-private fun OptionsDivider() {
+internal fun OptionsDivider() {
     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }
 
