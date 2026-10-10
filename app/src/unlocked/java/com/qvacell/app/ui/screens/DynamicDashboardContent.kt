@@ -125,7 +125,7 @@ fun DynamicDashboardContent(
                     .fillMaxSize()
                     .offset(y = pullOffset.dp)
                     .padding(horizontal = 16.dp)
-                    .verticalScroll(scrollState, enabled = !isRefreshing)
+                    .verticalScroll(scrollState)
                     .padding(top = 16.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
