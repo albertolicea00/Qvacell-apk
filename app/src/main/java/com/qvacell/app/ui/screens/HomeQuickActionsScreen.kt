@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
+import kotlinx.coroutines.flow.map
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DashboardRefreshService
 import com.qvacell.app.ui.components.RechargeBottomSheet
@@ -54,7 +55,7 @@ fun HomeQuickActionsScreen(
     val settings = remember { SettingsDataStore(context) }
     val dashboardRepository = remember { DashboardDataRepository(context) }
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
-    val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
+    val dashboardMode by settings.dashboardMode.map<String, String?> { it }.collectAsStateWithLifecycle(initialValue = null)
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
 
@@ -64,7 +65,8 @@ fun HomeQuickActionsScreen(
     var viewOverride by remember { mutableStateOf<String?>(null) }
     var showUnavailableDialog by remember { mutableStateOf(false) }
 
-    val currentView = viewOverride ?: dashboardMode
+    val dashboardModeLoaded = dashboardMode != null
+    val currentView = viewOverride ?: dashboardMode ?: ""
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
     val infiniteTransition = rememberInfiniteTransition(label = "refresh")
     val rotation by infiniteTransition.animateFloat(
@@ -83,7 +85,7 @@ fun HomeQuickActionsScreen(
             title = { Text("Qvacell") },
             actions = {
                 SimSelectorIcon()
-                if (currentView == "dynamic") {
+                if (dashboardModeLoaded && currentView == "dynamic") {
                     IconButton(
                         onClick = {
                             DashboardRefreshService.refresh(context, repository, dashboardRepository)
@@ -100,7 +102,9 @@ fun HomeQuickActionsScreen(
                         )
                     }
                 }
-                if (currentView == "dynamic") {
+                if (!dashboardModeLoaded) {
+                    // wait for DataStore
+                } else if (currentView == "dynamic") {
                     IconButton(
                         onClick = { showDashboardMenu = true },
                         modifier = Modifier.size(36.dp)
@@ -171,6 +175,7 @@ fun HomeQuickActionsScreen(
         )
     }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
+            if (!dashboardModeLoaded) return@Scaffold
             when (currentView) {
                 "dynamic" -> DynamicDashboardContent(
                     repository = repository,
