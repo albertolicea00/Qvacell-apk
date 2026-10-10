@@ -86,7 +86,7 @@ fun DynamicDashboardContent(
         indicator = {}
     ) {
         val activePull = pullState.distanceFraction > 0f && !isRefreshing
-        val pullOffset = if (activePull) (pullState.distanceFraction * 60).coerceAtMost(60f) else 0f
+        val pullOffset = if (activePull) (pullState.distanceFraction * 40).coerceAtMost(40f) else 0f
 
         Box(modifier = Modifier.fillMaxSize()) {
             if (activePull) {
@@ -95,7 +95,7 @@ fun DynamicDashboardContent(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset(y = (pullOffset - 30).coerceAtLeast(0f).dp),
+                        .offset(y = (pullOffset * 0.05f).dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
