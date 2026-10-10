@@ -2,6 +2,11 @@ package com.qvacell.app.ui.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -17,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardDataRepository
+import com.qvacell.app.service.DashboardRefreshService
 import com.qvacell.app.ui.components.RechargeBottomSheet
 import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.TransferBottomSheet
@@ -39,7 +45,16 @@ fun HomeQuickActionsScreen() {
         TopAppBar(
             modifier = Modifier.padding(top = 12.dp),
             title = { Text("Qvacell") },
-            actions = { SimSelectorIcon() }
+            actions = {
+                if (dashboardMode == "dynamic") {
+                    IconButton(onClick = {
+                        DashboardRefreshService.refresh(context, repository, dashboardRepository)
+                    }) {
+                        Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", modifier = Modifier.size(22.dp))
+                    }
+                }
+                SimSelectorIcon()
+            }
         )
     }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
