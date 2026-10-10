@@ -1,0 +1,143 @@
+package com.qvacell.app.ui.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowOutward
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@Composable
+fun ConsultCardsRow(
+    onPostpagoQuery: () -> Unit = {},
+    onTfaQuery: () -> Unit = {},
+    onPlanAmigoQuery: () -> Unit = {}
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ConsultCard(
+                title = "POSTPAGO",
+                icon = Icons.Filled.CreditCard,
+                modifier = Modifier.weight(1f),
+                onClick = onPostpagoQuery
+            )
+            ConsultCard(
+                title = "TFA",
+                icon = Icons.Filled.PhoneAndroid,
+                modifier = Modifier.weight(1f),
+                onClick = onTfaQuery
+            )
+        }
+        ConsultCard(
+            title = "PLAN AMIGO",
+            icon = Icons.Filled.People,
+            modifier = Modifier.fillMaxWidth(),
+            fullWidth = true,
+            onClick = onPlanAmigoQuery
+        )
+    }
+}
+
+@Composable
+private fun ConsultCard(
+    title: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    fullWidth: Boolean = false,
+    onClick: () -> Unit
+) {
+    val cardShape = RoundedCornerShape(20.dp)
+    Card(
+        modifier = modifier
+            .clip(cardShape)
+            .clickable(onClick = onClick),
+        shape = cardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+    ) {
+        if (fullWidth) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
+                ComingSoonBadge()
+            }
+        } else {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 6.dp)
+                    )
+                }
+                ComingSoonBadge(modifier = Modifier.padding(top = 8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun ComingSoonBadge(modifier: Modifier = Modifier) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+        Text(
+            "UI Próximamente",
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 9.sp,
+                fontStyle = FontStyle.Italic
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+        )
+        Icon(
+            Icons.Filled.ArrowOutward,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            modifier = Modifier
+                .padding(start = 4.dp)
+                .size(11.dp)
+        )
+    }
+}
