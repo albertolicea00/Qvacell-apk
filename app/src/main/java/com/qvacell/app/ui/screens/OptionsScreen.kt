@@ -446,6 +446,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 item {
                     OptionsSection(header = "Datos del Dashboard (experimental)") {
                         OptionsRow(
+                            headline = "Acción de consulta USSD",
+                            supporting = cardTapModeLabel,
+                            onClick = { showCardTapModeSheet = true }
+                        )
+                        OptionsDivider()
+                        OptionsRow(
                             headline = "Consulta automática de saldo",
                             supporting = "Lee la respuesta USSD sin abrir el marcador, usando el mismo permiso de Compras.",
                             trailingContent = {
