@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -79,7 +81,10 @@ private val OPTIONS_NESTED_ROUTES = setOf(
     Routes.FRIENDS_PLAN_MANAGE,
     Routes.TRANSFER_PIN_MANAGE,
     Routes.HOME_WIDGETS,
-    Routes.VOICE_SHORTCUTS
+    Routes.VOICE_SHORTCUTS,
+    Routes.DASHBOARD_SETTINGS,
+    Routes.DASHBOARD_HELP,
+    Routes.DASHBOARD_EVENTS
 )
 
 // Shown on the bottom bar's Options tab instead of the generic icon while inside one of
@@ -97,7 +102,10 @@ private val OPTIONS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.TRANSFER_PIN_MANAGE to Icons.Filled.Key,
     Routes.HOME_WIDGETS to Icons.Filled.Widgets,
     Routes.VOICE_SHORTCUTS to Icons.Filled.Mic,
-    Routes.CALLER_ID to Icons.Filled.PhoneInTalk
+    Routes.CALLER_ID to Icons.Filled.PhoneInTalk,
+    Routes.DASHBOARD_SETTINGS to Icons.Filled.Dashboard,
+    Routes.DASHBOARD_HELP to Icons.AutoMirrored.Filled.Help,
+    Routes.DASHBOARD_EVENTS to Icons.Filled.CalendarMonth
 )
 
 @Composable
@@ -168,7 +176,20 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                     role = Role.Tab,
                                     onClick = {
                                         if (tab is BottomTab.Options && isInOptionsSection) {
-                                            navController.popBackStack(BottomTab.Options.route, inclusive = false)
+                                            val popped = navController.popBackStack(BottomTab.Options.route, inclusive = false)
+                                            if (!popped) {
+                                                navController.navigate(tab.route) {
+                                                    popUpTo(validStartRoute) { saveState = true }
+                                                    launchSingleTop = true
+                                                    restoreState = true
+                                                }
+                                            }
+                                        } else if (isInOptionsSection) {
+                                            navController.navigate(tab.route) {
+                                                popUpTo(validStartRoute) { saveState = false }
+                                                launchSingleTop = true
+                                                restoreState = false
+                                            }
                                         } else {
                                             navController.navigate(tab.route) {
                                                 popUpTo(validStartRoute) { saveState = true }
