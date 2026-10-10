@@ -373,20 +373,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Tipo de Dashboard",
-                        supporting = dashboardModeLabel,
-                        onClick = { showDashboardModeSheet = true }
-                    )
-                    if (dashboardMode == "manual") {
-                        OptionsDivider()
-                        OptionsRow(
-                            headline = "Estilo de acciones",
-                            supporting = quickActionsStyleLabel,
-                            onClick = { showQuickActionsStyleSheet = true }
-                        )
-                    }
-                    OptionsDivider()
-                    OptionsRow(
                         headline = "Aviso de señal celular",
                         supporting = "Muestra un banner con la calidad de la señal antes de marcar",
                         trailingContent = {
@@ -433,14 +419,30 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 }
             }
 
-            if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+            if (BuildConfig.DASHBOARD_CAPTURE_ENABLED || dashboardMode == "manual") {
                 item {
-                    OptionsSection(header = "Dashboard Dinámico") {
+                    OptionsSection(header = "Dashboards") {
                         OptionsRow(
-                            headline = "Funcionamiento del Dashboard",
-                            supporting = "Conoce y configura cómo funciona",
-                            onClick = { onNavigate(OptionsDestination.DashboardSettings) }
+                            headline = "Tipo de Dashboard",
+                            supporting = dashboardModeLabel,
+                            onClick = { showDashboardModeSheet = true }
                         )
+                        if (dashboardMode == "manual") {
+                            OptionsDivider()
+                            OptionsRow(
+                                headline = "Estilo de acciones",
+                                supporting = quickActionsStyleLabel,
+                                onClick = { showQuickActionsStyleSheet = true }
+                            )
+                        }
+                        if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                            OptionsDivider()
+                            OptionsRow(
+                                headline = "Funcionamiento del Dashboard",
+                                supporting = "Conoce y configura cómo funciona nuestro dashboard dinámico",
+                                onClick = { onNavigate(OptionsDestination.DashboardSettings) }
+                            )
+                        }
                     }
                 }
             }
