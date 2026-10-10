@@ -10,14 +10,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.InsertChart
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,6 +34,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardDataRepository
@@ -56,7 +61,10 @@ fun HomeQuickActionsScreen(
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
     var showDashboardMenu by remember { mutableStateOf(false) }
+    var viewOverride by remember { mutableStateOf<String?>(null) }
+    var showUnavailableDialog by remember { mutableStateOf(false) }
 
+    val currentView = viewOverride ?: dashboardMode
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
     val infiniteTransition = rememberInfiniteTransition(label = "refresh")
     val rotation by infiniteTransition.animateFloat(
@@ -75,7 +83,7 @@ fun HomeQuickActionsScreen(
             title = { Text("Qvacell") },
             actions = {
                 SimSelectorIcon()
-                if (dashboardMode == "dynamic") {
+                if (currentView == "dynamic") {
                     IconButton(
                         onClick = {
                             DashboardRefreshService.refresh(context, repository, dashboardRepository)
@@ -91,6 +99,8 @@ fun HomeQuickActionsScreen(
                                 .then(if (isRefreshing) Modifier.rotate(rotation) else Modifier)
                         )
                     }
+                }
+                if (currentView == "dynamic") {
                     IconButton(
                         onClick = { showDashboardMenu = true },
                         modifier = Modifier.size(36.dp)
@@ -127,12 +137,41 @@ fun HomeQuickActionsScreen(
                             }
                         )
                     }
+                    IconButton(
+                        onClick = {
+                            viewOverride = if (dashboardMode == "dynamic") "" else null
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.GridView,
+                            contentDescription = "Cambiar a manual",
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = {
+                            if (!BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                                showUnavailableDialog = true
+                            } else {
+                                viewOverride = if (dashboardMode != "dynamic") "dynamic" else null
+                            }
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.InsertChart,
+                            contentDescription = "Cambiar a dinámico",
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
         )
     }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            when (dashboardMode) {
+            when (currentView) {
                 "dynamic" -> DynamicDashboardContent(
                     repository = repository,
                     dashboardRepository = dashboardRepository,
@@ -156,5 +195,19 @@ fun HomeQuickActionsScreen(
     }
     if (showRechargeSheet) {
         RechargeBottomSheet(onDismiss = { showRechargeSheet = false })
+    }
+    if (showUnavailableDialog) {
+        AlertDialog(
+            onDismissRequest = { showUnavailableDialog = false },
+            title = { Text("Dashboard Dinámico no disponible") },
+            text = {
+                Text("El Dashboard Dinámico solo está disponible en la versión descargada desde GitHub.")
+            },
+            confirmButton = {
+                TextButton(onClick = { showUnavailableDialog = false }) {
+                    Text("Entendido")
+                }
+            }
+        )
     }
 }
