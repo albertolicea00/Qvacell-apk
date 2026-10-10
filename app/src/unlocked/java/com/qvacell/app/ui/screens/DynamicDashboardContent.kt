@@ -1,7 +1,9 @@
 package com.qvacell.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,15 +30,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
@@ -70,17 +75,43 @@ fun DynamicDashboardContent(
         }
     }
 
+    val pullState = rememberPullToRefreshState()
+
     PullToRefreshBox(
-        isRefreshing = isRefreshing,
+        isRefreshing = false,
         onRefresh = { DashboardRefreshService.refresh(context, catalogRepository, dashboardRepository) },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        state = pullState,
+        indicator = {}
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(top = 16.dp, bottom = 8.dp),
+        val pullOffset = (pullState.distanceFraction * 60).coerceAtMost(60f)
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (pullState.distanceFraction > 0f && !isRefreshing) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = (pullOffset - 20).coerceAtLeast(0f).dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Text(
+                        if (pullState.distanceFraction >= 1f) "Suelta para refrescar"
+                        else "Arrastra para refrescar",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                            alpha = pullState.distanceFraction.coerceIn(0.3f, 0.8f)
+                        )
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .offset(y = pullOffset.dp)
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 16.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             RechargeLimitCard(
@@ -152,6 +183,7 @@ fun DynamicDashboardContent(
                     Text("Recargar Saldo", modifier = Modifier.padding(start = 8.dp))
                 }
             }
+        }
         }
     }
 

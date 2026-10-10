@@ -1,5 +1,11 @@
 package com.qvacell.app.ui.screens
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -11,11 +17,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,16 +49,37 @@ fun HomeQuickActionsScreen() {
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
 
+    val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
+    val infiniteTransition = rememberInfiniteTransition(label = "refresh")
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "refreshRotation"
+    )
+
     Scaffold(topBar = {
         TopAppBar(
             modifier = Modifier.padding(top = 12.dp),
             title = { Text("Qvacell") },
             actions = {
                 if (dashboardMode == "dynamic") {
-                    IconButton(onClick = {
-                        DashboardRefreshService.refresh(context, repository, dashboardRepository)
-                    }) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Actualizar", modifier = Modifier.size(22.dp))
+                    IconButton(
+                        onClick = {
+                            DashboardRefreshService.refresh(context, repository, dashboardRepository)
+                        },
+                        enabled = !isRefreshing
+                    ) {
+                        Icon(
+                            Icons.Filled.Refresh,
+                            contentDescription = "Actualizar",
+                            modifier = Modifier
+                                .size(22.dp)
+                                .then(if (isRefreshing) Modifier.rotate(rotation) else Modifier)
+                        )
                     }
                 }
                 SimSelectorIcon()
