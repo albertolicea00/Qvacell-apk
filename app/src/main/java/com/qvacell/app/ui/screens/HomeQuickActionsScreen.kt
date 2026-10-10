@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -36,7 +39,11 @@ import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.TransferBottomSheet
 
 @Composable
-fun HomeQuickActionsScreen() {
+fun HomeQuickActionsScreen(
+    onNavigateToEvents: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToHelp: () -> Unit = {}
+) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
     val settings = remember { SettingsDataStore(context) }
@@ -46,9 +53,9 @@ fun HomeQuickActionsScreen() {
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
 
-    // Bottom sheets only used by the dynamic dashboard path
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
+    var showDashboardMenu by remember { mutableStateOf(false) }
 
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
     val infiniteTransition = rememberInfiniteTransition(label = "refresh")
@@ -80,6 +87,39 @@ fun HomeQuickActionsScreen() {
                             modifier = Modifier
                                 .size(22.dp)
                                 .then(if (isRefreshing) Modifier.rotate(rotation) else Modifier)
+                        )
+                    }
+                    IconButton(onClick = { showDashboardMenu = true }) {
+                        Icon(
+                            Icons.Filled.MoreVert,
+                            contentDescription = "Menú",
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showDashboardMenu,
+                        onDismissRequest = { showDashboardMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Eventos") },
+                            onClick = {
+                                showDashboardMenu = false
+                                onNavigateToEvents()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Opciones") },
+                            onClick = {
+                                showDashboardMenu = false
+                                onNavigateToSettings()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Ayuda") },
+                            onClick = {
+                                showDashboardMenu = false
+                                onNavigateToHelp()
+                            }
                         )
                     }
                 }

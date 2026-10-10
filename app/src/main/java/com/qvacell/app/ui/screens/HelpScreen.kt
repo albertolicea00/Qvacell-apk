@@ -128,7 +128,7 @@ fun HelpScreen(
                     )
                     if (onOpenSettings != null) {
                         HelpLinkRow(
-                            label = "Abrir Funcionamiento del Dashboard Dinámico",
+                            label = "Ayuda del Dashboard Dinámico",
                             icon = Icons.Filled.Settings,
                             onClick = onOpenSettings
                         )

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
-import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -48,6 +47,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.qvacell.app.ui.screens.CategoryListScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
+import com.qvacell.app.ui.screens.DashboardHelpScreen
 import com.qvacell.app.ui.screens.DashboardSettingsScreen
 import com.qvacell.app.ui.screens.DirectorySearchScreen
 import com.qvacell.app.ui.screens.FriendsPlanManageScreen
@@ -79,8 +79,7 @@ private val OPTIONS_NESTED_ROUTES = setOf(
     Routes.FRIENDS_PLAN_MANAGE,
     Routes.TRANSFER_PIN_MANAGE,
     Routes.HOME_WIDGETS,
-    Routes.VOICE_SHORTCUTS,
-    Routes.DASHBOARD_SETTINGS
+    Routes.VOICE_SHORTCUTS
 )
 
 // Shown on the bottom bar's Options tab instead of the generic icon while inside one of
@@ -96,7 +95,6 @@ private val OPTIONS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.YELLOW_PAGES_SEARCH to Icons.Filled.Search,
     Routes.FRIENDS_PLAN_MANAGE to Icons.Filled.People,
     Routes.TRANSFER_PIN_MANAGE to Icons.Filled.Key,
-    Routes.DASHBOARD_SETTINGS to Icons.Filled.Dashboard,
     Routes.HOME_WIDGETS to Icons.Filled.Widgets,
     Routes.VOICE_SHORTCUTS to Icons.Filled.Mic,
     Routes.CALLER_ID to Icons.Filled.PhoneInTalk
@@ -225,7 +223,11 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 ContactsListScreen()
             }
             composable(BottomTab.Home.route) {
-                HomeQuickActionsScreen()
+                HomeQuickActionsScreen(
+                    onNavigateToEvents = { navController.navigate(Routes.DASHBOARD_EVENTS) },
+                    onNavigateToSettings = { navController.navigate(Routes.DASHBOARD_SETTINGS) },
+                    onNavigateToHelp = { navController.navigate(Routes.DASHBOARD_HELP) }
+                )
             }
             composable(BottomTab.Purchase.route) {
                 CategoryListScreen(categoryId = "purchase", title = "Compras")
@@ -319,7 +321,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 HelpScreen(
                     onBack = { navController.popBackStack() },
                     onStartTour = { navController.navigate(Routes.ONBOARDING) },
-                    onOpenSettings = { navController.navigate(Routes.DASHBOARD_SETTINGS) }
+                    onOpenSettings = { navController.navigate(Routes.DASHBOARD_HELP) }
                 )
             }
             composable(Routes.YELLOW_PAGES_SEARCH) {
@@ -336,7 +338,23 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 TransferPinManageScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.DASHBOARD_SETTINGS) {
-                DashboardSettingsScreen(onBack = { navController.popBackStack() })
+                DashboardSettingsScreen(
+                    onBack = { navController.popBackStack() },
+                    onNavigateToHelp = { navController.navigate(Routes.DASHBOARD_HELP) }
+                )
+            }
+            composable(Routes.DASHBOARD_HELP) {
+                DashboardHelpScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenSettings = { navController.navigate(Routes.DASHBOARD_SETTINGS) }
+                )
+            }
+            composable(Routes.DASHBOARD_EVENTS) {
+                PlaceholderScreen(
+                    title = "Eventos",
+                    description = "Calendario de eventos — próximamente.",
+                    onBack = { navController.popBackStack() }
+                )
             }
             composable(Routes.HOME_WIDGETS) {
                 HomeWidgetsScreen(onBack = { navController.popBackStack() })

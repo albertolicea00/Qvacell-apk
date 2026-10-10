@@ -4,6 +4,8 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,7 +42,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardSettingsScreen(onBack: () -> Unit) {
+fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
@@ -142,6 +144,15 @@ fun DashboardSettingsScreen(onBack: () -> Unit) {
                             }
                         )
                     }
+                )
+            }
+
+            OptionsSection(header = "") {
+                OptionsRow(
+                    headline = "Ayuda del Dashboard",
+                    supporting = "Conoce cómo funciona el dashboard dinámico",
+                    icon = Icons.AutoMirrored.Filled.Help,
+                    onClick = onNavigateToHelp
                 )
             }
         }
