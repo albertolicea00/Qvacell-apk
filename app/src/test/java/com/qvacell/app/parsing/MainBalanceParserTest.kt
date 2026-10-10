@@ -104,6 +104,19 @@ class MainBalanceParserTest {
         assertEquals(500.0, v.field(FieldTypes.SMS_COUNT_REMAINING)!!.numericValue!!, 0.01)
     }
 
+    // ── Sample 4: zero balance ──
+
+    @Test
+    fun `zero balance with capital Activa`() {
+        val v = values("Saldo: 0.00 CUP. Linea activa hasta 09-09-26 vence 08-03-27.")
+        assertEquals(0.0, v.field(FieldTypes.MAIN_BALANCE)!!.numericValue!!, 0.01)
+        assertNull(v.field(FieldTypes.DATA_DATOS_MB))
+        assertNull(v.field(FieldTypes.VOICE_MINUTES_REMAINING))
+        assertNull(v.field(FieldTypes.SMS_COUNT_REMAINING))
+        assertEquals(epochOf(2026, 9, 9), v.field(FieldTypes.LINE_ACTIVE_UNTIL)!!.dateValue)
+        assertEquals(epochOf(2027, 3, 8), v.field(FieldTypes.ACCOUNT_DUE_DATE)!!.dateValue)
+    }
+
     // ── Edge cases ──
 
     @Test
