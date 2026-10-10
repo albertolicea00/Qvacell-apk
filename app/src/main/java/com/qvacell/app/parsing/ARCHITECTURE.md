@@ -158,7 +158,98 @@ Nocturno-only (without Datos.cu) also valid — emits `bonus_active` + `bonus_da
 
 ### `data-plan`
 
-**Stub** — awaiting ETECSA USSD response samples.
+Code id: `data-plan`
+USSD: `*222*328#`
+Parser: `DataPlanParser.kt`
+Tests: `DataPlanParserTest.kt` (16 cases)
+
+Multi-section response. Always starts with `Tarifa:`, then zero or more independent sections. Parser extracts each via independent regex.
+
+#### Structure
+
+```
+Tarifa: (Activa|No activa). [Diaria: ...] [toDus: ...] [Datos: ...] [Paquetes: ...]
+```
+
+All sections optional except Tarifa. Sections can appear in any combination.
+
+#### Tarifa (always present)
+
+```
+Tarifa: No activa.
+Tarifa: Activa.
+```
+
+| FieldType | Value |
+|---|---|
+| `data_tariff_active` | 1.0 (Activa) or 0.0 (No activa) |
+
+#### No plan
+
+```
+Tarifa: No activa. Ud debe adquirir una oferta. Para una nueva compra marque *133#
+```
+
+| FieldType | Value |
+|---|---|
+| `data_tariff_active` | 0.0 |
+| `data_plan_active` | 0.0 |
+
+Only these two fields emitted. No section fields.
+
+#### Datos section
+
+```
+Datos: 4.49 GB no activos.
+Datos: 4.03 GB validos 21 dias.
+Datos: 57.35 MB validos 19 dias.
+```
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `data_datos_active` | 1.0 (validos) or 0.0 (no activos) | — |
+| `data_datos_mb` | amount in MB (GB auto-converted) | MB |
+| `data_datos_days` | days remaining (only when active) | — |
+
+#### Diaria section
+
+```
+Diaria: 195 MB validos 24 horas.
+Diaria: 200 MB no activos.
+```
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `data_diaria_active` | 1.0 (validos 24h) or 0.0 (no activos) | — |
+| `data_diaria_mb` | amount in MB | MB |
+
+No days field — always "24 horas" when active.
+
+#### toDus section
+
+```
+toDus: 1024.00 MB validos 34 dias.
+```
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `data_todus_mb` | amount in MB | MB |
+| `data_todus_days` | days remaining | — |
+
+#### Paquetes section
+
+```
+Paquetes: No dispone de MB.
+```
+
+Informational only — no fields emitted. Presence doesn't affect other sections.
+
+#### Parser notes
+
+- GB→MB auto-conversion for Datos section.
+- Amounts: comma or dot decimal separator via shared `parseAmount()`.
+- `Tarifa:` required — if missing → `Unrecognized`.
+- 10 real ETECSA samples documented, all covered by tests.
 
 ---
 
