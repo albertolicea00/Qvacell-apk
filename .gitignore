@@ -6,3 +6,9 @@ local.properties
 *.iml
 .kotlin/
 captures/
+
+keys/release.jks
+keys/release.properties
+
+# Added by ggshield
+.cache_ggshield
