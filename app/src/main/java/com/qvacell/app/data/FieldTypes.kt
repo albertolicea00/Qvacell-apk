@@ -12,6 +12,7 @@ object FieldTypes {
     const val BONUS_USD_AMOUNT = "bonus_usd_amount"
     const val DATA_PLAN_GB = "data_plan_gb"
     const val DATA_DAYS_REMAINING = "data_days_remaining"
+    const val VOICE_PLAN_ACTIVE = "voice_plan_active"
     const val VOICE_MINUTES_REMAINING = "voice_minutes_remaining"
     const val VOICE_DAYS_REMAINING = "voice_days_remaining"
     const val SMS_COUNT_REMAINING = "sms_count_remaining"

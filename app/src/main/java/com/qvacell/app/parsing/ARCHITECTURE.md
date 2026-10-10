@@ -112,7 +112,46 @@ Monthly limit fully consumed. Recharge blocked until stated date.
 
 ### `voice-balance`
 
-**Stub** — awaiting ETECSA USSD response samples.
+Code id: `voice-balance`
+USSD: `*222*869#`
+Parser: `VoiceBalanceParser.kt`
+Tests: `VoiceBalanceParserTest.kt` (8 cases)
+
+#### Variant 1 & 2 — Has minutes remaining
+
+```
+Usted dispone de 119:51:13 MIN NAC validos por 19 dias
+Usted dispone de 00:45:00 MIN NAC validos por 21 dias
+```
+
+User has active voice plan. Duration in HH:MM:SS format, days until expiry.
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `voice_plan_active` | 1.0 | — |
+| `voice_minutes_remaining` | total minutes (double) | MIN NAC |
+| `voice_days_remaining` | days (double) | — |
+
+`voice_minutes_remaining` also stores raw `HH:MM:SS` in `textValue` for display.
+Numeric conversion: `hours*60 + minutes + seconds/60`.
+
+#### Variant 3 — No plan
+
+```
+Usted debe adquirir un plan de minutos. Para una nueva compra marque *133#
+```
+
+User has no active voice plan.
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `voice_plan_active` | 0.0 | — |
+
+#### Parser notes
+
+- Hours field: 1-3 digits (supports 0 to 999).
+- Only `MIN NAC` (national minutes) recognized. Other minute types → future variant if observed.
+- Text not matching → `ParseResult.Unrecognized`.
 
 ---
 

@@ -32,6 +32,7 @@ object UssdParsers {
     private val registry: Map<String, UssdResponseParser> = buildMap {
         KNOWN_CODE_IDS.forEach { put(it, StubUssdResponseParser(it)) }
         put("national-recharge-limit", NationalRechargeLimitParser())
+        put("voice-balance", VoiceBalanceParser())
     }
 
     fun forCode(codeId: String): UssdResponseParser = registry[codeId] ?: StubUssdResponseParser(codeId)
