@@ -6,11 +6,11 @@ class SmsBalanceParser : UssdResponseParser {
     override val ussdCodeId: String = "sms-balance"
 
     private val hasSms = Regex(
-        """Usted dispone de (\d+) SMS validos por (\d+) dias"""
+        """Usted dispone de (\d+) SMS validos por (\d+) dias""", RegexOption.IGNORE_CASE
     )
 
     private val noPlan = Regex(
-        """Usted debe adquirir un plan de SMS"""
+        """Usted debe adquirir un plan de SMS""", RegexOption.IGNORE_CASE
     )
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {

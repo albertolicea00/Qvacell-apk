@@ -6,15 +6,15 @@ class BonusUsdPlansParser : UssdResponseParser {
     override val ussdCodeId: String = "bonus-usd-plans"
 
     private val noBonuses = Regex(
-        """Usted no dispone de bonos activos"""
+        """Usted no dispone de bonos activos""", RegexOption.IGNORE_CASE
     )
 
     private val datosCu = Regex(
-        """Datos\.cu:?\s*(\d+)\s*(MB|GB)\s*vence\s*(\d{2}-\d{2}-\d{2,4})"""
+        """Datos\.cu:?\s*(\d+)\s*(MB|GB)\s*vence\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
     )
 
     private val datosNocturno = Regex(
-        """Datos:?\s*ilimitados:?\s*Nocturno\s*vence\s*(\d{2}-\d{2}-\d{2,4})"""
+        """Datos:?\s*ilimitados:?\s*Nocturno\s*vence\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
     )
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
@@ -40,7 +40,7 @@ class BonusUsdPlansParser : UssdResponseParser {
             values.add(
                 ParsedDashboardValue(
                     fieldType = FieldTypes.BONUS_DATOS_CU_MB,
-                    numericValue = if (unit == "GB") amount * 1024 else amount,
+                    numericValue = if (unit.equals("GB", ignoreCase = true)) amount * 1024 else amount,
                     unit = "MB"
                 )
             )

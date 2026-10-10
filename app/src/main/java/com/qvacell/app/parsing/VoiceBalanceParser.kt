@@ -6,11 +6,11 @@ class VoiceBalanceParser : UssdResponseParser {
     override val ussdCodeId: String = "voice-balance"
 
     private val hasMinutes = Regex(
-        """Usted dispone de (\d{1,3}):(\d{2}):(\d{2}) MIN NAC validos por (\d+) dias"""
+        """Usted dispone de (\d{1,3}):(\d{2}):(\d{2}) MIN NAC validos por (\d+) dias""", RegexOption.IGNORE_CASE
     )
 
     private val noPlan = Regex(
-        """Usted debe adquirir un plan de minutos"""
+        """Usted debe adquirir un plan de minutos""", RegexOption.IGNORE_CASE
     )
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {

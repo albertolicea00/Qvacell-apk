@@ -5,21 +5,21 @@ import com.qvacell.app.data.FieldTypes
 class DataPlanParser : UssdResponseParser {
     override val ussdCodeId: String = "data-plan"
 
-    private val tarifa = Regex("""Tarifa:\s*(Activa|No activa)""")
+    private val tarifa = Regex("""Tarifa:\s*(Activa|No activa)""", RegexOption.IGNORE_CASE)
 
     private val datos = Regex(
-        """Datos:\s*([\d,.]+)\s*(MB|GB)\s*(validos\s*(\d+)\s*dias|no activos)"""
+        """Datos:\s*([\d,.]+)\s*(MB|GB)\s*(validos\s*(\d+)\s*dias|no activos)""", RegexOption.IGNORE_CASE
     )
 
     private val diaria = Regex(
-        """Diaria:\s*([\d,.]+)\s*MB\s*(validos\s*24\s*horas|no activos)"""
+        """Diaria:\s*([\d,.]+)\s*MB\s*(validos\s*24\s*horas|no activos)""", RegexOption.IGNORE_CASE
     )
 
     private val todus = Regex(
-        """toDus:\s*([\d,.]+)\s*MB\s*validos\s*(\d+)\s*dias"""
+        """toDus:\s*([\d,.]+)\s*MB\s*validos\s*(\d+)\s*dias""", RegexOption.IGNORE_CASE
     )
 
-    private val noPlan = Regex("""Ud debe adquirir una oferta""")
+    private val noPlan = Regex("""Ud debe adquirir una oferta""", RegexOption.IGNORE_CASE)
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
         val tarifaMatch = tarifa.find(rawResponseText)
@@ -27,7 +27,7 @@ class DataPlanParser : UssdResponseParser {
 
         val values = mutableListOf<ParsedDashboardValue>()
 
-        val tariffActive = tarifaMatch.groupValues[1] == "Activa"
+        val tariffActive = tarifaMatch.groupValues[1].equals("Activa", ignoreCase = true)
         values.add(
             ParsedDashboardValue(
                 fieldType = FieldTypes.DATA_TARIFF_ACTIVE,
@@ -55,8 +55,8 @@ class DataPlanParser : UssdResponseParser {
         datos.find(rawResponseText)?.let { m ->
             val amount = NationalRechargeLimitParser.parseAmount(m.groupValues[1])
             val unit = m.groupValues[2]
-            val mb = if (unit == "GB") amount * 1024 else amount
-            val isActive = m.groupValues[3].startsWith("validos")
+            val mb = if (unit.equals("GB", ignoreCase = true)) amount * 1024 else amount
+            val isActive = m.groupValues[3].startsWith("validos", ignoreCase = true)
             val days = if (isActive) m.groupValues[4].toIntOrNull() else null
 
             values.add(ParsedDashboardValue(fieldType = FieldTypes.DATA_DATOS_ACTIVE, numericValue = if (isActive) 1.0 else 0.0))
@@ -68,7 +68,7 @@ class DataPlanParser : UssdResponseParser {
 
         diaria.find(rawResponseText)?.let { m ->
             val amount = NationalRechargeLimitParser.parseAmount(m.groupValues[1])
-            val isActive = m.groupValues[2].startsWith("validos")
+            val isActive = m.groupValues[2].startsWith("validos", ignoreCase = true)
 
             values.add(ParsedDashboardValue(fieldType = FieldTypes.DATA_DIARIA_ACTIVE, numericValue = if (isActive) 1.0 else 0.0))
             values.add(ParsedDashboardValue(fieldType = FieldTypes.DATA_DIARIA_MB, numericValue = amount, unit = "MB"))

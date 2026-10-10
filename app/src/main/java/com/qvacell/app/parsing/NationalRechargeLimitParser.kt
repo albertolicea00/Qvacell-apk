@@ -9,15 +9,15 @@ class NationalRechargeLimitParser : UssdResponseParser {
     override val ussdCodeId: String = "national-recharge-limit"
 
     private val canRechargeAmountInPeriod = Regex(
-        """Ud puede recargar un monto de ([\d,.]+)\s*CUP en un plazo de (\d+) dias"""
+        """Ud puede recargar un monto de ([\d,.]+)\s*CUP en un plazo de (\d+) dias""", RegexOption.IGNORE_CASE
     )
 
     private val canRechargeAmountUntilDate = Regex(
-        """Ud puede recargar un monto de ([\d,.]+)\s*CUP hasta el (\d{2}-\d{2}-\d{2,4})"""
+        """Ud puede recargar un monto de ([\d,.]+)\s*CUP hasta el (\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
     )
 
     private val limitReached = Regex(
-        """Ud ha alcanzado el monto de recarga permitido de ([\d,.]+)\s*CUP\.\s*Puede recargar posterior al dia (\d{2}-\d{2}-\d{2,4})"""
+        """Ud ha alcanzado el monto de recarga permitido de ([\d,.]+)\s*CUP\.\s*Puede recargar posterior al dia (\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
     )
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
