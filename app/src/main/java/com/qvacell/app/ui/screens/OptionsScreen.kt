@@ -858,7 +858,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 Text(
                     "Acción de consulta USSD",
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Text(
+                    "Define cómo interactuar con las cards para realizar la marcación USSD.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
                 listOf(
                     "tap_confirm" to "Un tap + confirmación",
