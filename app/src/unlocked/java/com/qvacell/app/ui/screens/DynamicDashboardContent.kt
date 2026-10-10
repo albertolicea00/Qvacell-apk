@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.NetworkCell
 import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -84,33 +85,47 @@ fun DynamicDashboardContent(
         state = pullState,
         indicator = {}
     ) {
-        val pullOffset = (pullState.distanceFraction * 60).coerceAtMost(60f)
+        val activePull = pullState.distanceFraction > 0f && !isRefreshing
+        val pullOffset = if (activePull) (pullState.distanceFraction * 60).coerceAtMost(60f) else 0f
 
         Box(modifier = Modifier.fillMaxSize()) {
-            if (pullState.distanceFraction > 0f && !isRefreshing) {
-                Box(
+            if (activePull) {
+                val alpha = pullState.distanceFraction.coerceIn(0.3f, 0.8f)
+                val textColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha)
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset(y = (pullOffset - 20).coerceAtLeast(0f).dp),
-                    contentAlignment = Alignment.TopCenter
+                        .offset(y = (pullOffset - 30).coerceAtLeast(0f).dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    Icon(
+                        Icons.Filled.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = textColor,
+                        modifier = Modifier.size(16.dp).offset(y = 4.dp)
+                    )
+                    Icon(
+                        Icons.Filled.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = textColor.copy(alpha = alpha * 0.6f),
+                        modifier = Modifier.size(16.dp).offset(y = (-4).dp)
+                    )
                     Text(
                         if (pullState.distanceFraction >= 1f) "Suelta para refrescar"
                         else "Arrastra para refrescar",
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                            alpha = pullState.distanceFraction.coerceIn(0.3f, 0.8f)
-                        )
+                        color = textColor
                     )
                 }
             }
 
+            val scrollState = rememberScrollState()
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .offset(y = pullOffset.dp)
                     .padding(horizontal = 16.dp)
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(scrollState, enabled = !isRefreshing)
                     .padding(top = 16.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
