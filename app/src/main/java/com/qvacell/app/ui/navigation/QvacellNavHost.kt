@@ -82,6 +82,9 @@ private val OPTIONS_NESTED_ROUTES = setOf(
     Routes.TRANSFER_PIN_MANAGE,
     Routes.HOME_WIDGETS,
     Routes.VOICE_SHORTCUTS,
+)
+
+private val HOME_NESTED_ROUTES = setOf(
     Routes.DASHBOARD_SETTINGS,
     Routes.DASHBOARD_HELP,
     Routes.DASHBOARD_EVENTS
@@ -102,7 +105,10 @@ private val OPTIONS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.TRANSFER_PIN_MANAGE to Icons.Filled.Key,
     Routes.HOME_WIDGETS to Icons.Filled.Widgets,
     Routes.VOICE_SHORTCUTS to Icons.Filled.Mic,
-    Routes.CALLER_ID to Icons.Filled.PhoneInTalk,
+    Routes.CALLER_ID to Icons.Filled.PhoneInTalk
+)
+
+private val HOME_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.DASHBOARD_SETTINGS to Icons.Filled.Dashboard,
     Routes.DASHBOARD_HELP to Icons.AutoMirrored.Filled.Help,
     Routes.DASHBOARD_EVENTS to Icons.Filled.CalendarMonth
@@ -130,6 +136,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     // and to know when tapping it should just pop back to its root instead of navigating like a
     // normal tab switch.
     val isInOptionsSection = currentRoute in OPTIONS_NESTED_ROUTES
+    val isInHomeSection = currentRoute in HOME_NESTED_ROUTES
 
     val context = LocalContext.current
     val settings = remember { SettingsDataStore(context) }
@@ -162,7 +169,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                     ) {
                         bottomTabs.forEach { tab ->
                         val selected = currentRoute == tab.route ||
-                            (tab is BottomTab.Options && isInOptionsSection)
+                            (tab is BottomTab.Options && isInOptionsSection) ||
+                            (tab is BottomTab.Home && isInHomeSection)
                         val tint = if (selected) {
                             MaterialTheme.colorScheme.primary
                         } else {
@@ -175,7 +183,9 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                     selected = selected,
                                     role = Role.Tab,
                                     onClick = {
-                                        if (tab is BottomTab.Options && isInOptionsSection) {
+                                        if (tab is BottomTab.Home && isInHomeSection) {
+                                            navController.popBackStack(BottomTab.Home.route, inclusive = false)
+                                        } else if (tab is BottomTab.Options && isInOptionsSection) {
                                             val popped = navController.popBackStack(BottomTab.Options.route, inclusive = false)
                                             if (!popped) {
                                                 navController.navigate(tab.route) {
@@ -184,11 +194,15 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                                     restoreState = true
                                                 }
                                             }
-                                        } else if (isInOptionsSection) {
+                                        } else if (isInHomeSection || isInOptionsSection) {
+                                            navController.popBackStack(
+                                                if (isInHomeSection) BottomTab.Home.route else BottomTab.Options.route,
+                                                inclusive = false
+                                            )
                                             navController.navigate(tab.route) {
-                                                popUpTo(validStartRoute) { saveState = false }
+                                                popUpTo(validStartRoute) { saveState = true }
                                                 launchSingleTop = true
-                                                restoreState = false
+                                                restoreState = true
                                             }
                                         } else {
                                             navController.navigate(tab.route) {
@@ -202,10 +216,12 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                 .padding(vertical = 6.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            val icon = if (tab is BottomTab.Options && isInOptionsSection) {
-                                OPTIONS_ROUTE_ICONS[currentRoute] ?: tab.icon
-                            } else {
-                                tab.icon
+                            val icon = when {
+                                tab is BottomTab.Home && isInHomeSection ->
+                                    HOME_ROUTE_ICONS[currentRoute] ?: tab.icon
+                                tab is BottomTab.Options && isInOptionsSection ->
+                                    OPTIONS_ROUTE_ICONS[currentRoute] ?: tab.icon
+                                else -> tab.icon
                             }
                             Icon(
                                 icon,
