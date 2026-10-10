@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -97,7 +98,7 @@ fun MainBalanceCard(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
-                Row(verticalAlignment = Alignment.Bottom) {
+                Column(horizontalAlignment = Alignment.End) {
                     val (wholePart, centsPart) = balance.split(".", limit = 2)
                         .let { it[0] to it.getOrElse(1) { "" } }
                     Text(
@@ -118,11 +119,10 @@ fun MainBalanceCard(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        currency,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                        "CUP",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.offset(y = (-15).dp)
                     )
                 }
             }
