@@ -222,10 +222,10 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         else -> "No configurado"
     }
     val cardTapModeLabel = when (cardTapMode) {
+        "long_confirm" -> "Presionar + confirmación"
+        "long" -> "Solo Presionar"
         "tap" -> "Un tap"
         "double_tap" -> "Doble tap"
-        "long_confirm" -> "Presionar + confirmación"
-        "long" -> "Presionar"
         "triple_tap" -> "Triple tap"
         else -> "Un tap + confirmación"
     }
@@ -862,10 +862,10 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 )
                 listOf(
                     "tap_confirm" to "Un tap + confirmación",
+                    "long_confirm" to "Presionar + confirmación",
+                    "long" to "Solo Presionar",
                     "tap" to "Un tap",
                     "double_tap" to "Doble tap",
-                    "long_confirm" to "Presionar + confirmación",
-                    "long" to "Presionar",
                     "triple_tap" to "Triple tap"
                 ).forEach { (mode, label) ->
                     Row(
