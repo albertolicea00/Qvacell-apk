@@ -1,3 +1,6 @@
+import java.security.MessageDigest
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -36,10 +39,28 @@ android {
         }
     }
 
+    val releasePropsFile = rootProject.file("keys/release.properties")
+    val releaseProps = Properties()
+    if (releasePropsFile.exists()) {
+        releasePropsFile.inputStream().use { releaseProps.load(it) }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("keys/release.jks")
+            storePassword = releaseProps.getProperty("storePassword")
+            keyAlias = releaseProps.getProperty("keyAlias", "albertolicea00")
+            keyPassword = releaseProps.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (releasePropsFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -66,14 +87,39 @@ android {
         }
     }
 
-}
+    applicationVariants.all {
+        val variant = this
+        val apkFileName = "qvacell-v${variant.versionName}-${variant.buildType.name}-${variant.flavorName}.apk"
+        outputs.all {
+            val outputImpl = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            outputImpl?.outputFileName = apkFileName
+        }
+        assembleProvider.configure {
+            doLast {
+                variant.outputs.forEach { output ->
+                    val apkFile = (output as? com.android.build.gradle.internal.api.BaseVariantOutputImpl)?.outputFile
+                    if (apkFile != null && apkFile.exists()) {
+                        // Export copy to app/build/outputs/apk/{debug|release}/
+                        val targetDir = File(layout.buildDirectory.get().asFile, "outputs/apk/${variant.buildType.name}")
+                        targetDir.mkdirs()
+                        val destApk = File(targetDir, apkFile.name)
+                        apkFile.copyTo(destApk, overwrite = true)
 
-// TODO: the legacy `applicationVariants`/`BaseVariantOutputImpl` API this used to rename output
-// APKs to "qvacell-<variant>-v<versionName>.apk" is gone under AGP 9's variant API, and the
-// direct outputFileName-mutation replacement doesn't compile against this AGP/AGP-recipes'
-// current shape either — needs AGP 9's "listenToArtifacts" recipe, not a mechanical port.
-// Dropped for now (default AGP output naming applies) rather than block this build; unrelated
-// to the AGP bump's actual goal (unblocking compilation for the new dashboard-pipeline code).
+                        // Solo las de debug deben tener el SHA-256
+                        if (variant.buildType.name == "debug") {
+                            val digest = MessageDigest.getInstance("SHA-256")
+                            val hashBytes = digest.digest(apkFile.readBytes())
+                            val sha256 = hashBytes.joinToString("") { b -> "%02x".format(b) }
+                            val shaContent = "$sha256  ${apkFile.name}\n"
+                            File(apkFile.parentFile, "${apkFile.name}.sha256").writeText(shaContent)
+                            File(targetDir, "${apkFile.name}.sha256").writeText(shaContent)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.09.03")
