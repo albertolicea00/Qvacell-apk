@@ -306,20 +306,6 @@ fun DataUsageCard(
                             modifier = Modifier.padding(top = 2.dp)
                         )
                     }
-                    // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                    val lastUpdateDaysAgo = "1".toInt()
-                    Text(
-                        if (lastUpdateDaysAgo == 0) {
-                            "Actualizado hoy"
-                        } else if (lastUpdateDaysAgo == 1) {
-                            "Actualizado hace 1 día"
-                        } else {
-                            "Actualizado hace $lastUpdateDaysAgo días"
-                        },
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
                 }
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
@@ -338,28 +324,43 @@ fun DataUsageCard(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Filled.VerifiedUser,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(13.dp)
-                )
-                Text(
-                    "Tarifa por consumo: ",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
-                Text(
-                    tariffStatus,
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Filled.VerifiedUser,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Text(
+                        "Tarifa por consumo: ",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                    Text(
+                        tariffStatus,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                val lastUpdateDaysAgo = "1".toInt()
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        if (lastUpdateDaysAgo == 0) "Actualizado hoy"
+                        else if (lastUpdateDaysAgo == 1) "Actualizado hace 1 día"
+                        else "Actualizado hace $lastUpdateDaysAgo días",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                }
             }
         }
     }
@@ -411,20 +412,6 @@ fun NationalBonusCard(
                             modifier = Modifier.padding(top = 2.dp)
                         )
                     }
-                    // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
-                    val lastUpdateDaysAgo = "1".toInt()
-                    Text(
-                        if (lastUpdateDaysAgo == 0) {
-                            "Actualizado hoy"
-                        } else if (lastUpdateDaysAgo == 1) {
-                            "Actualizado hace 1 día"
-                        } else {
-                            "Actualizado hace $lastUpdateDaysAgo días"
-                        },
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
                 }
                 Row(verticalAlignment = Alignment.Bottom) {
                     val (number, unit) = amount.split(" ", limit = 2).let { it[0] to it.getOrElse(1) { "" } }
@@ -467,6 +454,21 @@ fun NationalBonusCard(
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            // Placeholder days-ago figure — wire to the real last-sync timestamp once available.
+            val lastUpdateDaysAgo = "1".toInt()
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    if (lastUpdateDaysAgo == 0) "Actualizado hoy"
+                    else if (lastUpdateDaysAgo == 1) "Actualizado hace 1 día"
+                    else "Actualizado hace $lastUpdateDaysAgo días",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
             }
         }
