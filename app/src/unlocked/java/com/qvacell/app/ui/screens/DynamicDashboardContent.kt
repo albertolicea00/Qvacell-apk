@@ -104,8 +104,11 @@ fun DynamicDashboardContent(
             onQuery = { requestQuery("bonus-usd-plans") }
         )
         ConsultCardsRow(
+            // TODO: postpaid-balance (*111#) — parser not implemented, needs real ETECSA response samples
             onPostpagoQuery = { requestQuery("postpaid-balance") },
+            // TODO: tfa (*118#) — parser not implemented, needs real ETECSA response samples
             onTfaQuery = { requestQuery("tfa") },
+            // TODO: friends-plan (*222*264#) — parser not implemented, needs real ETECSA response samples
             onPlanAmigoQuery = { requestQuery("friends-plan") }
         )
         Row(

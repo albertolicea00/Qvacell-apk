@@ -371,7 +371,8 @@ Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX
 
 Full parsing rules, verbatim ETECSA response samples, regex patterns, and field mappings live in [`app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md`](app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md). That document covers both USSD and SMS parsers. This section only tracks implementation status.
 
-**Implemented**: all 6 USSD parsers — `main-balance` (3 variants, cross-card, 12 tests), `national-recharge-limit` (3 variants, 11 tests), `voice-balance` (3 variants, 8 tests), `sms-balance` (3 variants, 8 tests), `bonus-usd-plans` (3 variants + multi-bonus, 13 tests), `data-plan` (10 variants + multi-section, 16 tests). Total: 68 tests.
+**Implemented** (6 of 9 USSD codes): `main-balance` (3 variants, cross-card, 12 tests), `national-recharge-limit` (3 variants, 11 tests), `voice-balance` (3 variants, 8 tests), `sms-balance` (3 variants, 8 tests), `bonus-usd-plans` (3 variants + multi-bonus, 13 tests), `data-plan` (10 variants + multi-section, 16 tests). Total: 68 tests.
+**Awaiting ETECSA samples**: `postpaid-balance` (`*111#`, [#9](https://github.com/albertolicea00/Qvacell-apk/issues/9)), `tfa` (`*118#`, [#10](https://github.com/albertolicea00/Qvacell-apk/issues/10)), `friends-plan` (`*222*264#`, [#11](https://github.com/albertolicea00/Qvacell-apk/issues/11)) — no response text captured yet, UI wired to manual dial only.
 **Stubbed**: all SMS parsers.
 
 ---
@@ -380,20 +381,19 @@ Full parsing rules, verbatim ETECSA response samples, regex patterns, and field 
 
 **Done and verified** (both flavors compile, full test suite green, merged-manifest permission split confirmed):
 - Room schema, migration, DAOs, append-only enforcement.
-- Parser contract/registry scaffolding (stubbed for 5 of 6 codes, see below).
-- `NationalRechargeLimitParser` — first real parser, all 3 ETECSA response variants (see parsing/ARCHITECTURE.md).
+- All 6 dashboard USSD parsers implemented with 68 tests (see parsing/ARCHITECTURE.md).
 - `DashboardDataRepository` with the real-beats-estimate reconciliation rule.
 - Capture services, estimation engine, AlarmManager scheduling (`unlocked` flavor).
 - `store`/`unlocked` flavor split, manifest/permission separation, `BuildConfig`-gated Options UI.
 - First-ever test suite for this project.
 
-**Explicitly stubbed, pending real-world examples from the maintainer**:
-- 5 remaining `UssdResponseParser` implementations (`main-balance`, `bonus-usd-plans`, `data-plan`, `voice-balance`, `sms-balance`) — real USSD response text from ETECSA hasn't been supplied yet.
+**Awaiting ETECSA samples**:
+- 3 ConsultCardsRow USSD codes (`postpaid-balance` `*111#`, `tfa` `*118#`, `friends-plan` `*222*264#`) — no response text captured yet, cannot write parsers without real samples.
 - Every `SmsBodyParser` implementation — same reason.
 - `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — placeholder pending real sender-ID/short-code examples.
 
 **Not yet done / open before this ships to real users**:
-- The `HomeDashboardSection.kt` cards themselves still render hardcoded placeholder strings — nothing yet collects from `DashboardDataRepository.observeCurrentValues()` and feeds the cards. Wiring that up is the natural next step once real parser rules land (no point wiring a UI to data that's permanently `Unresolved`).
+- The `HomeDashboardSection.kt` cards themselves still render hardcoded placeholder strings — nothing yet collects from `DashboardDataRepository.observeCurrentValues()` and feeds the cards. Wiring that up is the natural next step now that the 6 dashboard parsers are real.
 - The `sendUssdRequest` reliability spike against a real ETECSA SIM (§15.5) — a go/no-go gate for whether silent USSD capture works at all on this carrier, not yet run.
 - A Play Store restricted-permissions business decision for the `unlocked` flavor's distribution (moot for `store`, which never requests them) — flagged, not resolved, since it's a business/policy call rather than a code one.
 - The six dashboard-section codes (`main-balance`, `bonus-usd-plans`, `data-plan`, `voice-balance`, `sms-balance`, `national-recharge-limit`) have no tap-to-refresh affordance in the dashboard UI yet — only the separate "PLAN AMIGO"/"POSTPAGO" `ConsultCardsRow` double-tap is wired to `DashboardCapture.captureOrDial` today.
