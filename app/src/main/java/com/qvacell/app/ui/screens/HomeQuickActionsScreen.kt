@@ -79,7 +79,8 @@ fun HomeQuickActionsScreen(
                         onClick = {
                             DashboardRefreshService.refresh(context, repository, dashboardRepository)
                         },
-                        enabled = !isRefreshing
+                        enabled = !isRefreshing,
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             Icons.Filled.Refresh,
@@ -89,7 +90,10 @@ fun HomeQuickActionsScreen(
                                 .then(if (isRefreshing) Modifier.rotate(rotation) else Modifier)
                         )
                     }
-                    IconButton(onClick = { showDashboardMenu = true }) {
+                    IconButton(
+                        onClick = { showDashboardMenu = true },
+                        modifier = Modifier.size(36.dp)
+                    ) {
                         Icon(
                             Icons.Filled.MoreVert,
                             contentDescription = "Menú",
