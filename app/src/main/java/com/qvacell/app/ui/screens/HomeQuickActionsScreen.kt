@@ -46,6 +46,8 @@ import com.qvacell.app.ui.components.TransferBottomSheet
 
 @Composable
 fun HomeQuickActionsScreen(
+    onNavigateToReminders: () -> Unit = {},
+    onNavigateToFriendsPlan: () -> Unit = {},
     onNavigateToEvents: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     onNavigateToHelp: () -> Unit = {}
@@ -62,6 +64,7 @@ fun HomeQuickActionsScreen(
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
     var showDashboardMenu by remember { mutableStateOf(false) }
+    var showManualMenu by remember { mutableStateOf(false) }
     var viewOverride by remember { mutableStateOf<String?>(null) }
     var showUnavailableDialog by remember { mutableStateOf(false) }
 
@@ -120,6 +123,20 @@ fun HomeQuickActionsScreen(
                         onDismissRequest = { showDashboardMenu = false }
                     ) {
                         DropdownMenuItem(
+                            text = { Text("Recordatorios") },
+                            onClick = {
+                                showDashboardMenu = false
+                                onNavigateToReminders()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Gestionar Plan Amigo") },
+                            onClick = {
+                                showDashboardMenu = false
+                                onNavigateToFriendsPlan()
+                            }
+                        )
+                        DropdownMenuItem(
                             text = { Text("Eventos") },
                             onClick = {
                                 showDashboardMenu = false
@@ -154,6 +171,35 @@ fun HomeQuickActionsScreen(
                         )
                     }
                 } else {
+                    IconButton(
+                        onClick = { showManualMenu = true },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.MoreVert,
+                            contentDescription = "Menú",
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showManualMenu,
+                        onDismissRequest = { showManualMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Recordatorios") },
+                            onClick = {
+                                showManualMenu = false
+                                onNavigateToReminders()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Gestionar Plan Amigo") },
+                            onClick = {
+                                showManualMenu = false
+                                onNavigateToFriendsPlan()
+                            }
+                        )
+                    }
                     IconButton(
                         onClick = {
                             if (!BuildConfig.DASHBOARD_CAPTURE_ENABLED) {

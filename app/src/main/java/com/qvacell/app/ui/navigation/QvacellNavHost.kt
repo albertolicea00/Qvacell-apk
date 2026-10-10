@@ -261,13 +261,19 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             }
             composable(BottomTab.Home.route) {
                 HomeQuickActionsScreen(
+                    onNavigateToReminders = { navController.navigate(Routes.REMINDERS) },
+                    onNavigateToFriendsPlan = { navController.navigate(Routes.FRIENDS_PLAN_MANAGE) },
                     onNavigateToEvents = { navController.navigate(Routes.DASHBOARD_EVENTS) },
                     onNavigateToSettings = { navController.navigate(Routes.DASHBOARD_SETTINGS) },
                     onNavigateToHelp = { navController.navigate(Routes.DASHBOARD_HELP) }
                 )
             }
             composable(BottomTab.Purchase.route) {
-                CategoryListScreen(categoryId = "purchase", title = "Compras")
+                CategoryListScreen(
+                    categoryId = "purchase",
+                    title = "Compras",
+                    onNavigateToSms = { navController.navigate(Routes.SMS_SERVICES) }
+                )
             }
             val navigateFromOptions: (OptionsDestination) -> Unit = { destination ->
                 val route = when (destination) {
