@@ -36,6 +36,7 @@ object UssdParsers {
         put("sms-balance", SmsBalanceParser())
         put("bonus-usd-plans", BonusUsdPlansParser())
         put("data-plan", DataPlanParser())
+        put("main-balance", MainBalanceParser())
     }
 
     fun forCode(codeId: String): UssdResponseParser = registry[codeId] ?: StubUssdResponseParser(codeId)

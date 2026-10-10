@@ -94,7 +94,48 @@ Monthly limit fully consumed. Recharge blocked until stated date.
 
 ### `main-balance`
 
-**Stub** — awaiting ETECSA USSD response samples.
+Code id: `main-balance`
+USSD: `*222#`
+Parser: `MainBalanceParser.kt`
+Tests: `MainBalanceParserTest.kt` (12 cases)
+
+**Cross-card parser** — one USSD response populates fields across multiple dashboard cards. No special event system needed: `recordUssdParse` stores all `ParsedDashboardValue` entries, and `observeCurrentValues()` emits all fields regardless of source code id.
+
+#### Full response (all sections)
+
+```
+Saldo: 227.05 CUP. Datos: 4.03 GB. Voz: 00:45:00. SMS: 57 Linea activa hasta 17-08-27 vence 17-02-28.
+Saldo: 15.01 CUP. Datos: 57.35 MB. Voz: 119:51:13. SMS: 8401 Linea activa hasta 20-08-27 vence 16-02-28.
+```
+
+| FieldType | Source section | Value | Card |
+|---|---|---|---|
+| `main_balance` | `Saldo:` | amount (CUP) | MainBalanceCard |
+| `data_datos_mb` | `Datos:` | MB (GB auto-converted) | DataUsageCard |
+| `voice_minutes_remaining` | `Voz:` | total minutes + textValue HH:MM:SS | VoiceSmsRow |
+| `sms_count_remaining` | `SMS:` | count | VoiceSmsRow |
+| `line_active_until` | `Linea activa hasta` | epoch(date) | MainBalanceCard |
+| `account_due_date` | `vence` | epoch(date) | MainBalanceCard |
+
+#### Minimal response (balance only, no plans)
+
+```
+Saldo: 199.35 CUP. Linea activa hasta 13-08-27 vence 09-02-28.
+```
+
+Only `main_balance`, `line_active_until`, `account_due_date` emitted. Datos/Voz/SMS fields absent.
+
+#### Field reuse
+
+Fields emitted by this parser are the same `FieldTypes` keys used by the dedicated parsers (`data-plan`, `voice-balance`, `sms-balance`). The reconciliation rule (§15.4) applies: whichever source produces the most recent `USSD_REAL` reading wins per field. This means dialing `*222#` alone can refresh all cards in one shot, with dedicated codes providing more detail (days remaining, plan active status, tariff) when queried individually.
+
+#### Parser notes
+
+- `Saldo:` required — if missing → `Unrecognized`.
+- All other sections optional and extracted independently.
+- Amounts: comma or dot decimal separator.
+- Dates: dd-MM-yy and dd-MM-yyyy via shared `parseDateDmy()`.
+- Datos/Voz/SMS sections here carry no days-remaining or active status — those come from dedicated codes only.
 
 ---
 
