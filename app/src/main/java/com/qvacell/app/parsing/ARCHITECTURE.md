@@ -157,7 +157,42 @@ User has no active voice plan.
 
 ### `sms-balance`
 
-**Stub** — awaiting ETECSA USSD response samples.
+Code id: `sms-balance`
+USSD: `*222*767#`
+Parser: `SmsBalanceParser.kt`
+Tests: `SmsBalanceParserTest.kt` (8 cases)
+
+#### Variant 1 & 2 — Has SMS remaining
+
+```
+Usted dispone de 8401 SMS validos por 19 dias
+Usted dispone de 57 SMS validos por 19 dias
+```
+
+User has active SMS plan. Count as integer, days until expiry.
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `sms_plan_active` | 1.0 | — |
+| `sms_count_remaining` | count (double) | SMS |
+| `sms_days_remaining` | days (double) | — |
+
+#### Variant 3 — No plan
+
+```
+Usted debe adquirir un plan de SMS. Para una nueva compra marque *133#
+```
+
+User has no active SMS plan.
+
+| FieldType | Value | Unit |
+|---|---|---|
+| `sms_plan_active` | 0.0 | — |
+
+#### Parser notes
+
+- Count: any non-negative integer.
+- Text not matching → `ParseResult.Unrecognized`.
 
 ---
 

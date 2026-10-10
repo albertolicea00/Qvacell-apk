@@ -15,6 +15,7 @@ object FieldTypes {
     const val VOICE_PLAN_ACTIVE = "voice_plan_active"
     const val VOICE_MINUTES_REMAINING = "voice_minutes_remaining"
     const val VOICE_DAYS_REMAINING = "voice_days_remaining"
+    const val SMS_PLAN_ACTIVE = "sms_plan_active"
     const val SMS_COUNT_REMAINING = "sms_count_remaining"
     const val SMS_DAYS_REMAINING = "sms_days_remaining"
     const val NATIONAL_RECHARGE_LIMIT_AMOUNT = "national_recharge_limit_amount"

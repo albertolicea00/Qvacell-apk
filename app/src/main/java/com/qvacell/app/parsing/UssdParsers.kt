@@ -33,6 +33,7 @@ object UssdParsers {
         KNOWN_CODE_IDS.forEach { put(it, StubUssdResponseParser(it)) }
         put("national-recharge-limit", NationalRechargeLimitParser())
         put("voice-balance", VoiceBalanceParser())
+        put("sms-balance", SmsBalanceParser())
     }
 
     fun forCode(codeId: String): UssdResponseParser = registry[codeId] ?: StubUssdResponseParser(codeId)
