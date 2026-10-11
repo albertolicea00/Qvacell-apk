@@ -104,30 +104,39 @@ private fun UsageStatCard(
                         modifier = Modifier.padding(start = 6.dp)
                     )
                 }
-                val unitColor = MaterialTheme.colorScheme.onSurface
-                Text(
-                    buildAnnotatedString {
-                        value.forEach { char ->
-                            val style = if (char.isLetter()) {
-                                SpanStyle(color = unitColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                            } else {
-                                SpanStyle(color = accentColor)
-                            }
-                            withStyle(style) { append(char) }
-                        }
-                    },
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-                val expiryDays = badge.filter { it.isDigit() }.toIntOrNull()
-                if (expiryDays != null) {
+                if (value == "--") {
                     Text(
-                        "Vence el ${formatSpanishDate(LocalDate.now().plusDays(expiryDays.toLong()))}",
-                        style = MaterialTheme.typography.labelSmall,
+                        "Sin plan",
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 6.dp)
+                        modifier = Modifier.padding(top = 8.dp)
                     )
+                } else {
+                    val unitColor = MaterialTheme.colorScheme.onSurface
+                    Text(
+                        buildAnnotatedString {
+                            value.forEach { char ->
+                                val style = if (char.isLetter()) {
+                                    SpanStyle(color = unitColor, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                } else {
+                                    SpanStyle(color = accentColor)
+                                }
+                                withStyle(style) { append(char) }
+                            }
+                        },
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    val expiryDays = badge.filter { it.isDigit() }.toIntOrNull()
+                    if (expiryDays != null) {
+                        Text(
+                            "Vence el ${formatSpanishDate(LocalDate.now().plusDays(expiryDays.toLong()))}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
                 }
                 Text(
                     formatTimeAgo(lastUpdatedAt),
