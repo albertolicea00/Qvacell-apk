@@ -46,7 +46,7 @@ It is an Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell
                   └── loads assets/codes.json (bundled, read-only)
 ```
 
-There is no MVVM view-model layer and no cross-screen navigation state machine beyond Compose Navigation's own back stack. `CatalogRepository` (the catalog) and `SettingsDataStore` (theme/default tab/accent color) are the two pieces of app-wide state; `ContactsRepository`, `TransferPinStore`, `ReminderRepository`, and `DirectoryDatabase` are created where they're used instead of injected globally — there is no dependency-injection framework (no Hilt/Koin), matching the iOS app's equally minimal-DI approach. State flows one way — repositories/stores (read-only or self-contained) → composables. There is no unified "code detail" screen — each `UssdCode.type` (`USSD`, `CALL`, `SMS`) drives a different tap behavior directly (dial, dialog-for-input-then-dial, or open an SMS intent). Persisted state includes `SettingsDataStore` (Preferences DataStore: theme mode, default tab, accent color hex, debug-search unlock flag), a Room database (`reminders` and `wrapped_callers` tables), and the transfer PIN in `EncryptedSharedPreferences` (`TransferPinStore`, §12).
+There is no MVVM view-model layer and no cross-screen navigation state machine beyond Compose Navigation's own back stack. `CatalogRepository` (the catalog) and `SettingsDataStore` (theme/default tab/accent color) are the two pieces of app-wide state; `ContactsRepository`, `TransferPinStore`, `ReminderRepository`, and `DirectoryDatabase` are created where they're used instead of injected globally — there is no dependency-injection framework (no Hilt/Koin), matching the iOS app's equally minimal-DI approach. State flows one way — repositories/stores (read-only or self-contained) → composables. There is no unified "code detail" screen — each `UssdCode.type` (`USSD`, `CALL`, `SMS`) drives a different tap behavior directly (dial, dialog-for-input-then-dial, or open an SMS intent). Persisted state includes `SettingsDataStore` (Preferences DataStore: theme mode, default tab, accent color hex, debug-search unlock flag, stale-days threshold §15.10), a Room database (`reminders`, `wrapped_callers`, `dashboard_value_snapshots`, `source_anchors` tables), and the transfer PIN in `EncryptedSharedPreferences` (`TransferPinStore`, §12).
 
 ---
 
@@ -64,7 +64,7 @@ There is no MVVM view-model layer and no cross-screen navigation state machine b
 | `data/QvacellDatabase.kt`                          | Room database (`reminders`, `wrapped_callers` tables).                                                                                                                                                                                                                                             |
 | `data/ReminderDao.kt` / `data/WrappedCallerDao.kt` | Room DAOs.                                                                                                                                                                                                                                                                                         |
 | `data/Converters.kt`                               | Room `TypeConverter`s (e.g. `ReminderRecurrence` enum ↔ `String`).                                                                                                                                                                                                                                 |
-| `data/SettingsDataStore.kt`                        | Preferences DataStore: theme mode, default launch tab, accent color hex, hidden debug-search unlock flag, global SIM slot preference (§16).                                                                                                                                                        |
+| `data/SettingsDataStore.kt`                        | Preferences DataStore: theme mode, default launch tab, accent color hex, hidden debug-search unlock flag, global SIM slot preference (§16), stale-days threshold for dashboard timestamp color coding (§15.10).                                                                                    |
 | `service/DialService.kt`                           | `dial()` builds/opens `tel:` URIs via `ACTION_DIAL`; `dialDirect()` uses `ACTION_CALL`. Both accept an optional `simSlot` parameter for dual-SIM routing (§16) — resolves `PhoneAccountHandle` via `TelecomManager.callCapablePhoneAccounts`. Also SMS intents via `ACTION_SENDTO` and Google Maps search URLs via `ACTION_VIEW`. |
 | `service/CellularMonitor.kt`                       | Wraps `TelephonyManager` to expose the current network type (5G/LTE/3G/2G/none) as a `StateFlow<String>`, for an optional weak/no-signal warning banner.                                                                                                                                           |
 | `service/ContactsRepository.kt`                    | Queries `ContactsContract` for device contacts (including phone type labels), normalizes Cuban numbers via `CubanPhoneNumber`, provides `flattenToEntries()` to expand multi-number contacts into per-number `ContactEntry` rows (§17), and rebuilds `wrapped_callers` on every fetch (§11).        |
@@ -78,10 +78,10 @@ There is no MVVM view-model layer and no cross-screen navigation state machine b
 | `receiver/ReminderActionReceiver.kt`               | Handles the "Mark done" / "Snooze 1 day" notification actions.                                                                                                                                                                                                                                     |
 | `receiver/BootCompletedReceiver.kt`                | Re-registers all enabled reminders after `ACTION_BOOT_COMPLETED`, since `AlarmManager` alarms are cleared on reboot (§6) — a correctness step iOS local notifications don't need.                                                                                                                  |
 | `ui/AndroidIconResolver.kt`                        | Resolves the `icon` string in this repo's `codes.json` (e.g. `"Filled.Home"` — this repo's own copy replaces iOS's SF Symbol names with Material icon identifiers in that same field) to a `androidx.compose.material.icons` `ImageVector` via reflection; falls back to a generic circle icon when unset or unresolvable. |
-| `ui/components/`                                   | Reusable composables: `CodeRow`, `ContactRow` (per-number entry with optional type label), `ContactOptionsSheet`, `TransferBottomSheet`, `DirectoryEntryRow`, `ConnectionBanner`, `SimSelectorChip` (§16), `SearchableTopAppBar` (with `extraActions` slot), and `CodeActionHandler`.              |
+| `ui/components/`                                   | Reusable composables: `CodeRow`, `ContactRow` (per-number entry with optional type label), `ContactOptionsSheet`, `TransferBottomSheet`, `DirectoryEntryRow`, `ConnectionBanner` (includes `hasCellularService()` signal check), `SimSelectorChip` (§16), `SearchableTopAppBar` (with `extraActions` slot), `CodeActionHandler`, and dashboard cards — `MainBalanceCard`, `DataUsageCard`, `NationalBonusCard`, `VoiceSmsRow`, `RechargeLimitCard`, `ConsultCardsRow`, plus `TimeAgoText`/`LocalStaleDaysThreshold` (§15.10). |
 | `ui/navigation/NavGraph.kt`                        | `BottomTab` sealed class (the 5 fixed tabs) and `Routes` (nested route constants for screens pushed from Options).                                                                                                                                                                                 |
 | `ui/navigation/QvacellNavHost.kt`                  | Compose `NavHost` wiring bottom-tab routes and nested routes together.                                                                                                                                                                                                                             |
-| `ui/screens/`                                      | `CategoryListScreen` (Ayuda/Compras), `ContactsListScreen` (per-number flat list, §17), `HomeQuickActionsScreen`, `ManualDashboardContent`/`DynamicDashboardContent`, `ReminderListScreen`/`ReminderEditScreen`, `FriendsPlanManageScreen`, `DirectorySearchScreen`, `WifiRoomsScreen`, `OptionsScreen` (includes SIM selector, §16), `HelpScreen`, `SmsServicesScreen`. |
+| `ui/screens/`                                      | `CategoryListScreen` (Ayuda/Compras), `ContactsListScreen` (per-number flat list, §17), `HomeQuickActionsScreen`, `ManualDashboardContent`/`DynamicDashboardContent` (live dashboard with signal gating, pull-to-refresh, `LoadingCardBorder` animation — §15.9–§15.13), `ReminderListScreen`/`ReminderEditScreen`, `FriendsPlanManageScreen`, `DirectorySearchScreen`, `WifiRoomsScreen`, `OptionsScreen` (includes SIM selector, §16), `HelpScreen`, `SmsServicesScreen`. |
 | `widget/`                                          | `QuickActionsWidget` (AppWidgetProvider), `QuickActionsWidgetConfigure` (config activity with code + SIM picker), `WidgetPrefs` (per-widget SharedPreferences: code ID, SIM slot, icon shape, colors), `DialTrampolineActivity` (reads per-widget SIM and dials via `DialService`).                |
 | `app/src/main/assets/codes.json`                   | Static, bundled dataset: version, carrier, categories → groups → codes, each with its dial string and presentation metadata (§3). Byte-identical to the iOS app's copy.                                                                                                                            |
 | `app/src/main/assets/wifi_navigation_rooms.json`   | Static, bundled dataset: one entry per province with its navigation rooms and free WiFi hotspots. Byte-identical to the iOS app's copy.                                                                                                                                                            |
@@ -377,15 +377,79 @@ Full parsing rules, verbatim ETECSA response samples, regex patterns, and field 
 
 ---
 
-### 15.9 Status — done vs. planned
+### 15.9 Dashboard UI — Live Cards & Data States
+
+The dashboard cards (`MainBalanceCard`, `DataUsageCard`, `NationalBonusCard`, `VoiceSmsRow`, `RechargeLimitCard`) in `DynamicDashboardContent.kt` (unlocked flavor) collect live data from `DashboardDataRepository.observeCurrentValues()` and display three distinct states per card:
+
+1. **Sin consultar** (never fetched) — `hasFetched = false`. Shown when no USSD query has populated the card's fields yet. Cards display a placeholder message ("Actualice el dashboard para ver la información." or "Aún no consultado.") instead of data. `DataUsageCard` also hides its "Tarifa por consumo" section and divider in this state.
+2. **Sin plan / No cuenta con...** (fetched, no active plan) — `hasFetched = true`, values are `"--"`. Voice/SMS cards show "Sin plan"; Data card shows "No cuenta con paquetes disponibles"; Bonus card shows "No cuenta con bonos disponibles".
+3. **Real values** — `hasFetched = true`, values populated from parsed USSD response.
+
+**`hasFetched` derivation**: `MainBalanceCard` checks `MAIN_BALANCE.capturedAt != null`. Voice, SMS, and Data cards check their own field's `capturedAt` **OR** `MAIN_BALANCE.capturedAt` — because the `MainBalanceParser` (*222#) already extracts `VOICE_MINUTES_REMAINING`, `SMS_COUNT_REMAINING`, and `DATA_DATOS_MB` when those plans exist in the response. If main-balance was fetched and those fields are absent, the user genuinely has no plan — the card correctly shows "Sin plan" immediately without needing a separate USSD query.
+
+**Conditional field hiding**: `MainBalanceCard` hides "Activa hasta" / "Vence el" lines when their values are `"--"` (even after fetching), rather than showing placeholder dashes.
+
+### 15.10 Timestamp Color Coding (`TimeAgoText`)
+
+Every dashboard card displays a `TimeAgoText` composable (`ui/components/HomeDashboardSection.kt`) showing when its data was last updated ("Hace 2 horas", "Hace 3 días", etc.). The text color encodes freshness:
+
+- **Red** (`#E53935`) — `epochMillis == null`, labeled "No actualizado" (never updated).
+- **Amber** (`#FB8C00`) — data older than `staleDaysThreshold` days (default 14). The threshold is parameterizable via `SettingsDataStore.staleDaysThreshold` and distributed to all cards through `LocalStaleDaysThreshold` (`compositionLocalOf { 14 }`), provided by `CompositionLocalProvider` in `DynamicDashboardContent`.
+- **Gray** (50% alpha `onSurfaceVariant`) — data is fresh (within threshold).
+
+When voice/sms/data cards derive `hasFetched` from `mainBalanceFetched` and have no dedicated query timestamp, `lastUpdatedAt` falls back to `MAIN_BALANCE.capturedAt` so the timestamp reflects when the data was actually determined.
+
+### 15.11 Loading Animation (`LoadingCardBorder`)
+
+`LoadingCardBorder` (`DynamicDashboardContent.kt`) wraps each dashboard card and shows an animated gradient border stroke while the corresponding USSD code is being queried (`DashboardRefreshService.currentCodeId` matches the card's code ID). The animation is a horizontal sweep of a partial `Brush.horizontalGradient` over a `drawWithContent` modifier (drawn ON TOP of card content, not behind it — `drawBehind` + `.clip()` would hide the stroke). Stroke width is 3dp with a 20dp corner radius matching the card shape.
+
+`DashboardCapture.captureOrDial()` sets/clears `DashboardRefreshService.currentCodeId` around each individual USSD request, so tapping a single card also triggers the loading border for that card alone.
+
+### 15.12 Signal Gating & Warning Banner
+
+Dashboard refresh and individual card queries require cellular signal. `hasCellularService()` (`ui/components/ConnectionBanner.kt`) polls `TelephonyManager.dataNetworkType` — returns `false` when `NETWORK_TYPE_UNKNOWN`. `DynamicDashboardContent` polls this every 5 seconds via `LaunchedEffect`.
+
+When `!hasSignal`:
+- **Pull-to-refresh**: `activePull` is gated on `hasSignal` — pulling down produces zero visual feedback, preventing a misleading refresh gesture.
+- **Reload button** (`HomeQuickActionsScreen`): `enabled = !isRefreshing && hasSignal`.
+- **Individual card taps**: `requestQuery()` returns early.
+- **Signal warning banner** (`QvacellNavHost`): a yellow/amber (`#FB8C00`) banner in the same position as `ConnectionBanner` (above the bottom navigation bar), visible on Home/dashboard screens when `!hasSignal && !showNetworkStatus` (the setting-controlled network banner isn't already shown). Text: "Sin señal celular" with a warning icon.
+
+### 15.13 Smart Refresh — Skip Unnecessary USSD Queries
+
+`DashboardRefreshService.refresh()` queries codes sequentially (USSD is serial on the modem). The refresh order is: `main-balance` → `bonus-usd-plans` → `data-plan` → `national-recharge-limit` → `voice-balance` → `sms-balance`.
+
+After the `main-balance` query completes, the service reads the current values from `DashboardDataRepository.getCurrentValues()` and checks whether `VOICE_MINUTES_REMAINING`, `SMS_COUNT_REMAINING`, and `DATA_DATOS_MB` were populated. If a field is absent, the corresponding dedicated query is skipped entirely:
+- No `VOICE_MINUTES_REMAINING` → skip `voice-balance` (*222*869*1#)
+- No `SMS_COUNT_REMAINING` → skip `sms-balance` (*222*767*1#)
+- No `DATA_DATOS_MB` → skip `data-plan` (*222*328#)
+
+This optimization avoids wasting USSD requests (and the ~3–5 second modem round-trip per query) for plans the user doesn't have. The DAO exposes a `suspend fun getLatestPerField()` one-shot query alongside the existing `Flow`-based `observeAllLatestPerField()` to support this synchronous check mid-refresh.
+
+### 15.14 Navigation — Dashboard Settings Tab Affinity
+
+Dashboard-related nested routes are split across tabs:
+- `DASHBOARD_HELP`, `DASHBOARD_EVENTS` → `HOME_NESTED_ROUTES` (highlighted under Home tab).
+- `DASHBOARD_SETTINGS` → `OPTIONS_NESTED_ROUTES` (highlighted under Options tab, since it's a settings screen).
+
+The navbar click handler navigates directly with `popUpTo(validStartRoute)` — no failed `popBackStack` before navigate.
+
+### 15.15 Status — done vs. planned
 
 **Done and verified** (both flavors compile, full test suite green, merged-manifest permission split confirmed):
 - Room schema, migration, DAOs, append-only enforcement.
 - All 6 dashboard USSD parsers implemented with 68 tests (see parsing/ARCHITECTURE.md).
-- `DashboardDataRepository` with the real-beats-estimate reconciliation rule.
+- `DashboardDataRepository` with the real-beats-estimate reconciliation rule, plus `getCurrentValues()` one-shot query.
 - Capture services, estimation engine, AlarmManager scheduling (`unlocked` flavor).
 - `store`/`unlocked` flavor split, manifest/permission separation, `BuildConfig`-gated Options UI.
 - First-ever test suite for this project.
+- Dashboard cards wired to `DashboardDataRepository.observeCurrentValues()` with three-state display (§15.9).
+- Tap-to-refresh on every dashboard card via `DashboardCapture.captureOrDial`, with optional confirmation dialog (`cardTapMode` setting).
+- `LoadingCardBorder` animated gradient stroke during USSD queries (§15.11).
+- `TimeAgoText` with red/amber/gray color coding and parameterizable stale threshold (§15.10).
+- Signal gating: pull-to-refresh, reload button, and card taps disabled without cellular signal; yellow warning banner (§15.12).
+- Smart refresh: main-balance response determines which subsequent queries to skip (§15.13).
+- `PullToRefreshBox` (Material3 1.3.1) with custom pull indicator (dual arrows + "Arrastra/Suelta para refrescar" text).
 
 **Awaiting ETECSA samples**:
 - 3 ConsultCardsRow USSD codes (`postpaid-balance` `*111#`, `tfa` `*118#`, `friends-plan` `*222*264#`) — no response text captured yet, cannot write parsers without real samples.
@@ -393,10 +457,8 @@ Full parsing rules, verbatim ETECSA response samples, regex patterns, and field 
 - `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — placeholder pending real sender-ID/short-code examples.
 
 **Not yet done / open before this ships to real users**:
-- The `HomeDashboardSection.kt` cards themselves still render hardcoded placeholder strings — nothing yet collects from `DashboardDataRepository.observeCurrentValues()` and feeds the cards. Wiring that up is the natural next step now that the 6 dashboard parsers are real.
 - The `sendUssdRequest` reliability spike against a real ETECSA SIM (§15.5) — a go/no-go gate for whether silent USSD capture works at all on this carrier, not yet run.
 - A Play Store restricted-permissions business decision for the `unlocked` flavor's distribution (moot for `store`, which never requests them) — flagged, not resolved, since it's a business/policy call rather than a code one.
-- The six dashboard-section codes (`main-balance`, `bonus-usd-plans`, `data-plan`, `voice-balance`, `sms-balance`, `national-recharge-limit`) have no tap-to-refresh affordance in the dashboard UI yet — only the separate "PLAN AMIGO"/"POSTPAGO" `ConsultCardsRow` double-tap is wired to `DashboardCapture.captureOrDial` today.
 
 ---
 
