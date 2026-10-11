@@ -11,7 +11,8 @@ data class UpdateInfo(
     val versionName: String,
     val htmlUrl: String,
     val unlockedApkUrl: String?,
-    val storeApkUrl: String?
+    val storeApkUrl: String?,
+    val isFlavorUpgrade: Boolean = false
 )
 
 object UpdateChecker {
@@ -19,7 +20,7 @@ object UpdateChecker {
     private const val RELEASES_URL =
         "https://api.github.com/repos/albertolicea00/Qvacell-apk/releases"
 
-    suspend fun check(): UpdateInfo? = withContext(Dispatchers.IO) {
+    suspend fun check(targetMode: String = "unlocked"): UpdateInfo? = withContext(Dispatchers.IO) {
         try {
             val conn = URL(RELEASES_URL).openConnection() as HttpURLConnection
             conn.setRequestProperty("Accept", "application/vnd.github+json")
@@ -37,8 +38,6 @@ object UpdateChecker {
             val latest = releases.getJSONObject(0)
             val tagName = latest.getString("tag_name").removePrefix("v")
 
-            if (!isNewer(tagName, BuildConfig.VERSION_NAME)) return@withContext null
-
             val htmlUrl = latest.getString("html_url")
             var unlockedUrl: String? = null
             var storeUrl: String? = null
@@ -54,7 +53,22 @@ object UpdateChecker {
                 }
             }
 
-            UpdateInfo(tagName, htmlUrl, unlockedUrl, storeUrl)
+            val newerVersion = isNewer(tagName, BuildConfig.VERSION_NAME)
+            val isSameVersion = tagName == BuildConfig.VERSION_NAME
+
+            // If the user is currently on the "store" build (DASHBOARD_CAPTURE_ENABLED is false / even versionCode)
+            // and checking for "unlocked", the unlocked build is a functional upgrade even on the same release.
+            val isFlavorUpgrade = isSameVersion && !BuildConfig.DASHBOARD_CAPTURE_ENABLED && targetMode == "unlocked" && unlockedUrl != null
+
+            if (!newerVersion && !isFlavorUpgrade) return@withContext null
+
+            UpdateInfo(
+                versionName = tagName,
+                htmlUrl = htmlUrl,
+                unlockedApkUrl = unlockedUrl,
+                storeApkUrl = storeUrl,
+                isFlavorUpgrade = isFlavorUpgrade
+            )
         } catch (_: Exception) {
             null
         }

@@ -198,7 +198,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     LaunchedEffect(autoUpdateCheck) {
         if (autoUpdateCheck == "none") return@LaunchedEffect
-        val info = UpdateChecker.check() ?: return@LaunchedEffect
+        val info = UpdateChecker.check(targetMode = autoUpdateCheck) ?: return@LaunchedEffect
         updateInfo = info
         showUpdateDialog = true
     }
@@ -531,7 +531,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             if (!updateChecking) {
                                 updateChecking = true
                                 scope.launch {
-                                    val info = UpdateChecker.check()
+                                    val info = UpdateChecker.check(targetMode = autoUpdateCheck)
                                     updateChecking = false
                                     if (info != null) {
                                         updateInfo = info
@@ -945,13 +945,17 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             "playstore" -> info.storeApkUrl ?: info.htmlUrl
             else -> info.unlockedApkUrl ?: info.htmlUrl
         }
+        val titleText = if (info.isFlavorUpgrade) "Versión Unlocked disponible" else "Nueva actualización disponible"
+        val bodyText = if (info.isFlavorUpgrade) {
+            "Pasa a la edición Unlocked para disfrutar de la experiencia completa de Qvacell.\n\nInstalada: v${BuildConfig.VERSION_NAME}  →  Disponible: v${info.versionName}"
+        } else {
+            "Hay una nueva versión lista para instalar.\n\nInstalada: v${BuildConfig.VERSION_NAME}  →  Nueva: v${info.versionName}"
+        }
         AlertDialog(
             onDismissRequest = { showUpdateDialog = false },
             icon = { Icon(Icons.Filled.SystemUpdate, contentDescription = null) },
-            title = { Text("Nueva actualización disponible") },
-            text = {
-                Text("La versión ${info.versionName} está disponible. Estás usando la versión ${BuildConfig.VERSION_NAME}.")
-            },
+            title = { Text(titleText) },
+            text = { Text(bodyText) },
             confirmButton = {
                 TextButton(onClick = {
                     showUpdateDialog = false
