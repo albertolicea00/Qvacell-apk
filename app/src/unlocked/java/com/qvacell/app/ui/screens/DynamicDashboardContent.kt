@@ -203,6 +203,7 @@ fun DynamicDashboardContent(
                     ?.let { formatDate(it) } ?: "--",
                 accountDueDate = values[FieldTypes.ACCOUNT_DUE_DATE]?.dateValue
                     ?.let { formatDate(it) } ?: "--",
+                hasFetched = values[FieldTypes.MAIN_BALANCE]?.capturedAt != null,
                 lastUpdatedAt = values[FieldTypes.MAIN_BALANCE]?.capturedAt,
                 onQuery = { requestQuery("main-balance") }
             )
@@ -216,6 +217,8 @@ fun DynamicDashboardContent(
                     ?.let { "${it.toInt()}d" } ?: "--",
                 smsCount = values[FieldTypes.SMS_COUNT_REMAINING]?.numericValue
                     ?.let { DecimalFormat("#,###").format(it.toInt()) } ?: "--",
+                voiceHasFetched = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt != null,
+                smsHasFetched = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt != null,
                 voiceLastUpdatedAt = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt,
                 smsLastUpdatedAt = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt,
                 onVoiceQuery = { requestQuery("voice-balance") },
@@ -239,6 +242,7 @@ fun DynamicDashboardContent(
                     ?.let { formatAmount(it) } ?: "--",
                 todusExpiry = values[FieldTypes.DATA_TODUS_DAYS]?.numericValue
                     ?.let { formatSpanishDate(LocalDate.now().plusDays(it.toLong())) } ?: "--",
+                hasFetched = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt != null,
                 lastUpdatedAt = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt,
                 onQuery = { requestQuery("data-plan") }
             )
@@ -253,6 +257,8 @@ fun DynamicDashboardContent(
                 nocturnoStatus = if (values[FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY]?.dateValue != null) "Activo" else "No Disponible",
                 nocturnoExpiry = values[FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY]?.dateValue
                     ?.let { formatDate(it) } ?: "--",
+                hasFetched = (values[FieldTypes.BONUS_ACTIVE]?.capturedAt
+                    ?: values[FieldTypes.BONUS_DATOS_CU_MB]?.capturedAt) != null,
                 lastUpdatedAt = values[FieldTypes.BONUS_ACTIVE]?.capturedAt
                     ?: values[FieldTypes.BONUS_DATOS_CU_MB]?.capturedAt,
                 onQuery = { requestQuery("bonus-usd-plans") }

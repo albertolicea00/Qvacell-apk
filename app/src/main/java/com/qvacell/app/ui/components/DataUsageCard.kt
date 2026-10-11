@@ -36,6 +36,7 @@ fun DataUsageCard(
     datosExpiry: String = "--",
     todusMb: String = "--",
     todusExpiry: String = "--",
+    hasFetched: Boolean = true,
     lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
@@ -78,7 +79,14 @@ fun DataUsageCard(
                 }
             }
 
-            if (!hasAnyPackage) {
+            if (!hasFetched) {
+                Text(
+                    "Sin consultar",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
+            } else if (!hasAnyPackage) {
                 Text(
                     "No cuenta con paquetes disponibles",
                     style = MaterialTheme.typography.bodySmall,

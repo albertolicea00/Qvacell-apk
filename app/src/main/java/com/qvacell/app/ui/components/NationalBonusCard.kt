@@ -33,6 +33,7 @@ fun NationalBonusCard(
     expiry: String,
     nocturnoStatus: String = "No Disponible",
     nocturnoExpiry: String = "--",
+    hasFetched: Boolean = true,
     lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
@@ -67,7 +68,14 @@ fun NationalBonusCard(
                 )
             }
 
-            if (!hasBonus && !hasNocturno) {
+            if (!hasFetched) {
+                Text(
+                    "Sin consultar",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                )
+            } else if (!hasBonus && !hasNocturno) {
                 Text(
                     "No cuenta con bonos disponibles",
                     style = MaterialTheme.typography.bodySmall,

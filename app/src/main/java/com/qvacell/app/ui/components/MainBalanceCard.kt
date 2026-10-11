@@ -34,6 +34,7 @@ fun MainBalanceCard(
     currency: String,
     lineActiveUntil: String,
     accountDueDate: String,
+    hasFetched: Boolean = true,
     lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
@@ -70,21 +71,27 @@ fun MainBalanceCard(
                             modifier = Modifier.padding(start = 6.dp)
                         )
                     }
-                    Text(
-                        "Activa hasta $lineActiveUntil",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        softWrap = false,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                    Text(
-                        "Vence el $accountDueDate",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        softWrap = false
-                    )
+                    if (hasFetched) {
+                        if (lineActiveUntil != "--") {
+                            Text(
+                                "Activa hasta $lineActiveUntil",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                softWrap = false,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+                        if (accountDueDate != "--") {
+                            Text(
+                                "Vence el $accountDueDate",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+                    }
                     Text(
                         formatTimeAgo(lastUpdatedAt),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
@@ -93,31 +100,40 @@ fun MainBalanceCard(
                     )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    val (wholePart, centsPart) = balance.split(".", limit = 2)
-                        .let { it[0] to it.getOrElse(1) { "" } }
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(SpanStyle(fontSize = 36.sp)) {
-                                append(wholePart)
-                            }
-                            if (centsPart.isNotEmpty()) {
-                                withStyle(
-                                    SpanStyle(fontSize = 20.sp, baselineShift = BaselineShift.Superscript)
-                                ) {
-                                    append(".$centsPart")
+                    if (!hasFetched) {
+                        Text(
+                            "Sin consultar",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 12.dp)
+                        )
+                    } else {
+                        val (wholePart, centsPart) = balance.split(".", limit = 2)
+                            .let { it[0] to it.getOrElse(1) { "" } }
+                        Text(
+                            buildAnnotatedString {
+                                withStyle(SpanStyle(fontSize = 36.sp)) {
+                                    append(wholePart)
                                 }
-                            }
-                        },
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        currency.ifEmpty { "CUP" },
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.offset(y = (-15).dp)
-                    )
+                                if (centsPart.isNotEmpty()) {
+                                    withStyle(
+                                        SpanStyle(fontSize = 20.sp, baselineShift = BaselineShift.Superscript)
+                                    ) {
+                                        append(".$centsPart")
+                                    }
+                                }
+                            },
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            currency.ifEmpty { "CUP" },
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.offset(y = (-15).dp)
+                        )
+                    }
                 }
             }
         }

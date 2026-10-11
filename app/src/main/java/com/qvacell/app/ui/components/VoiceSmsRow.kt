@@ -36,6 +36,8 @@ fun VoiceSmsRow(
     voiceDuration: String,
     smsDaysRemaining: String,
     smsCount: String,
+    voiceHasFetched: Boolean = true,
+    smsHasFetched: Boolean = true,
     voiceLastUpdatedAt: Long? = null,
     smsLastUpdatedAt: Long? = null,
     onVoiceQuery: (() -> Unit)? = null,
@@ -49,6 +51,7 @@ fun VoiceSmsRow(
             badge = voiceDaysRemaining,
             label = "VOZ",
             value = voiceDuration,
+            hasFetched = voiceHasFetched,
             lastUpdatedAt = voiceLastUpdatedAt,
             onQuery = onVoiceQuery
         )
@@ -59,6 +62,7 @@ fun VoiceSmsRow(
             badge = smsDaysRemaining,
             label = "SMS",
             value = smsCount,
+            hasFetched = smsHasFetched,
             lastUpdatedAt = smsLastUpdatedAt,
             onQuery = onSmsQuery
         )
@@ -73,6 +77,7 @@ private fun UsageStatCard(
     badge: String,
     label: String,
     value: String,
+    hasFetched: Boolean = true,
     lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
@@ -104,7 +109,14 @@ private fun UsageStatCard(
                         modifier = Modifier.padding(start = 6.dp)
                     )
                 }
-                if (value == "--") {
+                if (!hasFetched) {
+                    Text(
+                        "Sin consultar",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                } else if (value == "--") {
                     Text(
                         "Sin plan",
                         style = MaterialTheme.typography.bodySmall,
