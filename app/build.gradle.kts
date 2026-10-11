@@ -51,6 +51,8 @@ android {
             storePassword = releaseProps.getProperty("storePassword")
             keyAlias = releaseProps.getProperty("keyAlias", "albertolicea00")
             keyPassword = releaseProps.getProperty("keyPassword")
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
