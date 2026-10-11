@@ -43,6 +43,9 @@ import com.qvacell.app.service.DashboardRefreshService
 import com.qvacell.app.ui.components.RechargeBottomSheet
 import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.TransferBottomSheet
+import com.qvacell.app.ui.components.hasCellularService
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 
 @Composable
 fun HomeQuickActionsScreen(
@@ -73,6 +76,15 @@ fun HomeQuickActionsScreen(
     val dashboardModeLoaded = dashboardMode != null
     val currentView = viewOverride ?: dashboardMode ?: ""
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
+
+    var hasSignal by remember { mutableStateOf(hasCellularService(context)) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            hasSignal = hasCellularService(context)
+            delay(5000)
+        }
+    }
+
     val infiniteTransition = rememberInfiniteTransition(label = "refresh")
     val rotation by infiniteTransition.animateFloat(
         initialValue = 0f,
@@ -95,7 +107,7 @@ fun HomeQuickActionsScreen(
                         onClick = {
                             DashboardRefreshService.refresh(context, repository, dashboardRepository)
                         },
-                        enabled = !isRefreshing,
+                        enabled = !isRefreshing && hasSignal,
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(

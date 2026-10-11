@@ -112,6 +112,11 @@ fun ConnectionBanner() {
     }
 }
 
+fun hasCellularService(context: Context): Boolean {
+    val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+    return readCellularSignalStatus(tm).hasService
+}
+
 private fun readCellularSignalStatus(telephonyManager: TelephonyManager?): CellularSignalStatus {
     val networkType = try {
         telephonyManager?.dataNetworkType ?: TelephonyManager.NETWORK_TYPE_UNKNOWN

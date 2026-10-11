@@ -51,11 +51,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -72,6 +74,7 @@ import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
 import com.qvacell.app.ui.components.formatSpanishDate
+import com.qvacell.app.ui.components.hasCellularService
 import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
@@ -98,12 +101,21 @@ fun DynamicDashboardContent(
 
     var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
 
+    var hasSignal by remember { mutableStateOf(hasCellularService(context)) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            hasSignal = hasCellularService(context)
+            delay(5000)
+        }
+    }
+
     fun executeQuery(codeId: String) {
         val code = catalogRepository.findCodeById(codeId) ?: return
         DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
     }
 
     fun requestQuery(codeId: String) {
+        if (!hasSignal) return
         val code = catalogRepository.findCodeById(codeId) ?: return
         val needsConfirm = cardTapMode == "tap_confirm" || cardTapMode == "long_confirm"
         if (needsConfirm) {
@@ -119,7 +131,7 @@ fun DynamicDashboardContent(
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
-        onRefresh = { DashboardRefreshService.refresh(context, catalogRepository, dashboardRepository) },
+        onRefresh = { if (hasSignal) DashboardRefreshService.refresh(context, catalogRepository, dashboardRepository) },
         modifier = Modifier.fillMaxSize(),
         state = pullState,
         indicator = {}
