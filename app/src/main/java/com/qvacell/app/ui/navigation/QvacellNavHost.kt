@@ -83,11 +83,12 @@ private val OPTIONS_NESTED_ROUTES = setOf(
     Routes.HOME_WIDGETS,
     Routes.VOICE_SHORTCUTS,
     Routes.DASHBOARD_SETTINGS,
+)
+
+private val HOME_NESTED_ROUTES = setOf(
     Routes.DASHBOARD_HELP,
     Routes.DASHBOARD_EVENTS,
 )
-
-private val HOME_NESTED_ROUTES = emptySet<String>()
 
 // Shown on the bottom bar's Options tab instead of the generic icon while inside one of
 // these nested screens, so the tab reflects where you actually are (Recordatorios, SMS, WiFi...).
@@ -110,7 +111,11 @@ private val OPTIONS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.DASHBOARD_EVENTS to Icons.Filled.CalendarMonth
 )
 
-private val HOME_ROUTE_ICONS: Map<String, ImageVector> = emptyMap()
+private val HOME_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
+    Routes.DASHBOARD_HELP to Icons.AutoMirrored.Filled.Help,
+    Routes.DASHBOARD_EVENTS to Icons.Filled.CalendarMonth,
+    Routes.DASHBOARD_SETTINGS to Icons.Filled.Dashboard,
+)
 
 @Composable
 fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
@@ -193,10 +198,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                                 }
                                             }
                                         } else if (isInHomeSection || isInOptionsSection) {
-                                            navController.popBackStack(
-                                                if (isInHomeSection) BottomTab.Home.route else BottomTab.Options.route,
-                                                inclusive = false
-                                            )
                                             navController.navigate(tab.route) {
                                                 popUpTo(validStartRoute) { saveState = true }
                                                 launchSingleTop = true
