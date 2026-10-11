@@ -97,7 +97,7 @@ fun MainBalanceCard(
                 Column(horizontalAlignment = Alignment.End) {
                     if (!hasFetched) {
                         Text(
-                            "Sin consultar",
+                            "Aún no consultado.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 12.dp)

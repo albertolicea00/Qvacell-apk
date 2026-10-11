@@ -111,7 +111,7 @@ private fun UsageStatCard(
                 }
                 if (!hasFetched) {
                     Text(
-                        "Sin consultar",
+                        "Aún no consultado.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)

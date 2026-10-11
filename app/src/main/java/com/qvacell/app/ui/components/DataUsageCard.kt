@@ -81,7 +81,7 @@ fun DataUsageCard(
 
             if (!hasFetched) {
                 Text(
-                    "Sin consultar",
+                    "Actualice el dashboard para ver la información.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
