@@ -36,6 +36,8 @@ fun VoiceSmsRow(
     voiceDuration: String,
     smsDaysRemaining: String,
     smsCount: String,
+    voiceLastUpdatedAt: Long? = null,
+    smsLastUpdatedAt: Long? = null,
     onVoiceQuery: (() -> Unit)? = null,
     onSmsQuery: (() -> Unit)? = null
 ) {
@@ -47,6 +49,7 @@ fun VoiceSmsRow(
             badge = voiceDaysRemaining,
             label = "VOZ",
             value = voiceDuration,
+            lastUpdatedAt = voiceLastUpdatedAt,
             onQuery = onVoiceQuery
         )
         UsageStatCard(
@@ -56,6 +59,7 @@ fun VoiceSmsRow(
             badge = smsDaysRemaining,
             label = "SMS",
             value = smsCount,
+            lastUpdatedAt = smsLastUpdatedAt,
             onQuery = onSmsQuery
         )
     }
@@ -69,6 +73,7 @@ private fun UsageStatCard(
     badge: String,
     label: String,
     value: String,
+    lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
     val cardShape = RoundedCornerShape(20.dp)
@@ -124,15 +129,8 @@ private fun UsageStatCard(
                         modifier = Modifier.padding(top = 6.dp)
                     )
                 }
-                val lastUpdateDaysAgo = "1".toInt()
                 Text(
-                    if (lastUpdateDaysAgo == 0) {
-                        "Actualizado hoy"
-                    } else if (lastUpdateDaysAgo == 1) {
-                        "Actualizado hace 1 día"
-                    } else {
-                        "Actualizado hace $lastUpdateDaysAgo días"
-                    },
+                    formatTimeAgo(lastUpdatedAt),
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier.padding(top = 2.dp)

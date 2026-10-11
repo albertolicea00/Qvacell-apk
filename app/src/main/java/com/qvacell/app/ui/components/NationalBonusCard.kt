@@ -31,6 +31,9 @@ import java.time.LocalDate
 fun NationalBonusCard(
     amount: String,
     expiry: String,
+    nocturnoStatus: String = "No Disponible",
+    nocturnoExpiry: String = "--",
+    lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
     val cardShape = RoundedCornerShape(20.dp)
@@ -123,33 +126,28 @@ fun NationalBonusCard(
                     modifier = Modifier.padding(start = 4.dp)
                 )
                 Text(
-                    "No Disponible",
+                    nocturnoStatus,
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
 
-            Text(
-                "Vence el 15 Nov 2026",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-
-            val lastUpdateDaysAgo = "1".toInt()
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (nocturnoExpiry != "--") {
                 Text(
-                    if (lastUpdateDaysAgo == 0) "Actualizado hoy"
-                    else if (lastUpdateDaysAgo == 1) "Actualizado hace 1 día"
-                    else "Actualizado hace $lastUpdateDaysAgo días",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    "Vence el $nocturnoExpiry",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp)
                 )
             }
+
+            Text(
+                formatTimeAgo(lastUpdatedAt),
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.padding(top = 2.dp)
+            )
         }
     }
 }

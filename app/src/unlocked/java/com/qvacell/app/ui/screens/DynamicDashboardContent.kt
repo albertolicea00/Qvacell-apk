@@ -52,8 +52,10 @@ import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DashboardRefreshService
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
+import com.qvacell.app.ui.components.formatSpanishDate
 import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
@@ -158,6 +160,8 @@ fun DynamicDashboardContent(
                 } ?: "--",
                 availableFrom = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_AVAILABLE_FROM]?.dateValue
                     ?.let { formatDate(it) } ?: "--",
+                lastUpdatedAt = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REACHED]?.capturedAt
+                    ?: values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REMAINING]?.capturedAt,
                 onQuery = { requestQuery("national-recharge-limit") }
             )
             MainBalanceCard(
@@ -167,6 +171,7 @@ fun DynamicDashboardContent(
                     ?.let { formatDate(it) } ?: "--",
                 accountDueDate = values[FieldTypes.ACCOUNT_DUE_DATE]?.dateValue
                     ?.let { formatDate(it) } ?: "--",
+                lastUpdatedAt = values[FieldTypes.MAIN_BALANCE]?.capturedAt,
                 onQuery = { requestQuery("main-balance") }
             )
             VoiceSmsRow(
@@ -177,6 +182,8 @@ fun DynamicDashboardContent(
                     ?.let { "${it.toInt()}d" } ?: "--",
                 smsCount = values[FieldTypes.SMS_COUNT_REMAINING]?.numericValue
                     ?.let { DecimalFormat("#,###").format(it.toInt()) } ?: "--",
+                voiceLastUpdatedAt = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt,
+                smsLastUpdatedAt = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt,
                 onVoiceQuery = { requestQuery("voice-balance") },
                 onSmsQuery = { requestQuery("sms-balance") }
             )
@@ -186,6 +193,17 @@ fun DynamicDashboardContent(
                 packageGb = values[FieldTypes.DATA_DATOS_MB]?.numericValue
                     ?.let { DecimalFormat("0.00").format(it / 1024.0) } ?: "--",
                 tariffStatus = if (values[FieldTypes.DATA_TARIFF_ACTIVE]?.numericValue == 1.0) "Activa" else "No Activa",
+                diariaMb = values[FieldTypes.DATA_DIARIA_MB]?.numericValue
+                    ?.let { formatAmount(it) } ?: "--",
+                diariaExpiry = if (values[FieldTypes.DATA_DIARIA_ACTIVE]?.numericValue == 1.0)
+                    formatSpanishDate(LocalDate.now().plusDays(1)) else "--",
+                datosExpiry = values[FieldTypes.DATA_DATOS_DAYS]?.numericValue
+                    ?.let { formatSpanishDate(LocalDate.now().plusDays(it.toLong())) } ?: "--",
+                todusMb = values[FieldTypes.DATA_TODUS_MB]?.numericValue
+                    ?.let { formatAmount(it) } ?: "--",
+                todusExpiry = values[FieldTypes.DATA_TODUS_DAYS]?.numericValue
+                    ?.let { formatSpanishDate(LocalDate.now().plusDays(it.toLong())) } ?: "--",
+                lastUpdatedAt = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt,
                 onQuery = { requestQuery("data-plan") }
             )
             NationalBonusCard(
@@ -194,6 +212,11 @@ fun DynamicDashboardContent(
                 } ?: "--",
                 expiry = values[FieldTypes.BONUS_DATOS_CU_EXPIRY]?.dateValue
                     ?.let { "Vence ${formatDate(it)}" } ?: "--",
+                nocturnoStatus = if (values[FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY]?.dateValue != null) "Activo" else "No Disponible",
+                nocturnoExpiry = values[FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY]?.dateValue
+                    ?.let { formatDate(it) } ?: "--",
+                lastUpdatedAt = values[FieldTypes.BONUS_ACTIVE]?.capturedAt
+                    ?: values[FieldTypes.BONUS_DATOS_CU_MB]?.capturedAt,
                 onQuery = { requestQuery("bonus-usd-plans") }
             )
             ConsultCardsRow(

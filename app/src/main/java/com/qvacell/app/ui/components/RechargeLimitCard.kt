@@ -43,6 +43,7 @@ fun RechargeLimitCard(
     reached: Boolean,
     limitAmount: String,
     availableFrom: String,
+    lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
     if (!reached) return
@@ -86,15 +87,8 @@ fun RechargeLimitCard(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
-                val lastUpdateDaysAgo = "1".toInt()
                 Text(
-                    if (lastUpdateDaysAgo == 0) {
-                        "Actualizado hoy"
-                    } else if (lastUpdateDaysAgo == 1) {
-                        "Actualizado hace 1 día"
-                    } else {
-                        "Actualizado hace $lastUpdateDaysAgo días"
-                    },
+                    formatTimeAgo(lastUpdatedAt),
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier.padding(top = 2.dp)

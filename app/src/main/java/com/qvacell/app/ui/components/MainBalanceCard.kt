@@ -34,6 +34,7 @@ fun MainBalanceCard(
     currency: String,
     lineActiveUntil: String,
     accountDueDate: String,
+    lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
     val cardShape = RoundedCornerShape(20.dp)
@@ -84,15 +85,8 @@ fun MainBalanceCard(
                         maxLines = 1,
                         softWrap = false
                     )
-                    val lastUpdateDaysAgo = "1".toInt()
                     Text(
-                        if (lastUpdateDaysAgo == 0) {
-                            "Actualizado hoy"
-                        } else if (lastUpdateDaysAgo == 1) {
-                            "Actualizado hace 1 día"
-                        } else {
-                            "Actualizado hace $lastUpdateDaysAgo días"
-                        },
+                        formatTimeAgo(lastUpdatedAt),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.padding(top = 2.dp)
@@ -119,7 +113,7 @@ fun MainBalanceCard(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        "CUP",
+                        currency.ifEmpty { "CUP" },
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.offset(y = (-15).dp)

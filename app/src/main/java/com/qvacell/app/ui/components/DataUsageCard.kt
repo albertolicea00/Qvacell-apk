@@ -31,6 +31,12 @@ fun DataUsageCard(
     daysRemaining: String,
     packageGb: String,
     tariffStatus: String,
+    diariaMb: String = "--",
+    diariaExpiry: String = "--",
+    datosExpiry: String = "--",
+    todusMb: String = "--",
+    todusExpiry: String = "--",
+    lastUpdatedAt: Long? = null,
     onQuery: (() -> Unit)? = null
 ) {
     val cardShape = RoundedCornerShape(20.dp)
@@ -72,18 +78,20 @@ fun DataUsageCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.padding(top = 5.dp)
                     )
-                    Text(
-                        "Vence el 11 Oct 2026",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (diariaExpiry != "--") {
+                        Text(
+                            "Vence el $diariaExpiry",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 Row(
                     verticalAlignment = Alignment.Bottom,
                     modifier = Modifier.offset(y = (-10).dp)
                 ) {
                     Text(
-                        "195",
+                        diariaMb,
                         style = MaterialTheme.typography.headlineLarge.copy(fontSize = 40.sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -109,11 +117,13 @@ fun DataUsageCard(
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
-                    Text(
-                        "Vence el 14 Nov 2026",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (datosExpiry != "--") {
+                        Text(
+                            "Vence el $datosExpiry",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 Row(
                     verticalAlignment = Alignment.Bottom,
@@ -146,15 +156,17 @@ fun DataUsageCard(
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
-                    Text(
-                        "Vence el 20 Oct 2026",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (todusExpiry != "--") {
+                        Text(
+                            "Vence el $todusExpiry",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        "1024.00",
+                        todusMb,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -195,11 +207,8 @@ fun DataUsageCard(
                 )
             }
 
-            val lastUpdateDaysAgo = "1".toInt()
             Text(
-                if (lastUpdateDaysAgo == 0) "Actualizado hoy"
-                else if (lastUpdateDaysAgo == 1) "Actualizado hace 1 día"
-                else "Actualizado hace $lastUpdateDaysAgo días",
+                formatTimeAgo(lastUpdatedAt),
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             )
