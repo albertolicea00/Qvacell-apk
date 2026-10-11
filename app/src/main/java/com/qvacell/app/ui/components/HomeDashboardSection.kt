@@ -11,7 +11,7 @@ internal fun formatSpanishDate(date: LocalDate): String =
     "${date.dayOfMonth} ${SPANISH_MONTH_ABBREVIATIONS[date.monthValue - 1]} ${date.year}"
 
 internal fun formatTimeAgo(epochMillis: Long?): String {
-    if (epochMillis == null) return "Sin datos"
+    if (epochMillis == null) return "No actualizado"
     val diff = System.currentTimeMillis() - epochMillis
     val seconds = diff / 1000
     val minutes = seconds / 60
