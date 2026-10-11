@@ -19,6 +19,45 @@ object UpdateChecker {
 
     private const val RELEASES_URL =
         "https://api.github.com/repos/albertolicea00/Qvacell-apk/releases"
+    private const val LATEST_RELEASE_URL = "$RELEASES_URL/latest"
+
+    /**
+     * Resolves the full APK using this fallback order:
+     * latest public release -> installed version's release -> caller-provided releases page.
+     */
+    suspend fun preferredUnlockedApkUrl(): String? = withContext(Dispatchers.IO) {
+        fetchUnlockedApkUrl(LATEST_RELEASE_URL)
+            ?: fetchUnlockedApkUrl("$RELEASES_URL/tags/v${BuildConfig.VERSION_NAME}")
+    }
+
+    private fun fetchUnlockedApkUrl(releaseUrl: String): String? {
+        try {
+            val conn = URL(releaseUrl).openConnection() as HttpURLConnection
+            conn.setRequestProperty("Accept", "application/vnd.github+json")
+            conn.connectTimeout = 10_000
+            conn.readTimeout = 10_000
+
+            if (conn.responseCode != 200) {
+                conn.disconnect()
+                return null
+            }
+
+            val body = conn.inputStream.bufferedReader().use { it.readText() }
+            conn.disconnect()
+            val assets = org.json.JSONObject(body).getJSONArray("assets")
+
+            for (i in 0 until assets.length()) {
+                val asset = assets.getJSONObject(i)
+                val name = asset.getString("name").lowercase()
+                if ("unlocked" in name && name.endsWith(".apk")) {
+                    return asset.getString("browser_download_url")
+                }
+            }
+            return null
+        } catch (_: Exception) {
+            return null
+        }
+    }
 
     suspend fun check(targetMode: String = "unlocked"): UpdateInfo? = withContext(Dispatchers.IO) {
         try {

@@ -87,6 +87,7 @@ import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.OnboardingDataPrefetch
+import com.qvacell.app.service.UpdateChecker
 import kotlinx.coroutines.launch
 
 private const val GITHUB_RELEASES_URL = "https://github.com/albertolicea00/qvacell-apk/releases"
@@ -222,10 +223,13 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
                             // pages rebuilds → currentPageIndex now points to UssdPermission
                         },
                         onOpenGitHub = {
-                            context.startActivity(
-                                Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_RELEASES_URL))
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            )
+                            scope.launch {
+                                val url = UpdateChecker.preferredUnlockedApkUrl() ?: GITHUB_RELEASES_URL
+                                context.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            }
                         }
                     )
                     OnboardingPage.UssdPermission -> UssdPermissionPage(
@@ -797,7 +801,7 @@ private fun DynamicUnavailablePage(
                 ) {
                     Icon(Icons.Filled.OpenInBrowser, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Ver releases en GitHub", modifier = Modifier.padding(vertical = 4.dp))
+                    Text("Descargar APK completo", modifier = Modifier.padding(vertical = 4.dp))
                 }
             }
         },
