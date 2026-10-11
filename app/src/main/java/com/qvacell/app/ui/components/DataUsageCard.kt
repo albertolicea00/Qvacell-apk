@@ -242,11 +242,7 @@ fun DataUsageCard(
                 )
             }
 
-            Text(
-                formatTimeAgo(lastUpdatedAt),
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            )
+            TimeAgoText(lastUpdatedAt)
         }
     }
 }

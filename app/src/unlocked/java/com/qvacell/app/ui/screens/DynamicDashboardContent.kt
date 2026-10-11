@@ -73,8 +73,12 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.util.Date
 import java.util.Locale
+import com.qvacell.app.ui.components.LocalStaleDaysThreshold
 import com.qvacell.app.ui.components.formatSpanishDate
 import com.qvacell.app.ui.components.hasCellularService
+import com.qvacell.app.data.SettingsDataStore
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
@@ -100,6 +104,9 @@ fun DynamicDashboardContent(
     val values by dashboardRepository.observeCurrentValues().collectAsState(initial = emptyMap())
 
     var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
+
+    val settings = remember { SettingsDataStore(context) }
+    val staleDays by settings.staleDaysThreshold.collectAsStateWithLifecycle(initialValue = 14)
 
     var hasSignal by remember { mutableStateOf(hasCellularService(context)) }
     LaunchedEffect(Unit) {
@@ -129,6 +136,7 @@ fun DynamicDashboardContent(
 
     val pullState = rememberPullToRefreshState()
 
+    CompositionLocalProvider(LocalStaleDaysThreshold provides staleDays) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = { if (hasSignal) DashboardRefreshService.refresh(context, catalogRepository, dashboardRepository) },
@@ -373,6 +381,7 @@ fun DynamicDashboardContent(
             }
         }
         }
+    }
     }
 
     pendingAction?.let { (title, details, action) ->

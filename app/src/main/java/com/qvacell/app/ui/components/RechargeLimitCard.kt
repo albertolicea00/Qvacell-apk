@@ -87,12 +87,7 @@ fun RechargeLimitCard(
                         modifier = Modifier.padding(top = 2.dp)
                     )
                 }
-                Text(
-                    formatTimeAgo(lastUpdatedAt),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(top = 2.dp)
-                )
+                TimeAgoText(lastUpdatedAt)
             }
             val daysUntilAvailable = parsedAvailableDate?.let {
                 ChronoUnit.DAYS.between(LocalDate.now(), it)

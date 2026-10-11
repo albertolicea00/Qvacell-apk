@@ -31,6 +31,7 @@ class SettingsDataStore(private val context: Context) {
     private val dashboardActionsStyleKey = stringPreferencesKey("dashboard_actions_style")
     private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
+    private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
 
     val themeMode = context.dataStore.data.map {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
@@ -89,6 +90,8 @@ class SettingsDataStore(private val context: Context) {
 
     // 0-based SIM slot index (-1 = system default). Only meaningful on multi-SIM devices.
     val selectedSimSlot = context.dataStore.data.map { it[selectedSimSlotKey] ?: -1 }
+
+    val staleDaysThreshold = context.dataStore.data.map { it[staleDaysThresholdKey] ?: 14 }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[themeModeKey] = mode.name }
@@ -152,6 +155,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setSelectedSimSlot(slot: Int) {
         context.dataStore.edit { it[selectedSimSlotKey] = slot }
+    }
+
+    suspend fun setStaleDaysThreshold(days: Int) {
+        context.dataStore.edit { it[staleDaysThresholdKey] = days }
     }
 
     companion object {

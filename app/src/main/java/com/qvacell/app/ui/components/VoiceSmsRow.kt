@@ -150,12 +150,7 @@ private fun UsageStatCard(
                         )
                     }
                 }
-                Text(
-                    formatTimeAgo(lastUpdatedAt),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    modifier = Modifier.padding(top = 2.dp)
-                )
+                TimeAgoText(lastUpdatedAt)
             }
         }
     }
