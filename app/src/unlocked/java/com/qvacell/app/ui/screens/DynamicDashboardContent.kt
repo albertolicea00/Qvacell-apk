@@ -46,9 +46,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qvacell.app.data.CatalogRepository
+import com.qvacell.app.data.FieldTypes
 import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DashboardRefreshService
+import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
@@ -70,6 +75,7 @@ fun DynamicDashboardContent(
     val context = LocalContext.current
     val catalogRepository = remember { repository }
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
+    val values by dashboardRepository.observeCurrentValues().collectAsState(initial = emptyMap())
 
     var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
 
@@ -144,35 +150,50 @@ fun DynamicDashboardContent(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             RechargeLimitCard(
-                reached = true,
-                limitAmount = "360 cup",
-                availableFrom = "24-10-2026",
+                reached = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REACHED]?.numericValue == 1.0,
+                limitAmount = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REMAINING]?.let {
+                    formatAmount(it.numericValue) + " " + (it.unit ?: "CUP")
+                } ?: values[FieldTypes.NATIONAL_RECHARGE_LIMIT_AMOUNT]?.let {
+                    formatAmount(it.numericValue) + " " + (it.unit ?: "CUP")
+                } ?: "--",
+                availableFrom = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_AVAILABLE_FROM]?.dateValue
+                    ?.let { formatDate(it) } ?: "--",
                 onQuery = { requestQuery("national-recharge-limit") }
             )
             MainBalanceCard(
-                balance = "1520.21",
-                currency = "",
-                lineActiveUntil = "20 Ago 2027",
-                accountDueDate = "16 Feb 2028",
+                balance = values[FieldTypes.MAIN_BALANCE]?.let { formatAmount(it.numericValue) } ?: "--",
+                currency = values[FieldTypes.MAIN_BALANCE]?.unit ?: "",
+                lineActiveUntil = values[FieldTypes.LINE_ACTIVE_UNTIL]?.dateValue
+                    ?.let { formatDate(it) } ?: "--",
+                accountDueDate = values[FieldTypes.ACCOUNT_DUE_DATE]?.dateValue
+                    ?.let { formatDate(it) } ?: "--",
                 onQuery = { requestQuery("main-balance") }
             )
             VoiceSmsRow(
-                voiceDaysRemaining = "35d",
-                voiceDuration = "4d 23h 55m",
-                smsDaysRemaining = "35d",
-                smsCount = "8,419",
+                voiceDaysRemaining = values[FieldTypes.VOICE_DAYS_REMAINING]?.numericValue
+                    ?.let { "${it.toInt()}d" } ?: "--",
+                voiceDuration = values[FieldTypes.VOICE_MINUTES_REMAINING]?.textValue ?: "--",
+                smsDaysRemaining = values[FieldTypes.SMS_DAYS_REMAINING]?.numericValue
+                    ?.let { "${it.toInt()}d" } ?: "--",
+                smsCount = values[FieldTypes.SMS_COUNT_REMAINING]?.numericValue
+                    ?.let { DecimalFormat("#,###").format(it.toInt()) } ?: "--",
                 onVoiceQuery = { requestQuery("voice-balance") },
                 onSmsQuery = { requestQuery("sms-balance") }
             )
             DataUsageCard(
-                daysRemaining = "35 días restantes",
-                packageGb = "6.00",
-                tariffStatus = "No Activa",
+                daysRemaining = values[FieldTypes.DATA_DATOS_DAYS]?.numericValue
+                    ?.let { "${it.toInt()} días restantes" } ?: "--",
+                packageGb = values[FieldTypes.DATA_DATOS_MB]?.numericValue
+                    ?.let { DecimalFormat("0.00").format(it / 1024.0) } ?: "--",
+                tariffStatus = if (values[FieldTypes.DATA_TARIFF_ACTIVE]?.numericValue == 1.0) "Activa" else "No Activa",
                 onQuery = { requestQuery("data-plan") }
             )
             NationalBonusCard(
-                amount = "300 MB",
-                expiry = "Vence 30 días",
+                amount = values[FieldTypes.BONUS_DATOS_CU_MB]?.let {
+                    formatAmount(it.numericValue) + " " + (it.unit ?: "MB")
+                } ?: "--",
+                expiry = values[FieldTypes.BONUS_DATOS_CU_EXPIRY]?.dateValue
+                    ?.let { "Vence ${formatDate(it)}" } ?: "--",
                 onQuery = { requestQuery("bonus-usd-plans") }
             )
             ConsultCardsRow(
@@ -307,5 +328,18 @@ fun DynamicDashboardContent(
                 }
             }
         )
+    }
+}
+
+private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es"))
+
+private fun formatDate(epochMillis: Long): String = dateFormat.format(Date(epochMillis))
+
+private fun formatAmount(value: Double?): String {
+    if (value == null) return "--"
+    return if (value == value.toLong().toDouble()) {
+        DecimalFormat("#,###").format(value.toLong())
+    } else {
+        DecimalFormat("#,##0.00").format(value)
     }
 }
