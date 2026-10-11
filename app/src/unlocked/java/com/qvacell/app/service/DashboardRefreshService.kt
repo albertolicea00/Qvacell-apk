@@ -2,6 +2,7 @@ package com.qvacell.app.service
 
 import android.content.Context
 import com.qvacell.app.data.CatalogRepository
+import com.qvacell.app.data.FieldTypes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,12 +39,27 @@ object DashboardRefreshService {
         _isRefreshing.value = true
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                var skipVoice = false
+                var skipSms = false
+                var skipData = false
+
                 for (codeId in REFRESH_ORDER) {
+                    if (skipVoice && codeId == "voice-balance") continue
+                    if (skipSms && codeId == "sms-balance") continue
+                    if (skipData && codeId == "data-plan") continue
+
                     _currentCodeId.value = codeId
                     val code = catalogRepository.findCodeById(codeId) ?: continue
                     val result = requestUssdSuspend(context, code)
                     if (result is UssdCaptureResult.Success) {
                         dashboardRepository.recordUssdParse(codeId, result.response)
+                    }
+
+                    if (codeId == "main-balance") {
+                        val current = dashboardRepository.getCurrentValues()
+                        skipVoice = current[FieldTypes.VOICE_MINUTES_REMAINING] == null
+                        skipSms = current[FieldTypes.SMS_COUNT_REMAINING] == null
+                        skipData = current[FieldTypes.DATA_DATOS_MB] == null
                     }
                 }
             } finally {

@@ -34,6 +34,9 @@ class DashboardDataRepository(
     fun observeHistory(fieldType: String): Flow<List<DashboardValueSnapshot>> =
         valueDao.observeHistory(fieldType)
 
+    suspend fun getCurrentValues(): Map<String, DashboardValueSnapshot> =
+        reconcile(valueDao.getLatestPerField())
+
     fun observeAnchors(): Flow<List<SourceAnchor>> = anchorDao.observeAll()
 
     suspend fun latestConfirmedAnchorTimestamp(): Long? = anchorDao.latestSuccessfulParseAt()

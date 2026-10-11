@@ -216,6 +216,7 @@ fun DynamicDashboardContent(
                 onQuery = { requestQuery("main-balance") }
             )
             }
+            val mainBalanceFetched = values[FieldTypes.MAIN_BALANCE]?.capturedAt != null
             LoadingCardBorder(isLoading = currentCodeId == "voice-balance" || currentCodeId == "sms-balance") {
             VoiceSmsRow(
                 voiceDaysRemaining = values[FieldTypes.VOICE_DAYS_REMAINING]?.numericValue
@@ -225,10 +226,12 @@ fun DynamicDashboardContent(
                     ?.let { "${it.toInt()}d" } ?: "--",
                 smsCount = values[FieldTypes.SMS_COUNT_REMAINING]?.numericValue
                     ?.let { DecimalFormat("#,###").format(it.toInt()) } ?: "--",
-                voiceHasFetched = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt != null,
-                smsHasFetched = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt != null,
-                voiceLastUpdatedAt = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt,
-                smsLastUpdatedAt = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt,
+                voiceHasFetched = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt != null || mainBalanceFetched,
+                smsHasFetched = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt != null || mainBalanceFetched,
+                voiceLastUpdatedAt = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt
+                    ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
+                smsLastUpdatedAt = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt
+                    ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
                 onVoiceQuery = { requestQuery("voice-balance") },
                 onSmsQuery = { requestQuery("sms-balance") }
             )
@@ -250,8 +253,9 @@ fun DynamicDashboardContent(
                     ?.let { formatAmount(it) } ?: "--",
                 todusExpiry = values[FieldTypes.DATA_TODUS_DAYS]?.numericValue
                     ?.let { formatSpanishDate(LocalDate.now().plusDays(it.toLong())) } ?: "--",
-                hasFetched = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt != null,
-                lastUpdatedAt = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt,
+                hasFetched = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt != null || mainBalanceFetched,
+                lastUpdatedAt = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt
+                    ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
                 onQuery = { requestQuery("data-plan") }
             )
             }

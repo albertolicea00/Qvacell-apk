@@ -38,4 +38,17 @@ interface DashboardValueSnapshotDao {
         """
     )
     fun observeAllLatestPerField(): Flow<List<DashboardValueSnapshot>>
+
+    @Query(
+        """
+        SELECT s.* FROM dashboard_value_snapshots s
+        INNER JOIN (
+            SELECT fieldType, (sourceKind != 'ESTIMATED') AS isReal, MAX(capturedAt) AS maxCapturedAt
+            FROM dashboard_value_snapshots GROUP BY fieldType, isReal
+        ) latest ON s.fieldType = latest.fieldType
+            AND s.capturedAt = latest.maxCapturedAt
+            AND (s.sourceKind != 'ESTIMATED') = latest.isReal
+        """
+    )
+    suspend fun getLatestPerField(): List<DashboardValueSnapshot>
 }
