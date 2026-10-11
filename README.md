@@ -50,10 +50,17 @@ An Android app to quickly access the **USSD service codes of ETECSA (Cubacel)**:
 
 This project uses two Gradle product flavors (dimension `distribution`) to ship two distinct versions from the same codebase:
 
-| Flavor | Distribution | Sensitive permissions | Dashboard auto-refresh |
-| --- | --- | --- | --- |
-| **`store`** | Google Play | None of the three below | Off — manual dial only, exactly like every other code in the app |
-| **`unlocked`** | GitHub / manual APK sideload | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (plus the existing `CALL_PHONE`, now also used for silent USSD capture) | On (opt-in toggles in Options) — reads ETECSA SMS and USSD responses in the background and estimates usage since the last confirmed reading, to keep the balance/data/voice/SMS dashboard fresh between manual checks |
+| Flavor | Distribution | `versionCode` Parity | Sensitive permissions | Dashboard auto-refresh |
+| --- | --- | --- | --- | --- |
+| **`store`** | Google Play | **Even** (`base * 2`) | None of the three below | Off — manual dial only, exactly like every other code in the app |
+| **`unlocked`** | GitHub / manual APK sideload | **Odd** (`base * 2 + 1`) | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (plus `CALL_PHONE`) | On (opt-in toggles in Options) — background capture & estimation |
+
+> [!TIP]
+> **Version Parity Strategy (Even/Odd `versionCode`)**:
+> Both flavors share the exact same `applicationId` (`com.qvacell.app`). To ensure users can download the full `unlocked` APK from GitHub and **install it directly over** the Play Store build without uninstalling or losing data:
+> - The `store` flavor gets an even number (e.g. base 3 $\rightarrow$ code 6).
+> - The `unlocked` flavor gets the next odd number (e.g. base 3 $\rightarrow$ code 7).
+> Because $7 > 6$, the Android package manager treats it as a legitimate upgrade. Furthermore, version codes will never collide across past, present, or future releases.
 
 `store` exists specifically so the Play Store build never has to clear Google's restricted-permissions review for `READ_SMS`/`READ_CALL_LOG` — it's built from the exact same source, just missing the capture source sets (`app/src/store/`) instead of `unlocked`'s (`app/src/unlocked/`). See [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) for how the split works and what each flavor's capture layer does.
 

@@ -485,3 +485,25 @@ The Contactos tab lists each phone number as a **separate row**, matching the iO
 **UI** — `ContactRow` accepts a `ContactEntry`. `ContactOptionsSheet` operates on the specific number from the entry (not `cubanNumbers.firstOrNull()`). Search matches both name and number.
 
 **Known limitation** — The system contact picker (`ACTION_PICK`) used in transfer and Plan Amigo flows shows all phone numbers (not just Cuban). When a non-Cuban number is selected, an `AlertDialog` shows an error explaining only Cuban numbers are accepted. This affects `ManualDashboardContent`, `TransferBottomSheet`, and `FriendsPlanManageScreen`.
+
+---
+
+## 18. Release Strategy & Parity-Based Version Codes
+
+Qvacell distributes two flavors (`store` and `unlocked`) under the **exact same `applicationId`** (`com.qvacell.app`). To support side-by-side migration where a user can install the `unlocked` APK directly over an existing Google Play install without losing local data (Room database, preferences DataStore, transfer PIN):
+
+1. **Shared Keystore**: Both APKs are signed with the same release signing key (`keys/release.jks`). In Google Play Console, Play App Signing must be configured using the existing uploaded key rather than a Google-generated key.
+2. **Even/Odd Parity Scheme**:
+   - `store` (Google Play): `baseVersionCode * 2` (Always **even**).
+   - `unlocked` (GitHub / sideload): `baseVersionCode * 2 + 1` (Always **odd**).
+   
+| Release | Base Version Code | `store` (Even) | `unlocked` (Odd) | Upgrade Rule |
+| :--- | :---: | :---: | :---: | :---: |
+| `v1.0.2` | 3 | 6 | 7 | 7 > 6 $\rightarrow$ Sideload replaces Play Store build |
+| `v1.0.3` | 4 | 8 | 9 | 9 > 8 $\rightarrow$ Sideload replaces Play Store build |
+| `v1.1.0` | 5 | 10 | 11 | 11 > 10 $\rightarrow$ Sideload replaces Play Store build |
+
+**Invariants guaranteed**:
+- Because even numbers can never equal odd numbers, `store` and `unlocked` version codes **never collide** across past, present, or future releases.
+- For any release version, `unlocked` is strictly greater than `store` ($2n+1 > 2n$), satisfying Android package manager's upgrade requirement.
+- Release bumps via `make bump-patch`, `make bump-minor`, and `make bump-major` only manage the single `baseVersionCode`, with Gradle computing the flavors dynamically.

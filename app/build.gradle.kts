@@ -15,28 +15,43 @@ android {
     // an AGP version the installed Android Studio (2025.1 Meerkat) actually supports syncing.
     compileSdk = 36
 
+    val baseVersionCode = 3
+    val appVersionName = "1.0.3"
+
     defaultConfig {
         applicationId = "com.qvacell.app"
         minSdk = 26
         // Target Android 14 (API 34) for broad OEM compatibility (e.g. Xiaomi HyperOS/MIUI
         // package installer rejection on API 36) while satisfying Google Play requirements.
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = baseVersionCode
+        versionName = appVersionName
     }
 
     // "unlocked" (GitHub/sideload) gets the dashboard data-capture pipeline — silent USSD capture,
     // SMS reading, call-log estimation — and the sensitive permissions/receivers it needs.
     // "store" (Google Play) ships without any of that, so the store build never has to clear
     // Play's restricted-permissions review for RECEIVE_SMS/READ_SMS/READ_CALL_LOG.
+    //
+    // Parity-based versionCode scheme:
+    //   store (Google Play): even (baseVersionCode * 2) -> e.g. 3 * 2 = 6
+    //   unlocked (GitHub sideload): odd (baseVersionCode * 2 + 1) -> e.g. 3 * 2 + 1 = 7
+    // Guarantees:
+    //   1. Neither flavor ever collides across releases.
+    //   2. unlocked is always strictly greater than store for the same release, allowing
+    //      seamless update/sideload over the store build without uninstalling or data loss.
     flavorDimensions += "distribution"
     productFlavors {
         create("unlocked") {
             dimension = "distribution"
+            versionCode = baseVersionCode * 2 + 1
+            versionName = appVersionName
             buildConfigField("boolean", "DASHBOARD_CAPTURE_ENABLED", "true")
         }
         create("store") {
             dimension = "distribution"
+            versionCode = baseVersionCode * 2
+            versionName = appVersionName
             buildConfigField("boolean", "DASHBOARD_CAPTURE_ENABLED", "false")
         }
     }

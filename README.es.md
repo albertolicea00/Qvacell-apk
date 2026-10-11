@@ -48,12 +48,17 @@ Una aplicación para Android para acceder rápidamente a los **códigos de servi
 
 ## 📦 Variantes de Compilación (Flavors) y Permisos
 
-Este proyecto usa dos "product flavors" de Gradle (dimensión `distribution`) para publicar dos versiones distintas desde el mismo código:
+| Flavor | Distribución | Paridad `versionCode` | Permisos sensibles | Auto-actualización del dashboard |
+| --- | --- | --- | --- | --- |
+| **`store`** | Google Play | **Par** (`base * 2`) | Ninguno de los tres siguientes | Desactivada — solo marcado manual, igual que cualquier otro código de la app |
+| **`unlocked`** | GitHub / APK manual | **Impar** (`base * 2 + 1`) | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (más `CALL_PHONE`) | Activada (interruptores opcionales en Opciones) — captura en segundo plano |
 
-| Flavor | Distribución | Permisos sensibles | Auto-actualización del dashboard |
-| --- | --- | --- | --- |
-| **`store`** | Google Play | Ninguno de los tres siguientes | Desactivada — solo marcado manual, igual que cualquier otro código de la app |
-| **`unlocked`** | GitHub / APK manual | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (más el `CALL_PHONE` ya existente, ahora también usado para captura silenciosa de USSD) | Activada (interruptores opcionales en Opciones) — lee SMS de ETECSA y respuestas USSD en segundo plano y estima el consumo desde la última lectura confirmada, para mantener el dashboard de saldo/datos/voz/SMS actualizado entre consultas manuales |
+> [!TIP]
+> **Estrategia de Paridad de Versiones (`versionCode` Par/Impar)**:
+> Ambos flavors comparten el mismo `applicationId` (`com.qvacell.app`). Para garantizar que un usuario pueda descargar la versión completa (`unlocked`) de GitHub e **instalarla directamente encima** de la versión de Google Play sin desinstalar ni perder datos:
+> - La versión `store` recibe un número par (ej. base 3 $\rightarrow$ code 6).
+> - La versión `unlocked` recibe el número impar inmediatamente superior (ej. base 3 $\rightarrow$ code 7).
+> Al ser $7 > 6$, el sistema Android lo reconoce como una actualización válida. Además, nunca existirá colisión de códigos entre versiones futuras.
 
 `store` existe específicamente para que la versión de Play Store nunca tenga que pasar la revisión de permisos restringidos de Google para `READ_SMS`/`READ_CALL_LOG` — se compila del mismo código exacto, solo que sin los source sets de captura (`app/src/store/`) que sí tiene `unlocked` (`app/src/unlocked/`). Ver [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) para cómo funciona la separación y qué hace la capa de captura de cada flavor.
 
