@@ -37,6 +37,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.ui.components.ConnectionBanner
+import com.qvacell.app.ui.components.hasCellularService
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -82,10 +90,12 @@ private val OPTIONS_NESTED_ROUTES = setOf(
     Routes.TRANSFER_PIN_MANAGE,
     Routes.HOME_WIDGETS,
     Routes.VOICE_SHORTCUTS,
-    Routes.DASHBOARD_SETTINGS,
 )
 
-private val HOME_NESTED_ROUTES = setOf(
+private val HOME_NESTED_ROUTES = emptySet<String>()
+
+private val DASHBOARD_OPTIONS_ROUTES = setOf(
+    Routes.DASHBOARD_SETTINGS,
     Routes.DASHBOARD_HELP,
     Routes.DASHBOARD_EVENTS,
 )
@@ -140,10 +150,21 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     // normal tab switch.
     val isInOptionsSection = currentRoute in OPTIONS_NESTED_ROUTES
     val isInHomeSection = currentRoute in HOME_NESTED_ROUTES
+    val isInDashboardOptions = currentRoute in DASHBOARD_OPTIONS_ROUTES
 
     val context = LocalContext.current
     val settings = remember { SettingsDataStore(context) }
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
+
+    var hasSignal by remember { mutableStateOf(hasCellularService(context)) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            hasSignal = hasCellularService(context)
+            delay(5000)
+        }
+    }
+    val showDashboardSignalWarning = !hasSignal && !showNetworkStatus &&
+        (currentRoute == BottomTab.Home.route || isInHomeSection || isInDashboardOptions)
 
     Scaffold(
         bottomBar = {
@@ -159,6 +180,29 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 Column {
                     if (showNetworkStatus) {
                         ConnectionBanner()
+                    } else if (showDashboardSignalWarning) {
+                        val warningColor = Color(0xFFFB8C00)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(warningColor.copy(alpha = 0.15f))
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Filled.Warning,
+                                contentDescription = null,
+                                tint = warningColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                "Sin servicio, las actualizaciones del panel quedan en pausa.",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = warningColor,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
                     }
                     HorizontalDivider(
                         thickness = 1.dp,
@@ -173,7 +217,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                         bottomTabs.forEach { tab ->
                         val selected = currentRoute == tab.route ||
                             (tab is BottomTab.Options && isInOptionsSection) ||
-                            (tab is BottomTab.Home && isInHomeSection)
+                            (tab is BottomTab.Home && (isInHomeSection || isInDashboardOptions))
                         val tint = if (selected) {
                             MaterialTheme.colorScheme.primary
                         } else {
@@ -197,12 +241,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                                                     restoreState = true
                                                 }
                                             }
-                                        } else if (isInHomeSection || isInOptionsSection) {
-                                            navController.navigate(tab.route) {
-                                                popUpTo(validStartRoute) { saveState = true }
-                                                launchSingleTop = true
-                                                restoreState = true
-                                            }
                                         } else {
                                             navController.navigate(tab.route) {
                                                 popUpTo(validStartRoute) { saveState = true }
@@ -216,7 +254,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             val icon = when {
-                                tab is BottomTab.Home && isInHomeSection ->
+                                tab is BottomTab.Home && (isInHomeSection || isInDashboardOptions) ->
                                     HOME_ROUTE_ICONS[currentRoute] ?: tab.icon
                                 tab is BottomTab.Options && isInOptionsSection ->
                                     OPTIONS_ROUTE_ICONS[currentRoute] ?: tab.icon

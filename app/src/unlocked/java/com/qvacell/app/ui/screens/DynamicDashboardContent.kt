@@ -136,7 +136,7 @@ fun DynamicDashboardContent(
         state = pullState,
         indicator = {}
     ) {
-        val activePull = pullState.distanceFraction > 0f && !isRefreshing
+        val activePull = pullState.distanceFraction > 0f && !isRefreshing && hasSignal
         val pullOffset = if (activePull) (pullState.distanceFraction * 60).coerceAtMost(60f) else 0f
 
         Box(modifier = Modifier.fillMaxSize()) {
