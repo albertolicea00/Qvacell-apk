@@ -18,9 +18,11 @@ android {
     defaultConfig {
         applicationId = "com.qvacell.app"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.1"
+        // Target Android 14 (API 34) for broad OEM compatibility (e.g. Xiaomi HyperOS/MIUI
+        // package installer rejection on API 36) while satisfying Google Play requirements.
+        targetSdk = 34
+        versionCode = 3
+        versionName = "1.0.2"
     }
 
     // "unlocked" (GitHub/sideload) gets the dashboard data-capture pipeline — silent USSD capture,
