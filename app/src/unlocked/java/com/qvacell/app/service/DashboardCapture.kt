@@ -24,12 +24,17 @@ object DashboardCapture {
         captureEnabled: Boolean
     ) {
         if (captureEnabled && DialService.hasCallPermission(context)) {
+            DashboardRefreshService.setCurrentCode(code.id)
             UssdCaptureService.requestUssd(context, code) { result ->
                 when (result) {
                     is UssdCaptureResult.Success -> CoroutineScope(Dispatchers.IO).launch {
                         repository.recordUssdParse(code.id, result.response)
+                        DashboardRefreshService.setCurrentCode(null)
                     }
-                    is UssdCaptureResult.Failure -> DialService.dialDirect(context, code.resolvedCode())
+                    is UssdCaptureResult.Failure -> {
+                        DialService.dialDirect(context, code.resolvedCode())
+                        DashboardRefreshService.setCurrentCode(null)
+                    }
                 }
             }
         } else {

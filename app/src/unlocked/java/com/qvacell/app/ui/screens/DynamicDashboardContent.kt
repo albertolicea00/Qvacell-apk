@@ -1,5 +1,11 @@
 package com.qvacell.app.ui.screens
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,11 +14,21 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.AccountBalanceWallet
@@ -77,6 +93,7 @@ fun DynamicDashboardContent(
     val context = LocalContext.current
     val catalogRepository = remember { repository }
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
+    val currentCodeId by DashboardRefreshService.currentCodeId.collectAsState()
     val values by dashboardRepository.observeCurrentValues().collectAsState(initial = emptyMap())
 
     var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
@@ -151,6 +168,7 @@ fun DynamicDashboardContent(
                     .padding(top = 16.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            LoadingCardBorder(isLoading = currentCodeId == "national-recharge-limit") {
             RechargeLimitCard(
                 reached = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REACHED]?.numericValue == 1.0,
                 limitAmount = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REMAINING]?.let {
@@ -164,6 +182,8 @@ fun DynamicDashboardContent(
                     ?: values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REMAINING]?.capturedAt,
                 onQuery = { requestQuery("national-recharge-limit") }
             )
+            }
+            LoadingCardBorder(isLoading = currentCodeId == "main-balance") {
             MainBalanceCard(
                 balance = values[FieldTypes.MAIN_BALANCE]?.let { formatAmount(it.numericValue) } ?: "--",
                 currency = values[FieldTypes.MAIN_BALANCE]?.unit ?: "",
@@ -174,6 +194,8 @@ fun DynamicDashboardContent(
                 lastUpdatedAt = values[FieldTypes.MAIN_BALANCE]?.capturedAt,
                 onQuery = { requestQuery("main-balance") }
             )
+            }
+            LoadingCardBorder(isLoading = currentCodeId == "voice-balance" || currentCodeId == "sms-balance") {
             VoiceSmsRow(
                 voiceDaysRemaining = values[FieldTypes.VOICE_DAYS_REMAINING]?.numericValue
                     ?.let { "${it.toInt()}d" } ?: "--",
@@ -187,6 +209,8 @@ fun DynamicDashboardContent(
                 onVoiceQuery = { requestQuery("voice-balance") },
                 onSmsQuery = { requestQuery("sms-balance") }
             )
+            }
+            LoadingCardBorder(isLoading = currentCodeId == "data-plan") {
             DataUsageCard(
                 daysRemaining = values[FieldTypes.DATA_DATOS_DAYS]?.numericValue
                     ?.let { "${it.toInt()} días restantes" } ?: "--",
@@ -206,6 +230,8 @@ fun DynamicDashboardContent(
                 lastUpdatedAt = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt,
                 onQuery = { requestQuery("data-plan") }
             )
+            }
+            LoadingCardBorder(isLoading = currentCodeId == "bonus-usd-plans") {
             NationalBonusCard(
                 amount = values[FieldTypes.BONUS_DATOS_CU_MB]?.let {
                     formatAmount(it.numericValue) + " " + (it.unit ?: "MB")
@@ -219,6 +245,7 @@ fun DynamicDashboardContent(
                     ?: values[FieldTypes.BONUS_DATOS_CU_MB]?.capturedAt,
                 onQuery = { requestQuery("bonus-usd-plans") }
             )
+            }
             ConsultCardsRow(
                 // TODO: postpaid-balance (*111#) — parser not implemented, needs real ETECSA response samples
                 onPostpagoQuery = { requestQuery("postpaid-balance") },
@@ -364,5 +391,58 @@ private fun formatAmount(value: Double?): String {
         DecimalFormat("#,###").format(value.toLong())
     } else {
         DecimalFormat("#,##0.00").format(value)
+    }
+}
+
+@Composable
+private fun LoadingCardBorder(
+    isLoading: Boolean,
+    content: @Composable () -> Unit
+) {
+    if (!isLoading) {
+        content()
+        return
+    }
+    val transition = rememberInfiniteTransition(label = "loading")
+    val sweepPosition by transition.animateFloat(
+        initialValue = -0.3f,
+        targetValue = 1.3f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "sweep"
+    )
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val strokeWidth = 3.dp
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(strokeWidth / 2)
+            .drawWithContent {
+                drawContent()
+                val sw = strokeWidth.toPx()
+                val radius = 20.dp.toPx()
+                val gradientWidth = size.width * 0.4f
+                val start = sweepPosition * size.width - gradientWidth / 2
+                val brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        primaryColor.copy(alpha = 0.8f),
+                        primaryColor,
+                        primaryColor.copy(alpha = 0.8f),
+                        Color.Transparent
+                    ),
+                    startX = start,
+                    endX = start + gradientWidth
+                )
+                drawRoundRect(
+                    brush = brush,
+                    cornerRadius = CornerRadius(radius, radius),
+                    style = Stroke(width = sw)
+                )
+            }
+    ) {
+        content()
     }
 }

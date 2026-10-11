@@ -24,6 +24,13 @@ object DashboardRefreshService {
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
+    private val _currentCodeId = MutableStateFlow<String?>(null)
+    val currentCodeId: StateFlow<String?> = _currentCodeId
+
+    fun setCurrentCode(codeId: String?) {
+        _currentCodeId.value = codeId
+    }
+
     fun refresh(context: Context, catalogRepository: CatalogRepository, dashboardRepository: DashboardDataRepository) {
         if (_isRefreshing.value) return
         if (!DialService.hasCallPermission(context)) return
@@ -32,6 +39,7 @@ object DashboardRefreshService {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 for (codeId in REFRESH_ORDER) {
+                    _currentCodeId.value = codeId
                     val code = catalogRepository.findCodeById(codeId) ?: continue
                     val result = requestUssdSuspend(context, code)
                     if (result is UssdCaptureResult.Success) {
@@ -39,6 +47,7 @@ object DashboardRefreshService {
                     }
                 }
             } finally {
+                _currentCodeId.value = null
                 _isRefreshing.value = false
             }
         }
