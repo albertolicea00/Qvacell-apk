@@ -35,11 +35,16 @@ Una aplicación para Android para acceder rápidamente a los **códigos de servi
 > **App Nativa de Android**
 > Esta aplicación está construida de forma nativa para Android con el fin de aprovechar funciones exclusivas de la plataforma (como servicios en segundo plano, identificación de llamadas e integración con SMS) que no se podían replicar completamente en iOS. Por esta razón, existe como un repositorio nativo dedicado e independiente.
 
-## 🛠️ Requisitos
+## 🛠️ Requisitos y Compatibilidad
 
-- 🤖 Android Studio (última versión estable)
-- 📱 Android 8.0+ (API 26)
-- Kotlin 2.0+, Jetpack Compose
+- 🤖 Android Studio (última versión estable para desarrollo)
+- 📱 **Versiones de Android compatibles:**
+  - **Mínimo requerido:** Android 8.0 Oreo (API 26)
+  - **Objetivo actual:** Android 14 (API 34)
+  - **Probado y compatible:** Android 8.0, 9 (Pie), 10 (Q), 11, 12, 13, 14 y 15.
+  - **Capas de personalización compatibles:** One UI (Samsung), HyperOS / MIUI (Xiaomi/Redmi), Android AOSP / Stock, entre otros.
+- 🔑 **Firma de APK:** Compatible con esquemas V1 (JAR) y V2 (Full APK Signature) para asegurar instalación en dispositivos antiguos y ROMs de fabricantes.
+- 💻 Kotlin 2.0+, Jetpack Compose
 
 ## 📦 Variantes de Compilación (Flavors) y Permisos
 

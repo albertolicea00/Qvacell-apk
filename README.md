@@ -35,11 +35,16 @@ An Android app to quickly access the **USSD service codes of ETECSA (Cubacel)**:
 > **Native Android App**
 > This app is built natively for Android to leverage platform-specific capabilities (like advanced background services, call screening, and SMS integration) that could not be fully replicated on iOS. This is why it exists as a separate, dedicated native repository.
 
-## 🛠️ Requirements
+## 🛠️ Requirements & Compatibility
 
-- 🤖 Android Studio (latest stable)
-- 📱 Android 8.0+ (API 26)
-- Kotlin 2.0+, Jetpack Compose
+- 🤖 Android Studio (latest stable for development)
+- 📱 **Supported Android Versions:**
+  - **Minimum required:** Android 8.0 Oreo (API 26)
+  - **Target SDK:** Android 14 (API 34)
+  - **Tested & compatible:** Android 8.0, 9 (Pie), 10 (Q), 11, 12, 13, 14, and 15.
+  - **OEM Skins tested:** One UI (Samsung), HyperOS / MIUI (Xiaomi/Redmi), Android AOSP / Stock, etc.
+- 🔑 **APK Signing:** Dual V1 (JAR) and V2 (Full APK Signature) schemes enabled for maximum compatibility across legacy Android versions and custom vendor installers.
+- 💻 Kotlin 2.0+, Jetpack Compose
 
 ## 📦 Build Flavors & Permissions
 
