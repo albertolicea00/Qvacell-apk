@@ -45,12 +45,15 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SimCard
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -61,8 +64,10 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -87,6 +92,8 @@ import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DialService
+import com.qvacell.app.service.UpdateChecker
+import com.qvacell.app.service.UpdateInfo
 import com.qvacell.app.service.SimUtils
 import com.qvacell.app.ui.components.ColorWheelPicker
 import com.qvacell.app.ui.components.DialogActionRow
@@ -171,6 +178,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     }
 
     val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    val autoUpdateCheck by settings.autoUpdateCheck.collectAsStateWithLifecycle(initialValue = "unlocked")
     val activeSims = remember { SimUtils.getActiveSubscriptions(context) }
 
     var showThemeSheet by remember { mutableStateOf(false) }
@@ -181,6 +189,19 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showManualVisibilitySheet by remember { mutableStateOf(false) }
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
     var showSimSheet by remember { mutableStateOf(false) }
+    var showAutoUpdateSheet by remember { mutableStateOf(false) }
+
+    var updateChecking by remember { mutableStateOf(false) }
+    var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    var showUpdateDialog by remember { mutableStateOf(false) }
+    var showNoUpdateToast by remember { mutableStateOf(false) }
+
+    LaunchedEffect(autoUpdateCheck) {
+        if (autoUpdateCheck == "none") return@LaunchedEffect
+        val info = UpdateChecker.check() ?: return@LaunchedEffect
+        updateInfo = info
+        showUpdateDialog = true
+    }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
@@ -232,6 +253,11 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         else "${manualHiddenSections.size} sección${if (manualHiddenSections.size > 1) "es" else ""} oculta${if (manualHiddenSections.size > 1) "s" else ""}"
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
         ?: accentColor
+    val autoUpdateLabel = when (autoUpdateCheck) {
+        "playstore" -> "Versión Play Store"
+        "none" -> "No buscar"
+        else -> "Versión Unlocked"
+    }
     val simLabel = if (activeSims.size < 2) null
     else {
         val idx = activeSims.indexOfFirst { it.simSlotIndex == selectedSimSlot }
@@ -402,6 +428,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             )
                         }
                     )
+                    OptionsDivider()
+                    OptionsRow(
+                        headline = "Buscar actualizaciones",
+                        supporting = autoUpdateLabel,
+                        onClick = { showAutoUpdateSheet = true }
+                    )
                     if (simLabel != null) {
                         OptionsDivider()
                         val selectedSim = activeSims.firstOrNull { it.simSlotIndex == selectedSimSlot }
@@ -486,6 +518,30 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         supporting = "Preguntas frecuentes y recursos de soporte",
                         icon = Icons.AutoMirrored.Filled.Help,
                         onClick = { onNavigate(OptionsDestination.Help) }
+                    )
+                    OptionsDivider()
+                    OptionsRow(
+                        headline = "Buscar Actualizaciones",
+                        supporting = if (updateChecking) "Buscando..." else "Verificar si hay una nueva versión disponible",
+                        icon = Icons.Filled.SystemUpdate,
+                        trailingContent = if (updateChecking) ({
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        }) else null,
+                        onClick = {
+                            if (!updateChecking) {
+                                updateChecking = true
+                                scope.launch {
+                                    val info = UpdateChecker.check()
+                                    updateChecking = false
+                                    if (info != null) {
+                                        updateInfo = info
+                                        showUpdateDialog = true
+                                    } else {
+                                        Toast.makeText(context, "Estás usando la versión más reciente", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        }
                     )
                     OptionsDivider()
                     Row(
@@ -849,6 +905,68 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 Spacer(Modifier.height(8.dp))
             }
         }
+    }
+
+    if (showAutoUpdateSheet) {
+        ModalBottomSheet(onDismissRequest = { showAutoUpdateSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "Buscar actualizaciones",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                listOf(
+                    "unlocked" to "Versión Unlocked",
+                    "playstore" to "Versión Play Store",
+                    "none" to "No buscar"
+                ).forEach { (mode, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { settings.setAutoUpdateCheck(mode) }
+                                showAutoUpdateSheet = false
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = autoUpdateCheck == mode, onClick = null)
+                        Text(label, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+
+    if (showUpdateDialog && updateInfo != null) {
+        val info = updateInfo!!
+        val downloadUrl = when (autoUpdateCheck) {
+            "playstore" -> info.storeApkUrl ?: info.htmlUrl
+            else -> info.unlockedApkUrl ?: info.htmlUrl
+        }
+        AlertDialog(
+            onDismissRequest = { showUpdateDialog = false },
+            icon = { Icon(Icons.Filled.SystemUpdate, contentDescription = null) },
+            title = { Text("Nueva actualización disponible") },
+            text = {
+                Text("La versión ${info.versionName} está disponible. Estás usando la versión ${BuildConfig.VERSION_NAME}.")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showUpdateDialog = false
+                    val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(downloadUrl))
+                    context.startActivity(intent)
+                }) {
+                    Text("Descargar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showUpdateDialog = false }) {
+                    Text("Ahora no")
+                }
+            }
+        )
     }
 
     if (showAdvanceBalanceSheet && advanceBalanceCodes.isNotEmpty()) {

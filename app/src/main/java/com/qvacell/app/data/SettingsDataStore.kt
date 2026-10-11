@@ -32,6 +32,7 @@ class SettingsDataStore(private val context: Context) {
     private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
     private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
+    private val autoUpdateCheckKey = stringPreferencesKey("auto_update_check")
 
     val themeMode = context.dataStore.data.map {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
@@ -92,6 +93,9 @@ class SettingsDataStore(private val context: Context) {
     val selectedSimSlot = context.dataStore.data.map { it[selectedSimSlotKey] ?: -1 }
 
     val staleDaysThreshold = context.dataStore.data.map { it[staleDaysThresholdKey] ?: 14 }
+
+    // "unlocked" (default), "playstore", or "none"
+    val autoUpdateCheck = context.dataStore.data.map { it[autoUpdateCheckKey] ?: "unlocked" }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[themeModeKey] = mode.name }
@@ -159,6 +163,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setStaleDaysThreshold(days: Int) {
         context.dataStore.edit { it[staleDaysThresholdKey] = days }
+    }
+
+    suspend fun setAutoUpdateCheck(mode: String) {
+        context.dataStore.edit { it[autoUpdateCheckKey] = mode }
     }
 
     companion object {
