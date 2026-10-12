@@ -49,13 +49,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.service.ContactEntry
-import com.qvacell.app.service.DialService
 import com.qvacell.app.service.TransferPinStore
 
 @Composable
 fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val dialDirect = rememberDirectDialAction(onDismiss)
+    val callContact = rememberContactCallAction(onDismiss)
     val pinStore = remember { TransferPinStore(context) }
     val number: String? = entry.number
 
@@ -101,14 +101,14 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    onClick = { DialService.dial(context, "*99$number"); onDismiss() },
+                    onClick = { callContact("*99$number") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.Call, contentDescription = null, modifier = Modifier.size(18.dp))
                     Text("Llamar con *99", modifier = Modifier.padding(start = 8.dp))
                 }
                 OutlinedButton(
-                    onClick = { DialService.dial(context, "#31#$number"); onDismiss() },
+                    onClick = { callContact("#31#$number") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.Security, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -206,7 +206,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { DialService.dial(context, "*133*4*2*1*$number#"); onDismiss() }
+                            .clickable { dialDirect("*133*4*2*1*$number#") }
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -235,7 +235,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { DialService.dial(context, "*133*4*2*2*$number#"); onDismiss() }
+                            .clickable { dialDirect("*133*4*2*2*$number#") }
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically

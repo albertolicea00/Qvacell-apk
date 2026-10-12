@@ -54,13 +54,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.qvacell.app.service.ContactEntry
 import com.qvacell.app.service.ContactsRepository
 import com.qvacell.app.service.DeviceContact
-import com.qvacell.app.service.DialService
 
 import com.qvacell.app.ui.components.ContactOptionsSheet
 import com.qvacell.app.ui.components.ContactRow
 import com.qvacell.app.ui.components.GroupHeader
 import com.qvacell.app.ui.components.SearchableTopAppBar
 import com.qvacell.app.ui.components.SimSelectorIcon
+import com.qvacell.app.ui.components.rememberContactCallAction
 import kotlinx.coroutines.launch
 
 
@@ -70,6 +70,7 @@ fun ContactsListScreen() {
     val context = LocalContext.current
     val repository = remember { ContactsRepository(context) }
     val scope = rememberCoroutineScope()
+    val callContact = rememberContactCallAction()
     var selectedEntry by remember { mutableStateOf<ContactEntry?>(null) }
 
     var hasPermission by remember {
@@ -232,8 +233,8 @@ fun ContactsListScreen() {
                                 ContactRow(
                                     entry = entry,
                                     onClick = { selectedEntry = entry },
-                                    onCallCollect = { DialService.dial(context, "*99${entry.number}") },
-                                    onCallAnonymous = { DialService.dial(context, "#31#${entry.number}") }
+                                    onCallCollect = { callContact("*99${entry.number}") },
+                                    onCallAnonymous = { callContact("#31#${entry.number}") }
                                 )
                             }
                         }

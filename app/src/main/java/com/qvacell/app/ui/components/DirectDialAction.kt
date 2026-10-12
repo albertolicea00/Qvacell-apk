@@ -10,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DialService
 
 /** Calls directly after CALL_PHONE is granted, without opening the dialer. */
@@ -37,6 +39,23 @@ fun rememberDirectDialAction(onDialed: () -> Unit = {}): (String) -> Unit {
         } else {
             pendingCode = code
             permissionLauncher.launch(Manifest.permission.CALL_PHONE)
+        }
+    }
+}
+
+/** Applies the Contacts preference to *99 and hidden-number calls. */
+@Composable
+fun rememberContactCallAction(onDialed: () -> Unit = {}): (String) -> Unit {
+    val context = LocalContext.current
+    val settings = remember { SettingsDataStore(context) }
+    val callMode by settings.contactCallMode.collectAsStateWithLifecycle(initialValue = "dialer")
+    val dialDirect = rememberDirectDialAction(onDialed)
+    return { code ->
+        if (callMode == "direct") {
+            dialDirect(code)
+        } else {
+            DialService.dial(context, code)
+            onDialed()
         }
     }
 }

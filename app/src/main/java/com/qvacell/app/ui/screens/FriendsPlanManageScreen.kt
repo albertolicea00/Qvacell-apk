@@ -48,8 +48,8 @@ import androidx.compose.ui.unit.dp
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.UssdCode
-import com.qvacell.app.service.DialService
 import com.qvacell.app.ui.components.BackNavigationIcon
+import com.qvacell.app.ui.components.rememberDirectDialAction
 
 /**
  * Options › Cuenta › Gestionar Plan Amigo — activate/deactivate/status query up top, then two
@@ -60,6 +60,7 @@ import com.qvacell.app.ui.components.BackNavigationIcon
 fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
+    val dialDirect = rememberDirectDialAction()
 
     var addFriendNumber by remember { mutableStateOf("") }
     var removeFriendNumber by remember { mutableStateOf("") }
@@ -80,7 +81,7 @@ fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
 
     fun dial(code: UssdCode?, input: String? = null) {
         if (code == null) return
-        DialService.dialDirect(context, code.resolvedCode(input))
+        dialDirect(code.resolvedCode(input))
     }
 
     Scaffold(

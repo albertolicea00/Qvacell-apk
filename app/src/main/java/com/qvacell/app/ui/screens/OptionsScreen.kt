@@ -139,6 +139,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     )
     val quickPurchaseNoConfirm by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
+    val contactCallMode by settings.contactCallMode.collectAsStateWithLifecycle(initialValue = "dialer")
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val manualHiddenSections by settings.manualHiddenSections.collectAsStateWithLifecycle(initialValue = emptySet())
     // Persisted (not local @State) so the unlock survives across launches, and one-way only —
@@ -179,6 +180,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     var showThemeSheet by remember { mutableStateOf(false) }
     var showDefaultTabSheet by remember { mutableStateOf(false) }
+    var showContactCallModeSheet by remember { mutableStateOf(false) }
     var showAccentColorSheet by remember { mutableStateOf(false) }
     var showQuickActionsStyleSheet by remember { mutableStateOf(false) }
     var showManualVisibilitySheet by remember { mutableStateOf(false) }
@@ -393,6 +395,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         headline = "Pestaña predeterminada",
                         supporting = defaultTabLabel,
                         onClick = { showDefaultTabSheet = true }
+                    )
+                    OptionsDivider()
+                    OptionsRow(
+                        headline = "Llamadas *99 y ocultas en Contactos",
+                        supporting = if (contactCallMode == "direct") "Marcación directa" else "App Teléfono",
+                        onClick = { showContactCallModeSheet = true }
                     )
                     OptionsDivider()
                     OptionsRow(
@@ -696,6 +704,37 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         Text(tab.label, modifier = Modifier.padding(start = 8.dp))
                     }
                 }
+            }
+        }
+    }
+
+    if (showContactCallModeSheet) {
+        ModalBottomSheet(onDismissRequest = { showContactCallModeSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    "Llamadas *99 y ocultas en Contactos",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                listOf(
+                    "dialer" to "Abrir App Teléfono",
+                    "direct" to "Marcación directa"
+                ).forEach { (mode, label) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { settings.setContactCallMode(mode) }
+                                showContactCallModeSheet = false
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = contactCallMode == mode, onClick = null)
+                        Text(label, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
             }
         }
     }

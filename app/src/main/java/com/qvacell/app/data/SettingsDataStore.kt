@@ -21,6 +21,7 @@ class SettingsDataStore(private val context: Context) {
     private val debugDbSearchKey = stringPreferencesKey("debug_db_search_enabled")
     private val quickPurchaseNoConfirmKey = booleanPreferencesKey("quick_purchase_no_confirm_default")
     private val showNetworkStatusKey = booleanPreferencesKey("show_network_status")
+    private val contactCallModeKey = stringPreferencesKey("contact_call_mode")
     private val ussdCaptureEnabledKey = booleanPreferencesKey("ussd_capture_enabled")
     private val smsCaptureEnabledKey = booleanPreferencesKey("sms_capture_enabled")
     private val hasRunSmsBackfillKey = booleanPreferencesKey("has_run_sms_backfill")
@@ -55,6 +56,9 @@ class SettingsDataStore(private val context: Context) {
     // "Aviso de señal celular" — shows a banner on Home/Compras/Ayuda/SMS warning about weak
     // cellular signal before a USSD dial, same AppStorage flag as iOS's showNetworkStatus.
     val showNetworkStatus = context.dataStore.data.map { it[showNetworkStatusKey] ?: false }
+
+    // "dialer" (default) or "direct" for *99 and hidden-number calls from Contacts.
+    val contactCallMode = context.dataStore.data.map { it[contactCallModeKey] ?: "dialer" }
 
     // "Consulta automática de saldo (experimental)" — silent TelephonyManager.sendUssdRequest
     // capture instead of the plain system-dialer flow. Off by default: ETECSA's gateway
@@ -111,6 +115,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setShowNetworkStatus(enabled: Boolean) {
         context.dataStore.edit { it[showNetworkStatusKey] = enabled }
+    }
+
+    suspend fun setContactCallMode(mode: String) {
+        context.dataStore.edit { it[contactCallModeKey] = mode }
     }
 
     suspend fun setUssdCaptureEnabled(enabled: Boolean) {
