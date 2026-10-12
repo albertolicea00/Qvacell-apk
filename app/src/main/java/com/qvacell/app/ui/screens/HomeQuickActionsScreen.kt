@@ -37,7 +37,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
-import kotlinx.coroutines.flow.map
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DashboardRefreshService
 import com.qvacell.app.ui.components.RechargeBottomSheet
@@ -60,7 +59,6 @@ fun HomeQuickActionsScreen(
     val settings = remember { SettingsDataStore(context) }
     val dashboardRepository = remember { DashboardDataRepository(context) }
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
-    val dashboardMode by settings.dashboardMode.map<String, String?> { it }.collectAsStateWithLifecycle(initialValue = null)
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
     val actionsStyle by settings.dashboardActionsStyle.collectAsStateWithLifecycle(initialValue = "buttons")
@@ -70,11 +68,9 @@ fun HomeQuickActionsScreen(
     var showRechargeSheet by remember { mutableStateOf(false) }
     var showDashboardMenu by remember { mutableStateOf(false) }
     var showManualMenu by remember { mutableStateOf(false) }
-    var viewOverride by remember { mutableStateOf<String?>(null) }
+    var showDynamicDashboard by remember { mutableStateOf(false) }
     var showUnavailableDialog by remember { mutableStateOf(false) }
 
-    val dashboardModeLoaded = dashboardMode != null
-    val currentView = viewOverride ?: dashboardMode ?: ""
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
 
     var hasSignal by remember { mutableStateOf(hasCellularService(context)) }
@@ -102,7 +98,7 @@ fun HomeQuickActionsScreen(
             title = { Text("Qvacell") },
             actions = {
                 SimSelectorIcon()
-                if (dashboardModeLoaded && currentView == "dynamic") {
+                if (showDynamicDashboard) {
                     IconButton(
                         onClick = {
                             DashboardRefreshService.refresh(context, repository, dashboardRepository)
@@ -119,9 +115,7 @@ fun HomeQuickActionsScreen(
                         )
                     }
                 }
-                if (!dashboardModeLoaded) {
-                    // wait for DataStore
-                } else if (currentView == "dynamic") {
+                if (showDynamicDashboard) {
                     IconButton(
                         onClick = { showDashboardMenu = true },
                         modifier = Modifier.size(36.dp)
@@ -190,7 +184,7 @@ fun HomeQuickActionsScreen(
                     }
                     IconButton(
                         onClick = {
-                            viewOverride = if (dashboardMode == "dynamic") "" else null
+                            showDynamicDashboard = false
                         },
                         modifier = Modifier.size(36.dp)
                     ) {
@@ -253,7 +247,7 @@ fun HomeQuickActionsScreen(
                             if (!BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
                                 showUnavailableDialog = true
                             } else {
-                                viewOverride = if (dashboardMode != "dynamic") "dynamic" else null
+                                showDynamicDashboard = true
                             }
                         },
                         modifier = Modifier.size(36.dp)
@@ -269,9 +263,8 @@ fun HomeQuickActionsScreen(
         )
     }) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            if (!dashboardModeLoaded) return@Scaffold
-            when (currentView) {
-                "dynamic" -> DynamicDashboardContent(
+            if (showDynamicDashboard) {
+                DynamicDashboardContent(
                     repository = repository,
                     dashboardRepository = dashboardRepository,
                     ussdCaptureEnabled = ussdCaptureEnabled,
@@ -280,7 +273,8 @@ fun HomeQuickActionsScreen(
                     onTransfer = { showTransferSheet = true },
                     onRecharge = { showRechargeSheet = true }
                 )
-                else -> ManualDashboardContent(
+            } else {
+                ManualDashboardContent(
                     repository = repository,
                     dashboardRepository = dashboardRepository,
                     ussdCaptureEnabled = ussdCaptureEnabled,

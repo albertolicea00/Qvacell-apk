@@ -1,6 +1,5 @@
 package com.qvacell.app.ui.screens
 
-import android.Manifest
 import android.app.role.RoleManager
 import android.content.Context
 import android.content.Intent
@@ -37,7 +36,6 @@ import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.ManageSearch
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.People
@@ -78,7 +76,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -142,7 +139,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     )
     val quickPurchaseNoConfirm by settings.quickPurchaseNoConfirmDefault.collectAsStateWithLifecycle(initialValue = false)
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
-    val dashboardMode by settings.dashboardMode.collectAsStateWithLifecycle(initialValue = "")
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val manualHiddenSections by settings.manualHiddenSections.collectAsStateWithLifecycle(initialValue = emptySet())
     // Persisted (not local @State) so the unlock survives across launches, and one-way only —
@@ -184,7 +180,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showThemeSheet by remember { mutableStateOf(false) }
     var showDefaultTabSheet by remember { mutableStateOf(false) }
     var showAccentColorSheet by remember { mutableStateOf(false) }
-    var showDashboardModeSheet by remember { mutableStateOf(false) }
     var showQuickActionsStyleSheet by remember { mutableStateOf(false) }
     var showManualVisibilitySheet by remember { mutableStateOf(false) }
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
@@ -239,11 +234,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ThemeMode.DARK -> "Oscuro"
     }
     val defaultTabLabel = bottomTabs.firstOrNull { it.route == defaultTab }?.label ?: "Inicio"
-    val dashboardModeLabel = when (dashboardMode) {
-        "dynamic" -> "Dashboard Dinámico"
-        "manual" -> "Marcación Rápida"
-        else -> "No configurado"
-    }
     val quickActionsStyleLabel = when (quickActionsStyle) {
         "outline" -> "Contorno"
         "list" -> "Lista"
@@ -456,36 +446,26 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 }
             }
 
-            if (BuildConfig.DASHBOARD_CAPTURE_ENABLED || dashboardMode == "manual") {
-                item {
-                    OptionsSection(header = "Dashboards") {
+            item {
+                OptionsSection(header = "Dashboards") {
+                    OptionsRow(
+                        headline = "Estilo de acciones",
+                        supporting = quickActionsStyleLabel,
+                        onClick = { showQuickActionsStyleSheet = true }
+                    )
+                    OptionsDivider()
+                    OptionsRow(
+                        headline = "Secciones visibles",
+                        supporting = manualVisibilityLabel,
+                        onClick = { showManualVisibilitySheet = true }
+                    )
+                    if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                        OptionsDivider()
                         OptionsRow(
-                            headline = "Tipo de Dashboard",
-                            supporting = dashboardModeLabel,
-                            onClick = { showDashboardModeSheet = true }
+                            headline = "Funcionamiento del Dashboard",
+                            supporting = "Conoce y configura cómo funciona nuestro dashboard dinámico",
+                            onClick = { onNavigate(OptionsDestination.DashboardSettings) }
                         )
-                        if (dashboardMode == "manual") {
-                            OptionsDivider()
-                            OptionsRow(
-                                headline = "Estilo de acciones",
-                                supporting = quickActionsStyleLabel,
-                                onClick = { showQuickActionsStyleSheet = true }
-                            )
-                            OptionsDivider()
-                            OptionsRow(
-                                headline = "Secciones visibles",
-                                supporting = manualVisibilityLabel,
-                                onClick = { showManualVisibilitySheet = true }
-                            )
-                        }
-                        if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
-                            OptionsDivider()
-                            OptionsRow(
-                                headline = "Funcionamiento del Dashboard",
-                                supporting = "Conoce y configura cómo funciona nuestro dashboard dinámico",
-                                onClick = { onNavigate(OptionsDestination.DashboardSettings) }
-                            )
-                        }
                     }
                 }
             }
@@ -805,37 +785,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         showAccentColorSheet = false
                     }
                 )
-            }
-        }
-    }
-
-    if (showDashboardModeSheet) {
-        ModalBottomSheet(onDismissRequest = { showDashboardModeSheet = false }) {
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(
-                    "Tipo de Dashboard",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                listOf(
-                    "dynamic" to "Dashboard Dinámico",
-                    "manual" to "Marcación Rápida"
-                ).forEach { (mode, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                scope.launch { settings.setDashboardMode(mode) }
-                                showDashboardModeSheet = false
-                            }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(selected = dashboardMode == mode, onClick = null)
-                        Text(label, modifier = Modifier.padding(start = 8.dp))
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
             }
         }
     }

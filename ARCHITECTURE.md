@@ -125,6 +125,8 @@ Tapping a row in `CategoryListScreen` dials/prompts/sends an SMS intent directly
 
 `OptionsScreen` pushes nested routes (`Routes` in `NavGraph.kt`) for Reminders, SMS services, WiFi rooms, Directory search (hidden by default), Transfer PIN management, and Help — same structure as the iOS app's `SettingsView` push destinations, minus Siri/Shortcuts (iOS-only, not ported) and with the Caller-ID settings replaced by a role-request action (§11) instead of a system-settings deep link.
 
+Home always opens with the manual dashboard (Marcación Rápida). Its top bar switches to the dynamic dashboard for the current screen session and back to manual; the store flavor shows an availability dialog when dynamic is selected. Onboarding does not ask for a dashboard type, and Options exposes settings for each dashboard without a persistent type selector. An older saved `dashboard_mode` preference is ignored.
+
 ---
 
 ## 5. Code Execution Path

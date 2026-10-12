@@ -25,7 +25,6 @@ class SettingsDataStore(private val context: Context) {
     private val smsCaptureEnabledKey = booleanPreferencesKey("sms_capture_enabled")
     private val hasRunSmsBackfillKey = booleanPreferencesKey("has_run_sms_backfill")
     private val hasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
-    private val dashboardModeKey = stringPreferencesKey("dashboard_mode")
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
     private val cardTapModeKey = stringPreferencesKey("card_tap_mode")
     private val dashboardActionsStyleKey = stringPreferencesKey("dashboard_actions_style")
@@ -72,9 +71,6 @@ class SettingsDataStore(private val context: Context) {
     val hasRunSmsBackfill = context.dataStore.data.map { it[hasRunSmsBackfillKey] ?: false }
 
     val hasCompletedOnboarding = context.dataStore.data.map { it[hasCompletedOnboardingKey] ?: false }
-
-    // "dynamic" or "manual" — set during onboarding, empty string means not yet chosen.
-    val dashboardMode = context.dataStore.data.map { it[dashboardModeKey] ?: "" }
 
     // "filled" (default) or "outline" — tile card style for "manual" dashboard mode.
     val quickActionsStyle = context.dataStore.data.map { it[quickActionsStyleKey] ?: "filled" }
@@ -135,10 +131,6 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setHasCompletedOnboarding(completed: Boolean) {
         context.dataStore.edit { it[hasCompletedOnboardingKey] = completed }
-    }
-
-    suspend fun setDashboardMode(mode: String) {
-        context.dataStore.edit { it[dashboardModeKey] = mode }
     }
 
     suspend fun setQuickActionsStyle(style: String) {
