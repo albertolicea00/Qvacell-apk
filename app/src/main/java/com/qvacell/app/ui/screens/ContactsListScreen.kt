@@ -3,10 +3,13 @@ package com.qvacell.app.ui.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
@@ -242,7 +245,20 @@ fun ContactsListScreen() {
                         modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
                     ) {
                         SmallFloatingActionButton(
-                            onClick = { scope.launch { listState.animateScrollToItem(0) } }
+                            onClick = {
+                                scope.launch {
+                                    val visibleItemSize = listState.layoutInfo.visibleItemsInfo
+                                        .maxOfOrNull { it.size } ?: 80
+                                    val distance = (listState.firstVisibleItemIndex + 1) *
+                                        visibleItemSize * 1.5f + listState.firstVisibleItemScrollOffset
+                                    listState.animateScrollBy(
+                                        -distance,
+                                        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                                    )
+                                    if (listState.firstVisibleItemIndex > 0) listState.scrollToItem(0)
+                                }
+                            },
+                            shape = CircleShape
                         ) {
                             Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Volver arriba")
                         }
