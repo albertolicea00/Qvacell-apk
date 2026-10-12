@@ -64,9 +64,9 @@ import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.UssdCode
 import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
-import com.qvacell.app.service.DialService
 import com.qvacell.app.service.TransferPinStore
 import com.qvacell.app.ui.components.CodeRow
+import com.qvacell.app.ui.components.rememberDirectDialAction
 import com.qvacell.app.ui.resolveAndroidIcon
 
 private data class QuickTile(val codeId: String, val label: String)
@@ -78,9 +78,9 @@ private val QUICK_TILES = listOf(
     QuickTile("data-plan",               "Datos"),
     QuickTile("voice-balance",           "Voz"),
     QuickTile("sms-balance",             "SMS"),
-    QuickTile("friends-plan",            "Amigo"),
+    QuickTile("postpaid-balance",        "Postpago"),
     QuickTile("tfa",                     "TFA"),
-    QuickTile("postpaid-balance",        "Pospago"),
+    QuickTile("friends-plan",            "Amigo"),
 )
 
 private const val TILE_COLUMNS = 3
@@ -97,6 +97,7 @@ fun ManualDashboardContent(
 ) {
     val showAsList = tileStyle == "list"
     val context = LocalContext.current
+    val dialDirect = rememberDirectDialAction()
     val pinStore = remember { TransferPinStore(context) }
 
     val resolvedTiles = remember {
@@ -313,7 +314,7 @@ fun ManualDashboardContent(
                             .fillMaxWidth()
                             .clickable(enabled = transferEnabled) {
                                 pinStore.save(transferPin)
-                                DialService.dialDirect(context, "*234*1*$transferNumber*$transferPin*$transferAmount#")
+                                dialDirect("*234*1*$transferNumber*$transferPin*$transferAmount#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,
@@ -345,7 +346,7 @@ fun ManualDashboardContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { DialService.dialDirect(context, "*88#") }
+                        .clickable { dialDirect("*88#") }
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -416,7 +417,7 @@ fun ManualDashboardContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable(enabled = rechargeEnabled) {
-                            DialService.dialDirect(context, "*662*$cardNumber#")
+                            dialDirect("*662*$cardNumber#")
                         }
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.End,
@@ -445,7 +446,7 @@ fun ManualDashboardContent(
                 ) {
                     advanceBalanceCodes.forEach { code ->
                         androidx.compose.material3.OutlinedButton(
-                            onClick = { DialService.dialDirect(context, code.resolvedCode()) },
+                            onClick = { dialDirect(code.resolvedCode()) },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(code.price ?: code.title.value)

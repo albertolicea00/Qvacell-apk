@@ -55,6 +55,7 @@ import com.qvacell.app.service.TransferPinStore
 @Composable
 fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val dialDirect = rememberDirectDialAction(onDismiss)
     val pinStore = remember { TransferPinStore(context) }
     val number: String? = entry.number
 
@@ -183,8 +184,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                             .fillMaxWidth()
                             .clickable(enabled = transferEnabled) {
                                 pinStore.save(pin)
-                                DialService.dial(context, "*234*1*$number*$pin*$amount#")
-                                onDismiss()
+                                dialDirect("*234*1*$number*$pin*$amount#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,

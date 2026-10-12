@@ -39,11 +39,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.data.CatalogRepository
-import com.qvacell.app.service.DialService
 
 @Composable
 fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
     val context = LocalContext.current
+    val dialDirect = rememberDirectDialAction(onDone)
     val repository = remember { CatalogRepository(context) }
     val advanceBalanceCodes = remember {
         listOf("advance-balance-25", "advance-balance-50").mapNotNull { repository.findCodeById(it) }
@@ -79,8 +79,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            DialService.dialDirect(context, "*88#")
-                            onDone()
+                            dialDirect("*88#")
                         }
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -156,8 +155,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable(enabled = rechargeEnabled) {
-                                DialService.dialDirect(context, "*662*$cardNumber#")
-                                onDone()
+                                dialDirect("*662*$cardNumber#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,
@@ -186,8 +184,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                         advanceBalanceCodes.forEach { code ->
                             OutlinedButton(
                                 onClick = {
-                                    DialService.dialDirect(context, code.resolvedCode())
-                                    onDone()
+                                    dialDirect(code.resolvedCode())
                                 },
                                 modifier = Modifier.weight(1f)
                             ) {

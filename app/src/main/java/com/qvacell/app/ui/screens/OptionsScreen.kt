@@ -215,16 +215,18 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     }
 
     fun onVersionTap() {
+        if (dbSearchUnlocked) {
+            Toast.makeText(context, "Buscar en BBDD ya está desbloqueada", Toast.LENGTH_SHORT).show()
+            return
+        }
         val now = System.currentTimeMillis()
         if (now - lastTapTime > 3000) versionTapCount = 0
         lastTapTime = now
         versionTapCount++
         if (versionTapCount >= 5) {
             versionTapCount = 0
-            if (!dbSearchUnlocked) {
-                scope.launch { settings.setDebugDatabaseSearchEnabled(true) }
-                Toast.makeText(context, "Buscar en BBDD desbloqueada", Toast.LENGTH_SHORT).show()
-            }
+            scope.launch { settings.setDebugDatabaseSearchEnabled(true) }
+            Toast.makeText(context, "Buscar en BBDD desbloqueada", Toast.LENGTH_SHORT).show()
         }
     }
 

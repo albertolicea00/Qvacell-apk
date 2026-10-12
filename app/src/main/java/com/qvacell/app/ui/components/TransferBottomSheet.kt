@@ -47,7 +47,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.model.CubanPhoneNumber
-import com.qvacell.app.service.DialService
 import com.qvacell.app.service.TransferPinStore
 
 @Composable
@@ -57,6 +56,7 @@ fun TransferBottomSheet(
     onDone: () -> Unit = onDismiss
 ) {
     val context = LocalContext.current
+    val dialDirect = rememberDirectDialAction(onDone)
     val pinStore = remember { TransferPinStore(context) }
     var number by remember { mutableStateOf(fixedNumber ?: "") }
     var pin by remember { mutableStateOf(pinStore.load() ?: "") }
@@ -215,8 +215,7 @@ fun TransferBottomSheet(
                             .fillMaxWidth()
                             .clickable(enabled = transferEnabled) {
                                 pinStore.save(pin)
-                                DialService.dial(context, "*234*1*$number*$pin*$amount#")
-                                onDone()
+                                dialDirect("*234*1*$number*$pin*$amount#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,
