@@ -3,6 +3,7 @@ package com.qvacell.app.ui.components
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.telephony.ServiceState
 import android.telephony.TelephonyManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -69,7 +70,7 @@ fun ConnectionBanner() {
     LaunchedEffect(hasPermission) {
         val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
         while (true) {
-            status = if (hasPermission) readCellularSignalStatus(telephonyManager) else CellularSignalStatus()
+            status = readCellularSignalStatus(telephonyManager, hasPermission)
             delay(5000)
         }
     }
@@ -86,7 +87,7 @@ fun ConnectionBanner() {
         status.signalQuality == 3 -> "Señal óptima (${status.networkType})"
         status.signalQuality == 2 -> "Señal buena (${status.networkType})"
         status.signalQuality == 1 -> "Señal débil (riesgo de fallo)"
-        else -> "Buscando red..."
+        else -> status.networkType
     }
     val icon = when {
         !status.hasService -> Icons.Filled.SignalCellularOff
@@ -114,13 +115,29 @@ fun ConnectionBanner() {
 
 fun hasCellularService(context: Context): Boolean {
     val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-    return readCellularSignalStatus(tm).hasService
+    val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) ==
+        PackageManager.PERMISSION_GRANTED
+    return readCellularSignalStatus(tm, hasPermission).hasService
 }
 
-private fun readCellularSignalStatus(telephonyManager: TelephonyManager?): CellularSignalStatus {
+private fun readCellularSignalStatus(
+    telephonyManager: TelephonyManager?,
+    hasPhoneStatePermission: Boolean
+): CellularSignalStatus {
+    // Network type can be UNKNOWN when READ_PHONE_STATE is missing or mobile data is off.
+    // Neither case proves that voice/USSD service is unavailable.
+    if (!hasPhoneStatePermission || telephonyManager == null) {
+        return CellularSignalStatus(hasService = true, networkType = "Estado no disponible")
+    }
+    val voiceNetworkType = try {
+        telephonyManager.voiceNetworkType
+    } catch (_: SecurityException) {
+        TelephonyManager.NETWORK_TYPE_UNKNOWN
+    }
     val networkType = try {
-        telephonyManager?.dataNetworkType ?: TelephonyManager.NETWORK_TYPE_UNKNOWN
-    } catch (e: SecurityException) {
+        if (voiceNetworkType != TelephonyManager.NETWORK_TYPE_UNKNOWN) voiceNetworkType
+        else telephonyManager.dataNetworkType
+    } catch (_: SecurityException) {
         TelephonyManager.NETWORK_TYPE_UNKNOWN
     }
     return when (networkType) {
@@ -136,8 +153,21 @@ private fun readCellularSignalStatus(telephonyManager: TelephonyManager?): Cellu
             CellularSignalStatus(hasService = true, networkType = "3G", signalQuality = 2)
         TelephonyManager.NETWORK_TYPE_EDGE, TelephonyManager.NETWORK_TYPE_GPRS ->
             CellularSignalStatus(hasService = true, networkType = "2G / EDGE", signalQuality = 1)
-        TelephonyManager.NETWORK_TYPE_UNKNOWN ->
-            CellularSignalStatus(hasService = false, networkType = "Sin servicio celular", signalQuality = 0)
+        TelephonyManager.NETWORK_TYPE_UNKNOWN -> {
+            val serviceState = try {
+                telephonyManager.serviceState?.state
+            } catch (_: SecurityException) {
+                null
+            } catch (_: UnsupportedOperationException) {
+                null
+            }
+            val hasService = serviceState == null || serviceState == ServiceState.STATE_IN_SERVICE
+            CellularSignalStatus(
+                hasService = hasService,
+                networkType = if (hasService) "Estado no disponible" else "Sin servicio celular",
+                signalQuality = 0
+            )
+        }
         else ->
             CellularSignalStatus(hasService = true, networkType = "Red celular", signalQuality = 2)
     }

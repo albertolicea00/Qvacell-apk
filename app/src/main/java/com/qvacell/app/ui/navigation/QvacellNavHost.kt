@@ -37,14 +37,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.ui.components.ConnectionBanner
-import com.qvacell.app.ui.components.hasCellularService
-import androidx.compose.foundation.background
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import kotlinx.coroutines.delay
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -156,16 +148,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     val settings = remember { SettingsDataStore(context) }
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
 
-    var hasSignal by remember { mutableStateOf(hasCellularService(context)) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            hasSignal = hasCellularService(context)
-            delay(5000)
-        }
-    }
-    val showDashboardSignalWarning = !hasSignal && !showNetworkStatus &&
-        (currentRoute == BottomTab.Home.route || isInHomeSection || isInDashboardOptions)
-
     Scaffold(
         bottomBar = {
             if (currentRoute == Routes.ONBOARDING) return@Scaffold
@@ -180,29 +162,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 Column {
                     if (showNetworkStatus) {
                         ConnectionBanner()
-                    } else if (showDashboardSignalWarning) {
-                        val warningColor = Color(0xFFFB8C00)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(warningColor.copy(alpha = 0.15f))
-                                .padding(vertical = 8.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                Icons.Filled.Warning,
-                                contentDescription = null,
-                                tint = warningColor,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                "Sin servicio, las actualizaciones del panel quedan en pausa.",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = warningColor,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
                     }
                     HorizontalDivider(
                         thickness = 1.dp,
