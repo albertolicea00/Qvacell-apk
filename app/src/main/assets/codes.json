@@ -110,11 +110,11 @@
               "id": "postpaid-balance",
               "code": "*111#",
               "title": {
-                "es": "Saldo Pospago o Institucional",
+                "es": "Saldo Postpago o Institucional",
                 "en": "Postpaid or Institutional Balance"
               },
               "details": {
-                "es": "Consulta tu saldo pospago o institucional.",
+                "es": "Consulta tu saldo postpago o institucional.",
                 "en": "Check your postpaid or institutional balance."
               },
               "type": "ussd",
@@ -162,6 +162,7 @@
             {
               "id": "transfer-direct",
               "code": "*234*1*{phoneNumber}*{pin}*{amount}#",
+              "noConfirmCode": "*234*1*{phoneNumber}*{pin}*{amount}*1#",
               "title": {
                 "es": "Transferir Saldo",
                 "en": "Transfer Balance"
