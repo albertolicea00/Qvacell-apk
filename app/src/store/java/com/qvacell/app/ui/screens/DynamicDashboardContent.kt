@@ -44,10 +44,7 @@ fun DynamicDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
-    cardTapMode: String = "tap_confirm",
-    actionsStyle: String = "buttons",
-    onTransfer: () -> Unit,
-    onRecharge: () -> Unit
+    cardTapMode: String = "tap_confirm"
 ) {
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()

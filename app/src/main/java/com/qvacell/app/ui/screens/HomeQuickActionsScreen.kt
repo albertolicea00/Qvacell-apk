@@ -61,7 +61,6 @@ fun HomeQuickActionsScreen(
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
-    val actionsStyle by settings.dashboardActionsStyle.collectAsStateWithLifecycle(initialValue = "buttons")
     val manualHiddenSections by settings.manualHiddenSections.collectAsStateWithLifecycle(initialValue = emptySet())
 
     var showTransferSheet by remember { mutableStateOf(false) }
@@ -130,22 +129,6 @@ fun HomeQuickActionsScreen(
                         expanded = showDashboardMenu,
                         onDismissRequest = { showDashboardMenu = false }
                     ) {
-                        if (actionsStyle == "none") {
-                            DropdownMenuItem(
-                                text = { Text("Transferir Saldo") },
-                                onClick = {
-                                    showDashboardMenu = false
-                                    showTransferSheet = true
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Recargar Saldo") },
-                                onClick = {
-                                    showDashboardMenu = false
-                                    showRechargeSheet = true
-                                }
-                            )
-                        }
                         DropdownMenuItem(
                             text = { Text("Gestionar Plan Amigo") },
                             onClick = {
@@ -268,10 +251,7 @@ fun HomeQuickActionsScreen(
                     repository = repository,
                     dashboardRepository = dashboardRepository,
                     ussdCaptureEnabled = ussdCaptureEnabled,
-                    cardTapMode = cardTapMode,
-                    actionsStyle = actionsStyle,
-                    onTransfer = { showTransferSheet = true },
-                    onRecharge = { showRechargeSheet = true }
+                    cardTapMode = cardTapMode
                 )
             } else {
                 ManualDashboardContent(

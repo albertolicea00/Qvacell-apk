@@ -27,7 +27,6 @@ class SettingsDataStore(private val context: Context) {
     private val hasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
     private val cardTapModeKey = stringPreferencesKey("card_tap_mode")
-    private val dashboardActionsStyleKey = stringPreferencesKey("dashboard_actions_style")
     private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
     private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
@@ -78,9 +77,6 @@ class SettingsDataStore(private val context: Context) {
     // How dashboard cards trigger USSD queries: tap_confirm (default), tap, double_tap,
     // long_confirm, long, triple_tap.
     val cardTapMode = context.dataStore.data.map { it[cardTapModeKey] ?: "tap_confirm" }
-
-    // "buttons" (default), "list", or "none" — how transfer/recharge actions show on dynamic dashboard.
-    val dashboardActionsStyle = context.dataStore.data.map { it[dashboardActionsStyleKey] ?: "buttons" }
 
     // Sections hidden on manual dashboard: "consultas", "transferir", "recargar", "adelanta".
     val manualHiddenSections = context.dataStore.data.map { it[manualHiddenSectionsKey] ?: emptySet() }
@@ -139,10 +135,6 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setCardTapMode(mode: String) {
         context.dataStore.edit { it[cardTapModeKey] = mode }
-    }
-
-    suspend fun setDashboardActionsStyle(style: String) {
-        context.dataStore.edit { it[dashboardActionsStyleKey] = style }
     }
 
     suspend fun setManualHiddenSections(sections: Set<String>) {

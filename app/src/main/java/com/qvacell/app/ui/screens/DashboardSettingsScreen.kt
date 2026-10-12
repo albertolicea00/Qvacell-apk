@@ -49,13 +49,11 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
     val dashboardRepository = remember { DashboardDataRepository(context) }
 
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
-    val actionsStyle by settings.dashboardActionsStyle.collectAsStateWithLifecycle(initialValue = "buttons")
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val smsCaptureEnabled by settings.smsCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val hasRunSmsBackfill by settings.hasRunSmsBackfill.collectAsStateWithLifecycle(initialValue = false)
 
     var showCardTapModeSheet by remember { mutableStateOf(false) }
-    var showActionsStyleSheet by remember { mutableStateOf(false) }
 
     val cardTapModeLabel = when (cardTapMode) {
         "long_confirm" -> "Presionar + confirmación"
@@ -64,12 +62,6 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
         "double_tap" -> "Doble tap"
         "triple_tap" -> "Triple tap"
         else -> "Un tap + confirmación"
-    }
-
-    val actionsStyleLabel = when (actionsStyle) {
-        "list" -> "Lista"
-        "none" -> "Ninguno"
-        else -> "Botones"
     }
 
     val ussdCapturePermissionLauncher = rememberLauncherForActivityResult(
@@ -110,12 +102,6 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                     headline = "Acción de consulta USSD",
                     supporting = cardTapModeLabel,
                     onClick = { showCardTapModeSheet = true }
-                )
-                OptionsDivider()
-                OptionsRow(
-                    headline = "Mostrar acciones",
-                    supporting = actionsStyleLabel,
-                    onClick = { showActionsStyleSheet = true }
                 )
             }
 
@@ -213,41 +199,4 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
         }
     }
 
-    if (showActionsStyleSheet) {
-        ModalBottomSheet(onDismissRequest = { showActionsStyleSheet = false }) {
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text(
-                    "Mostrar acciones",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Text(
-                    "Define cómo mostrar las acciones de Transferir y Recargar saldo en el dashboard.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                listOf(
-                    "buttons" to "Botones",
-                    "list" to "Lista",
-                    "none" to "Ninguno"
-                ).forEach { (mode, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                scope.launch { settings.setDashboardActionsStyle(mode) }
-                                showActionsStyleSheet = false
-                            }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(selected = actionsStyle == mode, onClick = null)
-                        Text(label, modifier = Modifier.padding(start = 8.dp))
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-            }
-        }
-    }
 }
