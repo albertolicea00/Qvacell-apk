@@ -341,7 +341,7 @@ Two new tables, added in `data/QvacellDatabase.kt` via a hand-written `Migration
 
 ### 15.5 Capture mechanism (flavor-gated, `unlocked` only)
 
-- **`UssdCaptureService`** (`app/src/unlocked/`) — wraps `TelephonyManager.sendUssdRequest` (API 26+) to capture a USSD response's text programmatically, instead of the `ACTION_DIAL`-only path every other code in the app uses. Falls back to the normal `DialService.dial()` (system dialer, today's exact UX) on any failure, timeout, or when the user hasn't opted in — this is not on by default (see below).
+- **`UssdCaptureService`** (`app/src/unlocked/`) — wraps `TelephonyManager.sendUssdRequest` (API 26+) to capture a USSD response's text programmatically, with a 15-second timeout. A single card query handled by `DashboardCapture.captureOrDial()` uses direct dialing when capture fails or is unavailable. The sequential batch refresh in `DashboardRefreshService` instead stops on a capture failure or timeout; it never dials the remaining codes.
 - **`EtecsaSmsReceiver`**/**`EtecsaSmsFilter`** (`app/src/unlocked/`) — live incoming-SMS capture plus a historical backfill query, filtered by a stub "is this an ETECSA message" heuristic pending real sender/format examples.
 - **`EstimationEngine`**/**`EstimationScheduler`**/**`EstimationAlarmReceiver`** (`app/src/unlocked/`) — the background estimate: queries `CallLog.Calls` and (once live) `Telephony.Sms.Sent` since the last confirmed anchor, filtered to Cuban numbers via the existing `model/CubanPhoneNumber.kt` (no new heuristic written — reused what already existed), and writes the delta via `recordEstimate`. Scheduled via `AlarmManager.setExactAndAllowWhileIdle`, mirroring `ReminderScheduler`'s existing pattern (§6) rather than introducing WorkManager as a second background-work paradigm in the same app.
 - **Options toggles** — "Consulta automática de saldo (experimental)" (silent USSD) and "Detección automática por SMS" (SMS + call-log estimation) in `OptionsScreen.kt`, both **default OFF**. Silent USSD capture reuses the same `CALL_PHONE` permission already granted for Compras, but its blast radius is now wider (silent background use vs. an explicit in-app confirm-then-call), so it's opt-in behind an explainer rather than silently repurposing an existing grant. The reliability of `sendUssdRequest` against ETECSA's actual gateway is unverified — this is a real spike/validate-early risk, not just a formality, since some carriers route USSD replies as an OS-level dialog the app's callback never sees.
@@ -383,6 +383,8 @@ Full parsing rules, verbatim ETECSA response samples, regex patterns, and field 
 
 The dashboard cards (`MainBalanceCard`, `DataUsageCard`, `NationalBonusCard`, `VoiceSmsRow`, `RechargeLimitCard`) in `DynamicDashboardContent.kt` (unlocked flavor) collect live data from `DashboardDataRepository.observeCurrentValues()` and display three distinct states per card:
 
+The Pospago consultation card sits immediately above Saldo. TFA and Plan Amigo use full-width consultation cards below the data cards. These three consultation codes still lack response parsers and show the "UI Próximamente" badge.
+
 1. **Sin consultar** (never fetched) — `hasFetched = false`. Shown when no USSD query has populated the card's fields yet. Cards display a placeholder message ("Actualice el dashboard para ver la información." or "Aún no consultado.") instead of data. `DataUsageCard` also hides its "Tarifa por consumo" section and divider in this state.
 2. **Sin plan / No cuenta con...** (fetched, no active plan) — `hasFetched = true`, values are `"--"`. Voice/SMS cards show "Sin plan"; Data card shows "No cuenta con paquetes disponibles"; Bonus card shows "No cuenta con bonos disponibles".
 3. **Real values** — `hasFetched = true`, values populated from parsed USSD response.
@@ -409,17 +411,19 @@ When voice/sms/data cards derive `hasFetched` from `mainBalanceFetched` and have
 
 ### 15.12 Signal Gating & Warning Banner
 
-Dashboard refresh and individual card queries require cellular signal. `hasCellularService()` (`ui/components/ConnectionBanner.kt`) polls `TelephonyManager.dataNetworkType` — returns `false` when `NETWORK_TYPE_UNKNOWN`. `DynamicDashboardContent` polls this every 5 seconds via `LaunchedEffect`.
+Dashboard refresh and individual card queries require cellular service. `hasCellularService()` (`ui/components/ConnectionBanner.kt`) checks `voiceNetworkType` first and falls back to `dataNetworkType` and `ServiceState` where possible. An unknown network type or missing `READ_PHONE_STATE` permission is treated as **unknown**, not proof of no service; this avoids disabling USSD and showing a false warning when mobile data is off or the app cannot read the network type. `DynamicDashboardContent` polls this every 5 seconds via `LaunchedEffect`.
 
 When `!hasSignal`:
 - **Pull-to-refresh**: `activePull` is gated on `hasSignal` — pulling down produces zero visual feedback, preventing a misleading refresh gesture.
 - **Reload button** (`HomeQuickActionsScreen`): `enabled = !isRefreshing && hasSignal`.
 - **Individual card taps**: `requestQuery()` returns early.
-- **Signal warning banner** (`QvacellNavHost`): a yellow/amber (`#FB8C00`) banner in the same position as `ConnectionBanner` (above the bottom navigation bar), visible on Home/dashboard screens when `!hasSignal && !showNetworkStatus` (the setting-controlled network banner isn't already shown). Text: "Sin señal celular" with a warning icon.
+- **Signal warning** (`DynamicDashboardContent`): an amber warning appears inside the dynamic dashboard when service is known to be unavailable. It does not appear on the manual dashboard. The optional `ConnectionBanner` controlled by `showNetworkStatus` remains in the bottom bar.
 
 ### 15.13 Smart Refresh — Skip Unnecessary USSD Queries
 
 `DashboardRefreshService.refresh()` queries codes sequentially (USSD is serial on the modem). The refresh order is: `main-balance` → `bonus-usd-plans` → `data-plan` → `national-recharge-limit` → `voice-balance` → `sms-balance`.
+
+If any request returns a carrier failure or reaches the 15-second timeout, the refresh aborts immediately, clears the active-code/loading state, and publishes a warning through `refreshFailure`; starting another refresh clears that warning. On failure, when `READ_PHONE_STATE` is granted, the service checks the observed voice network type (or data type if voice is unknown). If it still reports LTE/NR, the warning suggests switching a forced 4G setting to automatic network selection. This is a **heuristic**: Android does not expose a reliable public indicator of the user's forced-network preference, and LTE alone does not prove USSD cannot work. A successful USSD response is accepted even if the device reports LTE.
 
 After the `main-balance` query completes, the service reads the current values from `DashboardDataRepository.getCurrentValues()` and checks whether `VOICE_MINUTES_REMAINING`, `SMS_COUNT_REMAINING`, and `DATA_DATOS_MB` were populated. If a field is absent, the corresponding dedicated query is skipped entirely:
 - No `VOICE_MINUTES_REMAINING` → skip `voice-balance` (*222*869*1#)
@@ -449,12 +453,13 @@ The navbar click handler navigates directly with `popUpTo(validStartRoute)` — 
 - Tap-to-refresh on every dashboard card via `DashboardCapture.captureOrDial`, with optional confirmation dialog (`cardTapMode` setting).
 - `LoadingCardBorder` animated gradient stroke during USSD queries (§15.11).
 - `TimeAgoText` with red/amber/gray color coding and parameterizable stale threshold (§15.10).
-- Signal gating: pull-to-refresh, reload button, and card taps disabled without cellular signal; yellow warning banner (§15.12).
+- Signal gating: pull-to-refresh, reload button, and card taps disabled when cellular service is known to be absent; warning limited to the dynamic dashboard (§15.12).
 - Smart refresh: main-balance response determines which subsequent queries to skip (§15.13).
+- Batch refresh aborts on the first USSD failure/timeout and gives LTE-specific guidance when the observed network still reports 4G/5G (§15.13).
 - `PullToRefreshBox` (Material3 1.3.1) with custom pull indicator (dual arrows + "Arrastra/Suelta para refrescar" text).
 
 **Awaiting ETECSA samples**:
-- 3 ConsultCardsRow USSD codes (`postpaid-balance` `*111#`, `tfa` `*118#`, `friends-plan` `*222*264#`) — no response text captured yet, cannot write parsers without real samples.
+- 3 consultation-card USSD codes (`postpaid-balance` `*111#`, `tfa` `*118#`, `friends-plan` `*222*264#`) — no response text captured yet, cannot write parsers without real samples.
 - Every `SmsBodyParser` implementation — same reason.
 - `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — placeholder pending real sender-ID/short-code examples.
 
