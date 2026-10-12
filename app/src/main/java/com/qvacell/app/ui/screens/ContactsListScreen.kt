@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -80,6 +81,7 @@ fun ContactsListScreen() {
         )
     }
     var contacts by remember { mutableStateOf<List<DeviceContact>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(hasPermission) }
     var query by remember { mutableStateOf("") }
     var searching by remember { mutableStateOf(false) }
 
@@ -89,8 +91,16 @@ fun ContactsListScreen() {
 
     LaunchedEffect(hasPermission) {
         if (hasPermission) {
-            contacts = repository.loadContacts()
+            isLoading = true
+            try {
+                contacts = repository.loadContacts()
+            } finally {
+                isLoading = false
+            }
             repository.syncWrappedCallers(context, contacts)
+        } else {
+            contacts = emptyList()
+            isLoading = false
         }
     }
 
@@ -102,7 +112,7 @@ fun ContactsListScreen() {
                 onQueryChange = { query = it },
                 searching = searching,
                 onSearchingChange = { searching = it },
-                showSearchAction = hasPermission && contacts.isNotEmpty(),
+                showSearchAction = hasPermission && !isLoading && contacts.isNotEmpty(),
                 extraActions = { SimSelectorIcon() }
             )
         }
@@ -142,6 +152,19 @@ fun ContactsListScreen() {
                     Button(onClick = { launcher.launch(Manifest.permission.READ_CONTACTS) }) {
                         Text("Permitir acceso a contactos")
                     }
+                }
+            } else if (isLoading) {
+                Column(
+                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CircularProgressIndicator()
+                    Text(
+                        "Cargando contactos…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             } else if (contacts.isEmpty()) {
                 Column(

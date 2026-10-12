@@ -489,7 +489,7 @@ The Contactos tab lists each phone number as a **separate row**, matching the iO
 
 **Data model** — `ContactPhoneNumber` carries `raw`, `normalized`, and `label` (Spanish phone type string derived from `ContactsContract.CommonDataKinds.Phone.TYPE`/`LABEL`). `ContactEntry` is the flat view-layer model: one `(DeviceContact, number, label?)` per row. `ContactsRepository.flattenToEntries()` expands the contact list.
 
-**UI** — `ContactRow` accepts a `ContactEntry`. `ContactOptionsSheet` operates on the specific number from the entry (not `cubanNumbers.firstOrNull()`). Search matches both name and number.
+**UI** — `ContactRow` accepts a `ContactEntry`. `ContactOptionsSheet` operates on the specific number from the entry (not `cubanNumbers.firstOrNull()`). Search matches both name and number. `ContactsListScreen` starts in an explicit loading state when contact permission is granted; it shows a progress indicator until `loadContacts()` finishes, then either the entries or the "No se encontraron números cubanos" empty state. The empty state must not flash while contacts are still loading.
 
 **Known limitation** — The system contact picker (`ACTION_PICK`) used in transfer and Plan Amigo flows shows all phone numbers (not just Cuban). When a non-Cuban number is selected, an `AlertDialog` shows an error explaining only Cuban numbers are accepted. This affects `ManualDashboardContent`, `TransferBottomSheet`, and `FriendsPlanManageScreen`.
 
