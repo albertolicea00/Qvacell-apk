@@ -2,6 +2,9 @@ package com.qvacell.app.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -20,18 +23,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Contacts
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +58,7 @@ import com.qvacell.app.ui.components.ContactRow
 import com.qvacell.app.ui.components.GroupHeader
 import com.qvacell.app.ui.components.SearchableTopAppBar
 import com.qvacell.app.ui.components.SimSelectorIcon
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -59,6 +66,7 @@ import com.qvacell.app.ui.components.SimSelectorIcon
 fun ContactsListScreen() {
     val context = LocalContext.current
     val repository = remember { ContactsRepository(context) }
+    val scope = rememberCoroutineScope()
     var selectedEntry by remember { mutableStateOf<ContactEntry?>(null) }
 
     var hasPermission by remember {
@@ -205,6 +213,9 @@ fun ContactsListScreen() {
                     }
 
                     val listState = rememberLazyListState()
+                    val showScrollToTop by remember(listState) {
+                        derivedStateOf { listState.firstVisibleItemIndex > 3 }
+                    }
 
                     LazyColumn(
                         state = listState,
@@ -221,6 +232,18 @@ fun ContactsListScreen() {
                                     onCallAnonymous = { DialService.dial(context, "#31#${entry.number}") }
                                 )
                             }
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible = showScrollToTop,
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
+                    ) {
+                        SmallFloatingActionButton(
+                            onClick = { scope.launch { listState.animateScrollToItem(0) } }
+                        ) {
+                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Volver arriba")
                         }
                     }
                 }
