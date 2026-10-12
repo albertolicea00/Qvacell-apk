@@ -130,13 +130,6 @@ fun HomeQuickActionsScreen(
                         onDismissRequest = { showDashboardMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Gestionar Plan Amigo") },
-                            onClick = {
-                                showDashboardMenu = false
-                                onNavigateToFriendsPlan()
-                            }
-                        )
-                        DropdownMenuItem(
                             text = { Text("Recordatorios") },
                             onClick = {
                                 showDashboardMenu = false
