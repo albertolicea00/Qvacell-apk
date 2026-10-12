@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Contacts
@@ -224,7 +224,8 @@ fun ContactsListScreen() {
                     ) {
                         grouped.forEach { (letter, group) ->
                             stickyHeader(key = "header_$letter") { GroupHeader(letter) }
-                            items(group, key = { "${it.contact.id}_${it.number}" }) { entry ->
+                            // A contact may contain the same normalized number more than once.
+                            itemsIndexed(group, key = { index, entry -> "${entry.contact.id}_${entry.number}_$index" }) { _, entry ->
                                 ContactRow(
                                     entry = entry,
                                     onClick = { selectedEntry = entry },
