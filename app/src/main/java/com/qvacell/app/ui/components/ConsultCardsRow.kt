@@ -28,31 +28,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
+fun PostpaidConsultCard(onQuery: () -> Unit) {
+    ConsultCard("POSTPAGO", Icons.Filled.CreditCard, Modifier.fillMaxWidth(), onQuery)
+}
+
+@Composable
 fun ConsultCardsRow(
-    onPostpagoQuery: () -> Unit = {},
     onTfaQuery: () -> Unit = {},
     onPlanAmigoQuery: () -> Unit = {}
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ConsultCard(
-                title = "POSTPAGO",
-                icon = Icons.Filled.CreditCard,
-                modifier = Modifier.weight(1f),
-                onClick = onPostpagoQuery
-            )
-            ConsultCard(
-                title = "TFA",
-                icon = Icons.Filled.PhoneAndroid,
-                modifier = Modifier.weight(1f),
-                onClick = onTfaQuery
-            )
-        }
+        ConsultCard("TFA", Icons.Filled.PhoneAndroid, Modifier.fillMaxWidth(), onTfaQuery)
         ConsultCard(
             title = "PLAN AMIGO",
             icon = Icons.Filled.People,
             modifier = Modifier.fillMaxWidth(),
-            fullWidth = true,
             onClick = onPlanAmigoQuery
         )
     }
@@ -63,7 +53,6 @@ private fun ConsultCard(
     title: String,
     icon: ImageVector,
     modifier: Modifier = Modifier,
-    fullWidth: Boolean = false,
     onClick: () -> Unit
 ) {
     val cardShape = RoundedCornerShape(20.dp)
@@ -74,48 +63,26 @@ private fun ConsultCard(
         shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {
-        if (fullWidth) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 6.dp)
-                    )
-                }
-                ComingSoonBadge()
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    icon,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    title,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 6.dp)
+                )
             }
-        } else {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        title,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = 6.dp)
-                    )
-                }
-                ComingSoonBadge(modifier = Modifier.padding(top = 8.dp))
-            }
+            ComingSoonBadge()
         }
     }
 }

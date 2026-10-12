@@ -1,6 +1,7 @@
 package com.qvacell.app.ui.navigation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,14 +32,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.ui.components.ConnectionBanner
+import com.qvacell.app.ui.components.hasCellularService
+import com.qvacell.app.service.DashboardRefreshService
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -47,6 +55,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import kotlinx.coroutines.delay
 import com.qvacell.app.ui.screens.CategoryListScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
 import com.qvacell.app.ui.screens.DashboardHelpScreen
@@ -147,6 +156,20 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     val context = LocalContext.current
     val settings = remember { SettingsDataStore(context) }
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
+    val refreshFailure by DashboardRefreshService.refreshFailure.collectAsStateWithLifecycle(initialValue = null)
+    var isDynamicDashboard by remember { mutableStateOf(false) }
+    var hasSignal by remember { mutableStateOf(true) }
+    val showDynamicWarning = currentRoute == BottomTab.Home.route && isDynamicDashboard
+    LaunchedEffect(showDynamicWarning) {
+        if (!showDynamicWarning) {
+            hasSignal = true
+        } else {
+            while (true) {
+                hasSignal = hasCellularService(context)
+                delay(5000)
+            }
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -162,6 +185,25 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 Column {
                     if (showNetworkStatus) {
                         ConnectionBanner()
+                    }
+                    if (showDynamicWarning && (refreshFailure != null || !hasSignal)) {
+                        val warningColor = Color(0xFFFB8C00)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(warningColor.copy(alpha = 0.15f))
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Filled.Warning, contentDescription = null, tint = warningColor, modifier = Modifier.size(16.dp))
+                            Text(
+                                refreshFailure ?: "Sin servicio, las actualizaciones del panel quedan en pausa.",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = warningColor,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
                     }
                     HorizontalDivider(
                         thickness = 1.dp,
@@ -261,7 +303,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                     onNavigateToFriendsPlan = { navController.navigate(Routes.FRIENDS_PLAN_MANAGE) },
                     onNavigateToEvents = { navController.navigate(Routes.DASHBOARD_EVENTS) },
                     onNavigateToSettings = { navController.navigate(Routes.DASHBOARD_SETTINGS) },
-                    onNavigateToHelp = { navController.navigate(Routes.DASHBOARD_HELP) }
+                    onNavigateToHelp = { navController.navigate(Routes.DASHBOARD_HELP) },
+                    onDynamicDashboardChanged = { isDynamicDashboard = it }
                 )
             }
             composable(BottomTab.Purchase.route) {

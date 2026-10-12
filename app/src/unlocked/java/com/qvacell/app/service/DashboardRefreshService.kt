@@ -1,6 +1,10 @@
 package com.qvacell.app.service
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.telephony.TelephonyManager
+import androidx.core.content.ContextCompat
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.FieldTypes
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +32,9 @@ object DashboardRefreshService {
     private val _currentCodeId = MutableStateFlow<String?>(null)
     val currentCodeId: StateFlow<String?> = _currentCodeId
 
+    private val _refreshFailure = MutableStateFlow<String?>(null)
+    val refreshFailure: StateFlow<String?> = _refreshFailure
+
     fun setCurrentCode(codeId: String?) {
         _currentCodeId.value = codeId
     }
@@ -37,6 +44,7 @@ object DashboardRefreshService {
         if (!DialService.hasCallPermission(context)) return
 
         _isRefreshing.value = true
+        _refreshFailure.value = null
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 var skipVoice = false
@@ -51,8 +59,17 @@ object DashboardRefreshService {
                     _currentCodeId.value = codeId
                     val code = catalogRepository.findCodeById(codeId) ?: continue
                     val result = requestUssdSuspend(context, code)
-                    if (result is UssdCaptureResult.Success) {
-                        dashboardRepository.recordUssdParse(codeId, result.response)
+                    when (result) {
+                        is UssdCaptureResult.Success -> dashboardRepository.recordUssdParse(codeId, result.response)
+                        is UssdCaptureResult.Failure -> {
+                            val cause = if (result.reason == "timeout") "La consulta USSD no respondió."
+                                else "Falló la consulta USSD."
+                            val advice = if (stillOnLte(context))
+                                " El teléfono sigue en 4G; si tienes 4G forzada, cambia la red a automática y vuelve a intentar."
+                            else " Comprueba la señal y vuelve a intentar."
+                            _refreshFailure.value = "$cause Se detuvo la actualización.$advice"
+                            break
+                        }
                     }
 
                     if (codeId == "main-balance") {
@@ -75,6 +92,21 @@ object DashboardRefreshService {
     ): UssdCaptureResult = suspendCancellableCoroutine { cont ->
         UssdCaptureService.requestUssd(context, code) { result ->
             if (cont.isActive) cont.resume(result)
+        }
+    }
+
+    private fun stillOnLte(context: Context): Boolean {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) !=
+            PackageManager.PERMISSION_GRANTED) return false
+        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+            ?: return false
+        return try {
+            val voice = telephonyManager.voiceNetworkType
+            val observed = if (voice != TelephonyManager.NETWORK_TYPE_UNKNOWN) voice
+                else telephonyManager.dataNetworkType
+            observed == TelephonyManager.NETWORK_TYPE_LTE || observed == TelephonyManager.NETWORK_TYPE_NR
+        } catch (_: SecurityException) {
+            false
         }
     }
 }

@@ -62,6 +62,7 @@ import com.qvacell.app.data.SettingsDataStore
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.ui.components.ConsultCardsRow
+import com.qvacell.app.ui.components.PostpaidConsultCard
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
 import com.qvacell.app.ui.components.NationalBonusCard
@@ -93,11 +94,6 @@ fun DynamicDashboardContent(
             hasSignal = hasCellularService(context)
             delay(5000)
         }
-    }
-
-    fun executeQuery(codeId: String) {
-        val code = catalogRepository.findCodeById(codeId) ?: return
-        DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
     }
 
     fun requestQuery(codeId: String) {
@@ -182,6 +178,7 @@ fun DynamicDashboardContent(
                 onQuery = { requestQuery("national-recharge-limit") }
             )
             }
+            PostpaidConsultCard(onQuery = { requestQuery("postpaid-balance") })
             LoadingCardBorder(isLoading = currentCodeId == "main-balance") {
             MainBalanceCard(
                 balance = values[FieldTypes.MAIN_BALANCE]?.let { formatAmount(it.numericValue) } ?: "--",
@@ -256,8 +253,6 @@ fun DynamicDashboardContent(
             )
             }
             ConsultCardsRow(
-                // TODO: postpaid-balance (*111#) — parser not implemented, needs real ETECSA response samples
-                onPostpagoQuery = { requestQuery("postpaid-balance") },
                 // TODO: tfa (*118#) — parser not implemented, needs real ETECSA response samples
                 onTfaQuery = { requestQuery("tfa") },
                 // TODO: friends-plan (*222*264#) — parser not implemented, needs real ETECSA response samples

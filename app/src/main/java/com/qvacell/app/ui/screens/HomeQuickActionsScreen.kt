@@ -52,7 +52,8 @@ fun HomeQuickActionsScreen(
     onNavigateToFriendsPlan: () -> Unit = {},
     onNavigateToEvents: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
-    onNavigateToHelp: () -> Unit = {}
+    onNavigateToHelp: () -> Unit = {},
+    onDynamicDashboardChanged: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
@@ -68,6 +69,9 @@ fun HomeQuickActionsScreen(
     var showDashboardMenu by remember { mutableStateOf(false) }
     var showManualMenu by remember { mutableStateOf(false) }
     var showDynamicDashboard by remember { mutableStateOf(false) }
+    LaunchedEffect(showDynamicDashboard) {
+        onDynamicDashboardChanged(showDynamicDashboard)
+    }
     var showUnavailableDialog by remember { mutableStateOf(false) }
 
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()

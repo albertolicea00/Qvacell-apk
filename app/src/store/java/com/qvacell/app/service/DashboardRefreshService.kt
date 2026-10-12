@@ -12,6 +12,9 @@ object DashboardRefreshService {
     private val _currentCodeId = MutableStateFlow<String?>(null)
     val currentCodeId: StateFlow<String?> = _currentCodeId
 
+    private val _refreshFailure = MutableStateFlow<String?>(null)
+    val refreshFailure: StateFlow<String?> = _refreshFailure
+
     fun setCurrentCode(codeId: String?) {
         _currentCodeId.value = codeId
     }
