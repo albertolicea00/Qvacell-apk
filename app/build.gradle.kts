@@ -18,8 +18,8 @@ android {
     // an AGP version the installed Android Studio (2025.1 Meerkat) actually supports syncing.
     compileSdk = 36
 
-    val baseVersionCode = 3
-    val appVersionName = "1.0.3"
+    val baseVersionCode = 4
+    val appVersionName = "1.0.4"
 
     defaultConfig {
         applicationId = "com.qvacell.app"
