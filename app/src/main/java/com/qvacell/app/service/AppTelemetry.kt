@@ -5,6 +5,8 @@ import android.os.Bundle
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.perf.FirebasePerformance
+import com.google.firebase.perf.metrics.Trace
 import com.qvacell.app.BuildConfig
 
 /** Firebase is inactive until app/google-services.json initializes a default Firebase app. */
@@ -23,5 +25,10 @@ object AppTelemetry {
             putString(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity")
         }
         FirebaseAnalytics.getInstance(context).logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, parameters)
+    }
+
+    fun startTrace(context: Context, name: String): Trace? {
+        if (FirebaseApp.getApps(context).isEmpty()) return null
+        return FirebasePerformance.getInstance().newTrace(name).apply { start() }
     }
 }

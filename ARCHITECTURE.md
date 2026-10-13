@@ -4,7 +4,7 @@ For contribution workflow see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 This document describes the technical architecture of Qvacell for Android, a native Kotlin/Jetpack Compose app that lets users dial ETECSA (Cubacel) USSD service codes (`*222#` style dial strings) without needing to remember them.
 
-It is an Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell-ios). App features remain local and require no Qvacell backend: the catalog is bundled, contacts are read on-device, and a local Room table supports `*99` caller labels (§11). Firebase Analytics and Crashlytics are the exception: they send app usage and diagnostics to Firebase (§19); contacts, phone numbers, USSD codes/responses, and the transfer PIN are not included in custom telemetry.
+It is an Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell-ios). App features remain local and require no Qvacell backend: the catalog is bundled, contacts are read on-device, and a local Room table supports `*99` caller labels (§11). Firebase Analytics, Crashlytics, and Performance Monitoring are the exception: they send app usage and diagnostics to Firebase (§19); contacts, phone numbers, USSD codes/responses, and the transfer PIN are not included in custom telemetry.
 
 ---
 
@@ -517,10 +517,12 @@ Qvacell distributes two flavors (`store` and `unlocked`) under the **exact same 
 
 ---
 
-## 19. Firebase Analytics & Crashlytics
+## 19. Firebase Analytics, Crashlytics & Performance Monitoring
 
-`app/google-services.json` registers the Android package `com.qvacell.app` with Firebase. Both `store` and `unlocked` use that same package and Firebase Android app. The root Gradle build declares Google Services 4.5.0 and Crashlytics Gradle plugin 3.0.8; the app module applies both and uses Firebase BoM 34.19.0 with `firebase-analytics` and `firebase-crashlytics`. BoM 35.0.0 currently resolves Google measurement 24.0.0 with Kotlin metadata 2.4, which this project's Kotlin 2.2.10 compiler cannot read; upgrade Kotlin/tooling before raising the BoM.
+`app/google-services.json` registers the Android package `com.qvacell.app` with Firebase. Both `store` and `unlocked` use that same package and Firebase Android app. The root Gradle build declares Google Services 4.5.0, Crashlytics Gradle plugin 3.0.8, and Performance Monitoring plugin 2.0.2; the app module applies all three and uses Firebase BoM 34.19.0 with `firebase-analytics`, `firebase-crashlytics`, and `firebase-perf`. BoM 35.0.0 currently resolves Google measurement 24.0.0 with Kotlin metadata 2.4, which this project's Kotlin 2.2.10 compiler cannot read; upgrade Kotlin/tooling before raising the BoM.
 
 Analytics automatically reports first opens, sessions, engagement, and other SDK events. `AppTelemetry.screen()` logs a named `screen_view` for each Compose Navigation destination; Home uses `dashboard_manual` or `dashboard_dynamic` instead of the single Activity name. Automatic Activity screen reporting is disabled to avoid counting the same visit twice. `AppTelemetry.initialize()` tags both Analytics and Crashlytics with the `distribution` (`store`/`unlocked`) so reports can be filtered by build. Crashlytics collects crashes and ANRs; no code logs phone numbers, contact names, PINs, USSD strings, or response text.
 
 `first_open` measures the first launch after installation or reinstallation, **not raw downloads/installations**. Google Play Console remains the source for actual Play install counts; Firebase covers first launches across both distribution channels. Verify screen events in Analytics DebugView and crash reports with a controlled test crash on a test build/device after the Firebase console has Crashlytics enabled.
+
+Performance Monitoring automatically measures app startup and Activity screen rendering; the Gradle plugin instruments eligible HTTP/S requests. Qvacell's Compose destinations share one Activity, so those automatic screen traces do not provide a separate duration for each destination. `AppTelemetry.startTrace()` adds a `contacts_load` custom duration trace around `ContactsRepository.loadContacts()` without recording contact data. Performance Monitoring does not directly report CPU, memory, or battery consumption; use Android profiling tools for those resource measurements.
