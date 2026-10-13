@@ -39,6 +39,7 @@ import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DashboardRefreshService
+import com.qvacell.app.service.AppTelemetry
 import com.qvacell.app.ui.components.RechargeBottomSheet
 import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.TransferBottomSheet
@@ -71,6 +72,7 @@ fun HomeQuickActionsScreen(
     var showDynamicDashboard by remember { mutableStateOf(false) }
     LaunchedEffect(showDynamicDashboard) {
         onDynamicDashboardChanged(showDynamicDashboard)
+        AppTelemetry.screen(context, if (showDynamicDashboard) "dashboard_dynamic" else "dashboard_manual")
     }
     var showUnavailableDialog by remember { mutableStateOf(false) }
 

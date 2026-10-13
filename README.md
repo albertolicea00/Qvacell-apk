@@ -134,6 +134,12 @@ _The full USSD code catalog is loaded from the bundled [`codes.json`](app/src/ma
 
 Free query codes dial immediately. Paid purchase codes stop at ETECSA's confirmation menu by default; an optional **Acción sin Confirmación** setting substitutes a code variant that auto-confirms, with a visible UI safety warning.
 
+## 📊 Firebase
+
+The app uses Firebase Analytics for first opens, sessions, and screen views (including the Manual and Dynamic dashboards), and Crashlytics for crash reports. Reports include the `store` or `unlocked` distribution. Custom telemetry does not send contact names, phone numbers, PINs, USSD codes, or USSD responses.
+
+To build, register the Android app `com.qvacell.app` in a Firebase project with Analytics enabled and place the downloaded configuration at `app/google-services.json`. Both flavors share it. Check **Analytics › DebugView** and **Crashlytics** in the Firebase console to validate reporting. `first_open` counts first launches after install or reinstall; Google Play download counts are available in Play Console.
+
 ## 🔍 Phone Directory & Offline Database Search
 
 Under **Options › Utilidades**:

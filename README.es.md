@@ -132,6 +132,12 @@ _El catálogo completo de códigos USSD se carga desde [`codes.json`](app/src/ma
 
 Los códigos de consulta gratuitos se marcan inmediatamente. Los códigos de compra de pago se detienen en el menú de confirmación de ETECSA por defecto; la opción **Acción sin Confirmación** sustituye el código por una variante que autoconfirma, con una advertencia visible en la interfaz.
 
+## 📊 Firebase
+
+La app usa Firebase Analytics para medir primeras aperturas, sesiones y vistas de pantallas (incluidos los dashboards Manual y Dinámico), y Crashlytics para reportes de fallos. Los reportes incluyen la variante `store` o `unlocked`. No se envían nombres de contactos, números telefónicos, PIN, códigos USSD ni respuestas USSD como eventos personalizados.
+
+Para compilar, registra la app Android `com.qvacell.app` en un proyecto Firebase con Analytics habilitado y coloca el archivo descargado en `app/google-services.json`. Ambas variantes comparten esa configuración. Consulta **Analytics › DebugView** y **Crashlytics** en la consola Firebase para validar los reportes. La métrica `first_open` cuenta la primera apertura tras instalar o reinstalar; las descargas de Google Play se consultan en Play Console.
+
 ## 🔍 Directorio Telefónico y Base de Datos Offline
 
 En **Opciones › Utilidades**:

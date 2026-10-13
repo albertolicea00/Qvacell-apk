@@ -25,6 +25,12 @@
         android:theme="@style/Theme.Qvacell"
         android:supportsRtl="true">
 
+        <!-- Compose Navigation reports named screens explicitly; the sole Activity is not useful
+             as a screen name in Analytics. Automatic first_open/session events remain enabled. -->
+        <meta-data
+            android:name="google_analytics_automatic_screen_reporting_enabled"
+            android:value="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

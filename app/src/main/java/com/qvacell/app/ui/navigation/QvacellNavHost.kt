@@ -44,6 +44,7 @@ import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.hasCellularService
 import com.qvacell.app.service.DashboardRefreshService
+import com.qvacell.app.service.AppTelemetry
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -160,6 +161,11 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     var isDynamicDashboard by remember { mutableStateOf(false) }
     var hasSignal by remember { mutableStateOf(true) }
     val showDynamicWarning = currentRoute == BottomTab.Home.route && isDynamicDashboard
+    LaunchedEffect(currentRoute) {
+        if (currentRoute != null && currentRoute != BottomTab.Home.route) {
+            AppTelemetry.screen(context, currentRoute)
+        }
+    }
     LaunchedEffect(showDynamicWarning) {
         if (!showDynamicWarning) {
             hasSignal = true

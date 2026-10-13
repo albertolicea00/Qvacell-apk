@@ -4,7 +4,7 @@ For contribution workflow see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 This document describes the technical architecture of Qvacell for Android, a native Kotlin/Jetpack Compose app that lets users dial ETECSA (Cubacel) USSD service codes (`*222#` style dial strings) without needing to remember them.
 
-It is an Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell-ios), following the same product shape: a dependency-free (beyond AndroidX/Jetpack), backend-free app with no network calls of its own. Almost everything comes from one read-only bundled JSON catalog; the two exceptions are the device's own Contacts (read live via `ContactsContract`, never sent anywhere) and a local Room table a `CallScreeningService` reads to label `*99` collect calls (§11) — there is still no server, no analytics, and no third-party dependency beyond Jetpack/AndroidX anywhere in the project.
+It is an Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell-ios). App features remain local and require no Qvacell backend: the catalog is bundled, contacts are read on-device, and a local Room table supports `*99` caller labels (§11). Firebase Analytics and Crashlytics are the exception: they send app usage and diagnostics to Firebase (§19); contacts, phone numbers, USSD codes/responses, and the transfer PIN are not included in custom telemetry.
 
 ---
 
@@ -145,7 +145,7 @@ Separately, the Home Transferir flow and the offline Database search prefill a P
 
 ## 6. Reminders & Local Notifications
 
-Options › Utilidades › Recordatorios schedules local notifications for a purchase/recharge/transfer the user needs to make — entirely on-device, no push infrastructure, no server, consistent with §1's "no backend, no network calls."
+Options › Utilidades › Recordatorios schedules local notifications for a purchase/recharge/transfer the user needs to make — entirely on-device, with no push infrastructure or Qvacell backend. Firebase telemetry (§19) is independent of reminder delivery.
 
 ### 6.1 Model & scheduling
 
@@ -514,3 +514,13 @@ Qvacell distributes two flavors (`store` and `unlocked`) under the **exact same 
 - Because even numbers can never equal odd numbers, `store` and `unlocked` version codes **never collide** across past, present, or future releases.
 - For any release version, `unlocked` is strictly greater than `store` ($2n+1 > 2n$), satisfying Android package manager's upgrade requirement.
 - Release bumps via `make bump-patch`, `make bump-minor`, and `make bump-major` only manage the single `baseVersionCode`, with Gradle computing the flavors dynamically.
+
+---
+
+## 19. Firebase Analytics & Crashlytics
+
+`app/google-services.json` registers the Android package `com.qvacell.app` with Firebase. Both `store` and `unlocked` use that same package and Firebase Android app. The root Gradle build declares Google Services 4.5.0 and Crashlytics Gradle plugin 3.0.8; the app module applies both and uses Firebase BoM 34.19.0 with `firebase-analytics` and `firebase-crashlytics`. BoM 35.0.0 currently resolves Google measurement 24.0.0 with Kotlin metadata 2.4, which this project's Kotlin 2.2.10 compiler cannot read; upgrade Kotlin/tooling before raising the BoM.
+
+Analytics automatically reports first opens, sessions, engagement, and other SDK events. `AppTelemetry.screen()` logs a named `screen_view` for each Compose Navigation destination; Home uses `dashboard_manual` or `dashboard_dynamic` instead of the single Activity name. Automatic Activity screen reporting is disabled to avoid counting the same visit twice. `AppTelemetry.initialize()` tags both Analytics and Crashlytics with the `distribution` (`store`/`unlocked`) so reports can be filtered by build. Crashlytics collects crashes and ANRs; no code logs phone numbers, contact names, PINs, USSD strings, or response text.
+
+`first_open` measures the first launch after installation or reinstallation, **not raw downloads/installations**. Google Play Console remains the source for actual Play install counts; Firebase covers first launches across both distribution channels. Verify screen events in Analytics DebugView and crash reports with a controlled test crash on a test build/device after the Firebase console has Crashlytics enabled.
