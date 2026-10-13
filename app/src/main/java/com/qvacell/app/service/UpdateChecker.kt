@@ -15,6 +15,12 @@ data class UpdateInfo(
     val isFlavorUpgrade: Boolean = false
 )
 
+sealed interface UpdateCheckResult {
+    data class Available(val info: UpdateInfo) : UpdateCheckResult
+    data object UpToDate : UpdateCheckResult
+    data object Failed : UpdateCheckResult
+}
+
 object UpdateChecker {
 
     private const val RELEASES_URL =
@@ -59,20 +65,21 @@ object UpdateChecker {
         }
     }
 
-    suspend fun check(targetMode: String = "unlocked"): UpdateInfo? = withContext(Dispatchers.IO) {
+    suspend fun check(targetMode: String = "unlocked"): UpdateCheckResult = withContext(Dispatchers.IO) {
         try {
             val conn = URL(RELEASES_URL).openConnection() as HttpURLConnection
-            conn.setRequestProperty("Accept", "application/vnd.github+json")
-            conn.connectTimeout = 10_000
-            conn.readTimeout = 10_000
-
-            if (conn.responseCode != 200) return@withContext null
-
-            val body = conn.inputStream.bufferedReader().use { it.readText() }
-            conn.disconnect()
+            val body = try {
+                conn.setRequestProperty("Accept", "application/vnd.github+json")
+                conn.connectTimeout = 10_000
+                conn.readTimeout = 10_000
+                if (conn.responseCode != HttpURLConnection.HTTP_OK) return@withContext UpdateCheckResult.Failed
+                conn.inputStream.bufferedReader().use { it.readText() }
+            } finally {
+                conn.disconnect()
+            }
 
             val releases = JSONArray(body)
-            if (releases.length() == 0) return@withContext null
+            if (releases.length() == 0) return@withContext UpdateCheckResult.Failed
 
             val latest = releases.getJSONObject(0)
             val tagName = latest.getString("tag_name").removePrefix("v")
@@ -99,17 +106,17 @@ object UpdateChecker {
             // and checking for "unlocked", the unlocked build is a functional upgrade even on the same release.
             val isFlavorUpgrade = isSameVersion && !BuildConfig.DASHBOARD_CAPTURE_ENABLED && targetMode == "unlocked" && unlockedUrl != null
 
-            if (!newerVersion && !isFlavorUpgrade) return@withContext null
+            if (!newerVersion && !isFlavorUpgrade) return@withContext UpdateCheckResult.UpToDate
 
-            UpdateInfo(
+            UpdateCheckResult.Available(UpdateInfo(
                 versionName = tagName,
                 htmlUrl = htmlUrl,
                 unlockedApkUrl = unlockedUrl,
                 storeApkUrl = storeUrl,
                 isFlavorUpgrade = isFlavorUpgrade
-            )
+            ))
         } catch (_: Exception) {
-            null
+            UpdateCheckResult.Failed
         }
     }
 

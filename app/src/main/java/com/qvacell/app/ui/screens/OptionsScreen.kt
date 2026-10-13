@@ -90,6 +90,7 @@ import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.UpdateChecker
+import com.qvacell.app.service.UpdateCheckResult
 import com.qvacell.app.service.UpdateInfo
 import com.qvacell.app.service.SimUtils
 import com.qvacell.app.ui.components.ColorWheelPicker
@@ -191,13 +192,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var updateChecking by remember { mutableStateOf(false) }
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     var showUpdateDialog by remember { mutableStateOf(false) }
-    var showNoUpdateToast by remember { mutableStateOf(false) }
-
     LaunchedEffect(autoUpdateCheck) {
         if (autoUpdateCheck == "none") return@LaunchedEffect
-        val info = UpdateChecker.check(targetMode = autoUpdateCheck) ?: return@LaunchedEffect
-        updateInfo = info
-        showUpdateDialog = true
+        val result = UpdateChecker.check(targetMode = autoUpdateCheck)
+        if (result is UpdateCheckResult.Available) {
+            updateInfo = result.info
+            showUpdateDialog = true
+        }
     }
 
     var versionTapCount by remember { mutableIntStateOf(0) }
@@ -521,13 +522,19 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             if (!updateChecking) {
                                 updateChecking = true
                                 scope.launch {
-                                    val info = UpdateChecker.check(targetMode = autoUpdateCheck)
+                                    val result = UpdateChecker.check(targetMode = autoUpdateCheck)
                                     updateChecking = false
-                                    if (info != null) {
-                                        updateInfo = info
-                                        showUpdateDialog = true
-                                    } else {
-                                        Toast.makeText(context, "Estás usando la versión más reciente", Toast.LENGTH_SHORT).show()
+                                    when (result) {
+                                        is UpdateCheckResult.Available -> {
+                                            updateInfo = result.info
+                                            showUpdateDialog = true
+                                        }
+                                        UpdateCheckResult.UpToDate -> Toast.makeText(
+                                            context, "Estás usando la versión más reciente", Toast.LENGTH_SHORT
+                                        ).show()
+                                        UpdateCheckResult.Failed -> Toast.makeText(
+                                            context, "No se pudo comprobar la versión. Revisa tu conexión e inténtalo de nuevo.", Toast.LENGTH_LONG
+                                        ).show()
                                     }
                                 }
                             }
