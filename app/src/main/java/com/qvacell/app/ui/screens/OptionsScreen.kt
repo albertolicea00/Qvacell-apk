@@ -112,13 +112,13 @@ private val ACCENT_COLOR_OPTIONS = listOf(
 )
 
 private val INTEREST_LINKS = listOf(
-    "Login Nauta" to "https://secure.etecsa.net:8443/",
+    "Login Nauta Hogar" to "https://secure.etecsa.net:8443/",
+    "Portal Nauta" to "https://www.nauta.cu/",
     "Tienda Web ETECSA" to "https://tienda.etecsa.cu/",
-    "Portal Nauta (antiguo)" to "https://www.portal.nauta.cu/",
-    "Portal Nauta (nuevo)" to "https://www.nauta.cu/",
-    "Webmail Nauta (correo)" to "https://webmail.nauta.cu/",
     "Páginas Amarillas de Cuba" to "https://pamarillas.cu/",
-    "Webmail ENET" to "https://webmail.enet.cu/"
+    "Webmail Correo Nauta" to "https://webmail.nauta.cu/",
+    "Webmail Correo ENET" to "https://webmail.enet.cu/",
+    "Portal Nauta (antiguo)" to "https://www.portal.nauta.cu/",
 )
 
 sealed class OptionsDestination {
@@ -366,13 +366,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             onClick = { onNavigate(OptionsDestination.DirectorySearch) }
                         )
                     }
-                    OptionsDivider()
-                    OptionsRow(
-                        headline = "Enlaces de interés",
-                        supporting = "Portales y servicios en línea de ETECSA",
-                        icon = Icons.Filled.Link,
-                        onClick = { showInterestLinksSheet = true }
-                    )
                 }
             }
 
@@ -489,6 +482,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
             item {
                 OptionsSection(header = "Acerca de") {
+                    OptionsRow(
+                        headline = "Enlaces de interés",
+                        supporting = "Portales y servicios en línea de ETECSA",
+                        icon = Icons.Filled.Link,
+                        onClick = { showInterestLinksSheet = true }
+                    )
+                    OptionsDivider()
                     OptionsRow(
                         headline = "Identificador de Llamadas",
                         supporting = if (isCallerIdRoleHeld) "Activo" else "Solicitar rol de selección de llamadas",
