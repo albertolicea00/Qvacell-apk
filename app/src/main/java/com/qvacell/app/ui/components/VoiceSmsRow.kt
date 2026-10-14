@@ -40,32 +40,38 @@ fun VoiceSmsRow(
     smsHasFetched: Boolean = true,
     voiceLastUpdatedAt: Long? = null,
     smsLastUpdatedAt: Long? = null,
+    voiceIsLoading: Boolean = false,
+    smsIsLoading: Boolean = false,
     onVoiceQuery: (() -> Unit)? = null,
     onSmsQuery: (() -> Unit)? = null
 ) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        UsageStatCard(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Filled.Mic,
-            accentColor = MaterialTheme.colorScheme.primary,
-            badge = voiceDaysRemaining,
-            label = "VOZ",
-            value = voiceDuration,
-            hasFetched = voiceHasFetched,
-            lastUpdatedAt = voiceLastUpdatedAt,
-            onQuery = onVoiceQuery
-        )
-        UsageStatCard(
-            modifier = Modifier.weight(1f),
-            icon = Icons.Filled.Sms,
-            accentColor = MaterialTheme.colorScheme.primary,
-            badge = smsDaysRemaining,
-            label = "SMS",
-            value = smsCount,
-            hasFetched = smsHasFetched,
-            lastUpdatedAt = smsLastUpdatedAt,
-            onQuery = onSmsQuery
-        )
+        LoadingCardBorder(isLoading = voiceIsLoading, modifier = Modifier.weight(1f)) {
+            UsageStatCard(
+                modifier = Modifier.fillMaxWidth(),
+                icon = Icons.Filled.Mic,
+                accentColor = MaterialTheme.colorScheme.primary,
+                badge = voiceDaysRemaining,
+                label = "VOZ",
+                value = voiceDuration,
+                hasFetched = voiceHasFetched,
+                lastUpdatedAt = voiceLastUpdatedAt,
+                onQuery = onVoiceQuery
+            )
+        }
+        LoadingCardBorder(isLoading = smsIsLoading, modifier = Modifier.weight(1f)) {
+            UsageStatCard(
+                modifier = Modifier.fillMaxWidth(),
+                icon = Icons.Filled.Sms,
+                accentColor = MaterialTheme.colorScheme.primary,
+                badge = smsDaysRemaining,
+                label = "SMS",
+                value = smsCount,
+                hasFetched = smsHasFetched,
+                lastUpdatedAt = smsLastUpdatedAt,
+                onQuery = onSmsQuery
+            )
+        }
     }
 }
 

@@ -1,11 +1,5 @@
 package com.qvacell.app.ui.screens
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,11 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -67,6 +56,7 @@ import com.qvacell.app.ui.components.MainBalanceCard
 import com.qvacell.app.ui.components.NationalBonusCard
 import com.qvacell.app.ui.components.RechargeLimitCard
 import com.qvacell.app.ui.components.VoiceSmsRow
+import com.qvacell.app.ui.components.LoadingCardBorder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -192,7 +182,6 @@ fun DynamicDashboardContent(
             )
             }
             val mainBalanceFetched = values[FieldTypes.MAIN_BALANCE]?.capturedAt != null
-            LoadingCardBorder(isLoading = currentCodeId == "voice-balance" || currentCodeId == "sms-balance") {
             VoiceSmsRow(
                 voiceDaysRemaining = values[FieldTypes.VOICE_DAYS_REMAINING]?.numericValue
                     ?.let { "${it.toInt()}d" } ?: "--",
@@ -207,10 +196,11 @@ fun DynamicDashboardContent(
                     ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
                 smsLastUpdatedAt = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt
                     ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
+                voiceIsLoading = currentCodeId == "voice-balance",
+                smsIsLoading = currentCodeId == "sms-balance",
                 onVoiceQuery = { requestQuery("voice-balance") },
                 onSmsQuery = { requestQuery("sms-balance") }
             )
-            }
             LoadingCardBorder(isLoading = currentCodeId == "data-plan") {
             DataUsageCard(
                 daysRemaining = values[FieldTypes.DATA_DATOS_DAYS]?.numericValue
@@ -296,58 +286,5 @@ private fun formatAmount(value: Double?): String {
         DecimalFormat("#,###").format(value.toLong())
     } else {
         DecimalFormat("#,##0.00").format(value)
-    }
-}
-
-@Composable
-private fun LoadingCardBorder(
-    isLoading: Boolean,
-    content: @Composable () -> Unit
-) {
-    if (!isLoading) {
-        content()
-        return
-    }
-    val transition = rememberInfiniteTransition(label = "loading")
-    val sweepPosition by transition.animateFloat(
-        initialValue = -0.3f,
-        targetValue = 1.3f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "sweep"
-    )
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val strokeWidth = 3.dp
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(strokeWidth / 2)
-            .drawWithContent {
-                drawContent()
-                val sw = strokeWidth.toPx()
-                val radius = 20.dp.toPx()
-                val gradientWidth = size.width * 0.4f
-                val start = sweepPosition * size.width - gradientWidth / 2
-                val brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        Color.Transparent,
-                        primaryColor.copy(alpha = 0.8f),
-                        primaryColor,
-                        primaryColor.copy(alpha = 0.8f),
-                        Color.Transparent
-                    ),
-                    startX = start,
-                    endX = start + gradientWidth
-                )
-                drawRoundRect(
-                    brush = brush,
-                    cornerRadius = CornerRadius(radius, radius),
-                    style = Stroke(width = sw)
-                )
-            }
-    ) {
-        content()
     }
 }

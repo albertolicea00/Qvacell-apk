@@ -405,7 +405,7 @@ When voice/sms/data cards derive `hasFetched` from `mainBalanceFetched` and have
 
 ### 15.11 Loading Animation (`LoadingCardBorder`)
 
-`LoadingCardBorder` (`DynamicDashboardContent.kt`) wraps each dashboard card and shows an animated gradient border stroke while the corresponding USSD code is being queried (`DashboardRefreshService.currentCodeId` matches the card's code ID). The animation is a horizontal sweep of a partial `Brush.horizontalGradient` over a `drawWithContent` modifier (drawn ON TOP of card content, not behind it — `drawBehind` + `.clip()` would hide the stroke). Stroke width is 3dp with a 20dp corner radius matching the card shape.
+`LoadingCardBorder` (`ui/components/LoadingCardBorder.kt`) wraps each dashboard card and shows an animated gradient border stroke while the corresponding USSD code is being queried (`DashboardRefreshService.currentCodeId` matches the card's code ID). Voice and SMS use separate wrappers, so only the card matching `voice-balance` or `sms-balance` animates. The animation is a horizontal sweep of a partial `Brush.horizontalGradient` over a `drawWithContent` modifier (drawn ON TOP of card content, not behind it — `drawBehind` + `.clip()` would hide the stroke). Stroke width is 3dp with a 20dp corner radius matching the card shape.
 
 `DashboardRefreshService.refreshCode()` sets/clears `currentCodeId` around each individual dynamic-dashboard USSD request, so tapping a single card also triggers the loading border for that card alone.
 
