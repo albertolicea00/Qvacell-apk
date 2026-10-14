@@ -19,8 +19,8 @@ sealed interface UssdCaptureResult {
 /**
  * Wraps TelephonyManager.sendUssdRequest (API 26+) — silent capture of a USSD response's reply
  * text, bypassing the system dialer. ETECSA's gateway reliability through this API is unverified
- * (some carriers route the reply as an OS-level dialog the callback never sees) — callers MUST
- * treat [UssdCaptureResult.Failure] as "fall back to DialService.dial", never as a dead end.
+ * (some carriers route the reply as an OS-level dialog the callback never sees). Callers decide
+ * whether to surface a dashboard error or fall back to dialing for a manual action.
  * Requires CALL_PHONE (already granted for Compras).
  */
 object UssdCaptureService {

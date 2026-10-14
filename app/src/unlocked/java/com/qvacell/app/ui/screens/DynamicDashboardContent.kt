@@ -47,7 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.FieldTypes
-import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DashboardRefreshService
 import java.text.DecimalFormat
@@ -102,10 +101,10 @@ fun DynamicDashboardContent(
         val needsConfirm = cardTapMode == "tap_confirm" || cardTapMode == "long_confirm"
         if (needsConfirm) {
             pendingAction = Triple(code.title.value, code.details.value) {
-                DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
+                DashboardRefreshService.refreshCode(context, code, dashboardRepository)
             }
         } else {
-            DashboardCapture.captureOrDial(context, code, dashboardRepository, ussdCaptureEnabled)
+            DashboardRefreshService.refreshCode(context, code, dashboardRepository)
         }
     }
 
