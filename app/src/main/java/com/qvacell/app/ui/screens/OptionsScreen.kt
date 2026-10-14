@@ -155,8 +155,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val contactCallMode by settings.contactCallMode.collectAsStateWithLifecycle(initialValue = "dialer")
     val quickActionsStyle by settings.quickActionsStyle.collectAsStateWithLifecycle(initialValue = "filled")
     val manualHiddenSections by settings.manualHiddenSections.collectAsStateWithLifecycle(initialValue = emptySet())
-    // Persisted (not local @State) so the unlock survives across launches, and one-way only —
-    // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
+    // Persisted (not local @State) so it survives across launches.
+    // 5 taps in 3 seconds on the version text toggles unlock / hide.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
 
@@ -217,18 +217,16 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     }
 
     fun onVersionTap() {
-        if (dbSearchUnlocked) {
-            Toast.makeText(context, "Buscar en BBDD ya está desbloqueada", Toast.LENGTH_SHORT).show()
-            return
-        }
         val now = System.currentTimeMillis()
         if (now - lastTapTime > 3000) versionTapCount = 0
         lastTapTime = now
         versionTapCount++
         if (versionTapCount >= 5) {
             versionTapCount = 0
-            scope.launch { settings.setDebugDatabaseSearchEnabled(true) }
-            Toast.makeText(context, "Buscar en BBDD desbloqueada", Toast.LENGTH_SHORT).show()
+            val newState = !dbSearchUnlocked
+            scope.launch { settings.setDebugDatabaseSearchEnabled(newState) }
+            val message = if (newState) "Buscar en BBDD desbloqueada" else "Buscar en BBDD ocultada"
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 
