@@ -99,10 +99,10 @@ fun LoadingCardBorder(
                 "bottom" -> {
                     val center = size.width / 2f
                     val halfWidth = (center - radius).coerceAtLeast(0f) * progress
-                    drawLine(primary.copy(alpha = 0.25f), Offset(radius, size.height),
-                        Offset(size.width - radius, size.height), stroke, cap = StrokeCap.Round)
-                    drawLine(primary, Offset(center - halfWidth, size.height),
-                        Offset(center + halfWidth, size.height), stroke, cap = StrokeCap.Round)
+                    if (halfWidth > 0f) {
+                        drawLine(primary, Offset(center - halfWidth, size.height),
+                            Offset(center + halfWidth, size.height), stroke, cap = StrokeCap.Round)
+                    }
                 }
                 "perimeter" -> {
                     val inset = stroke / 2f
