@@ -6,6 +6,7 @@ import com.qvacell.app.model.UssdCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Full/sideload-flavor implementation — same package + object name + function signatures as the
@@ -46,29 +47,33 @@ object DashboardCapture {
         if (enabled) EstimationScheduler(context).schedule() else EstimationScheduler(context).cancel()
     }
 
-    /** One-time historical SMS scan — call right after READ_SMS is newly granted. */
-    fun triggerSmsBackfill(context: Context, repository: DashboardDataRepository) {
-        CoroutineScope(Dispatchers.IO).launch {
-            context.contentResolver.query(
-                Telephony.Sms.Inbox.CONTENT_URI,
-                arrayOf(Telephony.Sms.ADDRESS, Telephony.Sms.BODY, Telephony.Sms.DATE),
-                null,
-                null,
-                "${Telephony.Sms.DATE} ASC"
-            )?.use { cursor ->
-                val addressIdx = cursor.getColumnIndex(Telephony.Sms.ADDRESS)
-                val bodyIdx = cursor.getColumnIndex(Telephony.Sms.BODY)
-                val dateIdx = cursor.getColumnIndex(Telephony.Sms.DATE)
-                while (cursor.moveToNext()) {
-                    val sender = cursor.getString(addressIdx) ?: continue
-                    val body = cursor.getString(bodyIdx) ?: continue
-                    val date = cursor.getLong(dateIdx)
-                    if (EtecsaSmsFilter.isEtecsaMessage(sender, body)) {
-                        repository.recordSmsBody(sender, body, date)
+    /** One-time historical SMS scan, independent of live incoming-SMS capture. */
+    suspend fun triggerSmsBackfill(context: Context, repository: DashboardDataRepository): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val cursor = context.contentResolver.query(
+                    Telephony.Sms.Inbox.CONTENT_URI,
+                    arrayOf(Telephony.Sms.ADDRESS, Telephony.Sms.BODY, Telephony.Sms.DATE),
+                    null,
+                    null,
+                    "${Telephony.Sms.DATE} ASC"
+                ) ?: return@withContext false
+                cursor.use {
+                    val addressIdx = it.getColumnIndex(Telephony.Sms.ADDRESS)
+                    val bodyIdx = it.getColumnIndex(Telephony.Sms.BODY)
+                    val dateIdx = it.getColumnIndex(Telephony.Sms.DATE)
+                    while (it.moveToNext()) {
+                        val sender = it.getString(addressIdx) ?: continue
+                        val body = it.getString(bodyIdx) ?: continue
+                        val date = it.getLong(dateIdx)
+                        if (EtecsaSmsFilter.isEtecsaMessage(sender, body)) {
+                            repository.recordSmsBody(sender, body, date)
+                        }
                     }
                 }
+                true
+            } catch (_: SecurityException) {
+                false
             }
-            EstimationEngine.computeAndRecordEstimate(context, repository)
         }
-    }
 }

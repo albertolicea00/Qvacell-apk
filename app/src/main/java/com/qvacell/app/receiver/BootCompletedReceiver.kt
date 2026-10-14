@@ -1,8 +1,11 @@
 package com.qvacell.app.receiver
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.ReminderRepository
@@ -31,7 +34,10 @@ class BootCompletedReceiver : BroadcastReceiver() {
                 // the estimation engine's alarm too if the user has it enabled (full flavor only;
                 // a no-op on the play flavor).
                 val smsCaptureEnabled = SettingsDataStore(context).smsCaptureEnabled.first()
-                DashboardCapture.scheduleEstimationIfEnabled(context, smsCaptureEnabled)
+                val hasCallLogPermission = ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.READ_CALL_LOG
+                ) == PackageManager.PERMISSION_GRANTED
+                DashboardCapture.scheduleEstimationIfEnabled(context, smsCaptureEnabled && hasCallLogPermission)
             } finally {
                 pendingResult.finish()
             }

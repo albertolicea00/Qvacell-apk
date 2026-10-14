@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -36,6 +38,7 @@ import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.People
@@ -79,6 +82,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -86,8 +90,6 @@ import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.data.ThemeMode
-import com.qvacell.app.service.DashboardCapture
-import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.UpdateChecker
 import com.qvacell.app.service.UpdateCheckResult
@@ -109,6 +111,16 @@ private val ACCENT_COLOR_OPTIONS = listOf(
     "#D81B60" to "Rosa"
 )
 
+private val INTEREST_LINKS = listOf(
+    "Login Nauta" to "https://secure.etecsa.net:8443/",
+    "Tienda Web ETECSA" to "https://tienda.etecsa.cu/",
+    "Portal Nauta (antiguo)" to "https://www.portal.nauta.cu/",
+    "Portal Nauta (nuevo)" to "https://www.nauta.cu/",
+    "Webmail Nauta (correo)" to "https://webmail.nauta.cu/",
+    "Páginas Amarillas de Cuba" to "https://pamarillas.cu/",
+    "Webmail ENET" to "https://webmail.enet.cu/"
+)
+
 sealed class OptionsDestination {
     data object Reminders : OptionsDestination()
     data object SmsServices : OptionsDestination()
@@ -127,10 +139,10 @@ sealed class OptionsDestination {
 @Composable
 fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
     val repository = remember { CatalogRepository(context) }
-    val dashboardRepository = remember { DashboardDataRepository(context) }
     val onCodeClick = rememberCodeActionHandler()
 
     val themeMode by settings.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
@@ -147,8 +159,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     // once found, it stays found. Matches iOS's 5-taps-in-3-seconds gesture on the version text.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
-    val smsCaptureEnabled by settings.smsCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
-    val hasRunSmsBackfill by settings.hasRunSmsBackfill.collectAsStateWithLifecycle(initialValue = false)
 
     val isCallerIdRoleHeld = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -163,18 +173,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         scope.launch { settings.setUssdCaptureEnabled(granted) }
     }
 
-    val smsCallLogPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { results ->
-        val granted = results.values.all { it }
-        scope.launch { settings.setSmsCaptureEnabled(granted) }
-        DashboardCapture.scheduleEstimationIfEnabled(context, granted)
-        if (granted && !hasRunSmsBackfill) {
-            DashboardCapture.triggerSmsBackfill(context, dashboardRepository)
-            scope.launch { settings.setHasRunSmsBackfill(true) }
-        }
-    }
-
     val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
     val autoUpdateCheck by settings.autoUpdateCheck.collectAsStateWithLifecycle(initialValue = "unlocked")
     val activeSims = remember { SimUtils.getActiveSubscriptions(context) }
@@ -186,6 +184,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showQuickActionsStyleSheet by remember { mutableStateOf(false) }
     var showManualVisibilitySheet by remember { mutableStateOf(false) }
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
+    var showInterestLinksSheet by remember { mutableStateOf(false) }
     var showSimSheet by remember { mutableStateOf(false) }
     var showAutoUpdateSheet by remember { mutableStateOf(false) }
 
@@ -244,8 +243,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         "list" -> "Lista"
         else -> "Rellenas"
     }
-    val manualVisibilityLabel = if (manualHiddenSections.isEmpty()) "Mostrando todo"
-        else "${manualHiddenSections.size} sección${if (manualHiddenSections.size > 1) "es" else ""} oculta${if (manualHiddenSections.size > 1) "s" else ""}"
+    val manualVisibilityLabel = if (manualHiddenSections.isEmpty()) "Todas visibles"
+        else "${manualHiddenSections.size} acción${if (manualHiddenSections.size > 1) "es" else ""} oculta${if (manualHiddenSections.size > 1) "s" else ""}"
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
         ?: accentColor
     val autoUpdateLabel = when (autoUpdateCheck) {
@@ -367,6 +366,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             onClick = { onNavigate(OptionsDestination.DirectorySearch) }
                         )
                     }
+                    OptionsDivider()
+                    OptionsRow(
+                        headline = "Enlaces de interés",
+                        supporting = "Portales y servicios en línea de ETECSA",
+                        icon = Icons.Filled.Link,
+                        onClick = { showInterestLinksSheet = true }
+                    )
                 }
             }
 
@@ -466,7 +472,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Secciones visibles",
+                        headline = "Acciones visibles",
                         supporting = manualVisibilityLabel,
                         onClick = { showManualVisibilitySheet = true }
                     )
@@ -873,7 +879,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ModalBottomSheet(onDismissRequest = { showManualVisibilitySheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "Secciones visibles",
+                    "Acciones visibles",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -1018,6 +1024,56 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
+                                }
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (showInterestLinksSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showInterestLinksSheet = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp).padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    "Enlaces de interés",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                ) {
+                    Column {
+                        INTEREST_LINKS.forEachIndexed { index, (title, url) ->
+                            if (index > 0) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth().clickable {
+                                    showInterestLinksSheet = false
+                                    uriHandler.openUri(url)
+                                }.padding(horizontal = 16.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(title, style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.primary)
+                                    Text(url, style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                                 Icon(
                                     Icons.Filled.ArrowOutward,

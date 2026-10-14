@@ -1,6 +1,8 @@
 package com.qvacell.app.ui.screens
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -32,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardCapture
@@ -51,9 +54,11 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val smsCaptureEnabled by settings.smsCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
+    val smsHistoryEnabled by settings.smsHistoryEnabled.collectAsStateWithLifecycle(initialValue = false)
     val hasRunSmsBackfill by settings.hasRunSmsBackfill.collectAsStateWithLifecycle(initialValue = false)
 
     var showCardTapModeSheet by remember { mutableStateOf(false) }
+    var historyImporting by remember { mutableStateOf(false) }
 
     val cardTapModeLabel = when (cardTapMode) {
         "long_confirm" -> "Presionar + confirmación"
@@ -70,16 +75,40 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
         scope.launch { settings.setUssdCaptureEnabled(granted) }
     }
 
-    val smsCallLogPermissionLauncher = rememberLauncherForActivityResult(
+    val newSmsPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { results ->
-        val granted = results.values.all { it }
-        scope.launch { settings.setSmsCaptureEnabled(granted) }
-        DashboardCapture.scheduleEstimationIfEnabled(context, granted)
-        if (granted && !hasRunSmsBackfill) {
-            DashboardCapture.triggerSmsBackfill(context, dashboardRepository)
-            scope.launch { settings.setHasRunSmsBackfill(true) }
+    ) { _ ->
+        val smsGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.RECEIVE_SMS) ==
+            PackageManager.PERMISSION_GRANTED
+        val callLogGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALL_LOG) ==
+            PackageManager.PERMISSION_GRANTED
+        scope.launch { settings.setSmsCaptureEnabled(smsGranted) }
+        DashboardCapture.scheduleEstimationIfEnabled(context, smsGranted && callLogGranted)
+    }
+
+    fun enableSmsHistory() {
+        if (historyImporting) return
+        historyImporting = true
+        scope.launch {
+            try {
+                if (hasRunSmsBackfill) {
+                    settings.setSmsHistoryEnabled(true)
+                } else if (DashboardCapture.triggerSmsBackfill(context, dashboardRepository)) {
+                    settings.setHasRunSmsBackfill(true)
+                    settings.setSmsHistoryEnabled(true)
+                } else {
+                    Toast.makeText(context, "No se pudo leer el historial de SMS", Toast.LENGTH_SHORT).show()
+                }
+            } finally {
+                historyImporting = false
+            }
         }
+    }
+
+    val smsHistoryPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) enableSmsHistory()
     }
 
     Scaffold(
@@ -124,22 +153,44 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                 )
                 OptionsDivider()
                 OptionsRow(
-                    headline = "Detección automática por SMS",
-                    supporting = "Lee los SMS de saldo de ETECSA (nuevos e historial) y el registro de llamadas para estimar tu consumo.",
+                    headline = "Detectar nuevos SMS",
+                    supporting = "Lee los nuevos SMS de ETECSA. Si permites el registro de llamadas, también estima tu consumo.",
                     trailingContent = {
                         Switch(
                             checked = smsCaptureEnabled,
                             onCheckedChange = { checked ->
                                 if (checked) {
-                                    smsCallLogPermissionLauncher.launch(
+                                    newSmsPermissionLauncher.launch(
                                         arrayOf(
                                             Manifest.permission.RECEIVE_SMS,
-                                            Manifest.permission.READ_SMS,
                                             Manifest.permission.READ_CALL_LOG
                                         )
                                     )
                                 } else {
                                     scope.launch { settings.setSmsCaptureEnabled(false) }
+                                    DashboardCapture.scheduleEstimationIfEnabled(context, false)
+                                }
+                            }
+                        )
+                    }
+                )
+                OptionsDivider()
+                OptionsRow(
+                    headline = "Leer historial de SMS",
+                    supporting = if (historyImporting) "Importando historial..." else
+                        "Importa una vez los SMS anteriores de ETECSA para completar los datos del dashboard.",
+                    trailingContent = {
+                        Switch(
+                            checked = smsHistoryEnabled,
+                            enabled = !historyImporting,
+                            onCheckedChange = { checked ->
+                                if (checked) {
+                                    if (hasRunSmsBackfill || ContextCompat.checkSelfPermission(context, Manifest.permission.READ_SMS) ==
+                                        PackageManager.PERMISSION_GRANTED
+                                    ) enableSmsHistory()
+                                    else smsHistoryPermissionLauncher.launch(Manifest.permission.READ_SMS)
+                                } else {
+                                    scope.launch { settings.setSmsHistoryEnabled(false) }
                                 }
                             }
                         )

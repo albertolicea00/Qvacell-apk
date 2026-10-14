@@ -24,6 +24,7 @@ class SettingsDataStore(private val context: Context) {
     private val contactCallModeKey = stringPreferencesKey("contact_call_mode")
     private val ussdCaptureEnabledKey = booleanPreferencesKey("ussd_capture_enabled")
     private val smsCaptureEnabledKey = booleanPreferencesKey("sms_capture_enabled")
+    private val smsHistoryEnabledKey = booleanPreferencesKey("sms_history_enabled")
     private val hasRunSmsBackfillKey = booleanPreferencesKey("has_run_sms_backfill")
     private val hasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
@@ -65,24 +66,29 @@ class SettingsDataStore(private val context: Context) {
     // reliability through this API is unverified. Full flavor only (see BuildConfig.DASHBOARD_CAPTURE_ENABLED).
     val ussdCaptureEnabled = context.dataStore.data.map { it[ussdCaptureEnabledKey] ?: false }
 
-    // "Detección automática por SMS" — reads new + historical ETECSA SMS and the call log to
-    // estimate usage. Off by default; enabling it requests RECEIVE_SMS/READ_SMS/READ_CALL_LOG.
+    // New ETECSA SMS capture and call-log estimation. Off by default.
     val smsCaptureEnabled = context.dataStore.data.map { it[smsCaptureEnabledKey] ?: false }
 
-    // One-way — the historical SMS scan only ever runs once per install, right after READ_SMS is
-    // newly granted.
+    // Separate consent for importing existing SMS. Previous users who completed the one-time
+    // import keep the history switch on when this preference is introduced.
+    val smsHistoryEnabled = context.dataStore.data.map {
+        it[smsHistoryEnabledKey] ?: (it[hasRunSmsBackfillKey] ?: false)
+    }
+
+    // The historical SMS scan runs once per install after READ_SMS is granted.
     val hasRunSmsBackfill = context.dataStore.data.map { it[hasRunSmsBackfillKey] ?: false }
 
     val hasCompletedOnboarding = context.dataStore.data.map { it[hasCompletedOnboardingKey] ?: false }
 
-    // "filled" (default) or "outline" — tile card style for "manual" dashboard mode.
+    // "filled" (default), "outline", or "list" for manual-dashboard actions.
     val quickActionsStyle = context.dataStore.data.map { it[quickActionsStyleKey] ?: "filled" }
 
     // How dashboard cards trigger USSD queries: tap_confirm (default), tap, double_tap,
     // long_confirm, long, triple_tap.
     val cardTapMode = context.dataStore.data.map { it[cardTapModeKey] ?: "tap_confirm" }
 
-    // Sections hidden on manual dashboard: "consultas", "transferir", "recargar", "adelanta".
+    // Empty by default, so all manual-dashboard sections are visible.
+    // Optional hidden sections: "consultas", "transferir", "recargar", "adelanta".
     val manualHiddenSections = context.dataStore.data.map { it[manualHiddenSectionsKey] ?: emptySet() }
 
     // 0-based SIM slot index (-1 = system default). Only meaningful on multi-SIM devices.
@@ -127,6 +133,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setSmsCaptureEnabled(enabled: Boolean) {
         context.dataStore.edit { it[smsCaptureEnabledKey] = enabled }
+    }
+
+    suspend fun setSmsHistoryEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[smsHistoryEnabledKey] = enabled }
     }
 
     suspend fun setHasRunSmsBackfill(enabled: Boolean) {
