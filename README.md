@@ -138,7 +138,7 @@ Free query codes dial immediately. Paid purchase codes stop at ETECSA's confirma
 
 The app uses Firebase Analytics for first opens, sessions, and screen views (including the Manual and Dynamic dashboards), Crashlytics for crash reports, and Performance Monitoring for startup and contacts-loading duration. Reports include the `store` or `unlocked` distribution. Custom telemetry does not send contact names, phone numbers, PINs, USSD codes, or USSD responses. Performance does not directly measure CPU, memory, or battery use.
 
-To build, register the Android app `com.qvacell.app` in a Firebase project with Analytics enabled and place the downloaded configuration at `app/google-services.json`. Both flavors share it. Check **Analytics › DebugView**, **Crashlytics**, and **Performance** in the Firebase console to validate reporting. `first_open` counts first launches after install or reinstall; Google Play download counts are available in Play Console.
+To build, register the Android app `com.qvacell.app` in a Firebase project with Analytics enabled and place the downloaded configuration at `app/google-services.json`. This file is ignored by Git; keep it local and check that its API key is restricted to the Firebase APIs the app uses. Both flavors share it. Check **Analytics › DebugView**, **Crashlytics**, and **Performance** in the Firebase console to validate reporting. `first_open` counts first launches after install or reinstall; Google Play download counts are available in Play Console.
 
 ## 🔍 Phone Directory & Offline Database Search
 
