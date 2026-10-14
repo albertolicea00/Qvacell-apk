@@ -18,8 +18,8 @@ android {
     // an AGP version the installed Android Studio (2025.1 Meerkat) actually supports syncing.
     compileSdk = 36
 
-    val baseVersionCode = 4
-    val appVersionName = "1.0.4"
+    val baseVersionCode = 5
+    val appVersionName = "1.0.5"
 
     defaultConfig {
         applicationId = "com.qvacell.app"
@@ -37,8 +37,8 @@ android {
     // Play's restricted-permissions review for RECEIVE_SMS/READ_SMS/READ_CALL_LOG.
     //
     // Parity-based versionCode scheme:
-    //   store (Google Play): even (baseVersionCode * 2) -> e.g. 3 * 2 = 6
-    //   unlocked (GitHub sideload): odd (baseVersionCode * 2 + 1) -> e.g. 3 * 2 + 1 = 7
+    //   store (Google Play): even (baseVersionCode * 2) -> e.g. 5 * 2 = 10
+    //   unlocked (GitHub sideload): odd (baseVersionCode * 2 + 1) -> e.g. 5 * 2 + 1 = 11
     // Guarantees:
     //   1. Neither flavor ever collides across releases.
     //   2. unlocked is always strictly greater than store for the same release, allowing
