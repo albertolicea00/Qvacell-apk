@@ -74,7 +74,7 @@ private data class QuickTile(val codeId: String, val label: String)
 private val QUICK_TILES = listOf(
     QuickTile("main-balance",            "Saldo"),
     QuickTile("national-recharge-limit", "Límite"),
-    QuickTile("postpaid-balance",        "Postpago"),
+    QuickTile("corp-balance",            "Corp"),
     QuickTile("data-plan",               "Datos"),
     QuickTile("voice-balance",           "Voz"),
     QuickTile("sms-balance",             "SMS"),

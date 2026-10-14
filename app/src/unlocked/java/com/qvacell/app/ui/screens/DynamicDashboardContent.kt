@@ -50,7 +50,7 @@ import com.qvacell.app.data.SettingsDataStore
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.ui.components.ConsultCardsRow
-import com.qvacell.app.ui.components.PostpaidConsultCard
+import com.qvacell.app.ui.components.CorporateBalanceConsultCard
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
 import com.qvacell.app.ui.components.NationalBonusCard
@@ -172,8 +172,8 @@ fun DynamicDashboardContent(
                 onQuery = { requestQuery("national-recharge-limit") }
             )
             }
-            LoadingCardBorder(isLoading = currentCodeId == "postpaid-balance") {
-                PostpaidConsultCard(onQuery = { requestQuery("postpaid-balance") })
+            LoadingCardBorder(isLoading = currentCodeId == "corp-balance") {
+                CorporateBalanceConsultCard(onQuery = { requestQuery("corp-balance") })
             }
             LoadingCardBorder(isLoading = currentCodeId == "main-balance") {
             MainBalanceCard(

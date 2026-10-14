@@ -374,7 +374,7 @@ Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX
 Full parsing rules, verbatim ETECSA response samples, regex patterns, and field mappings live in [`app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md`](app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md). That document covers both USSD and SMS parsers. This section only tracks implementation status.
 
 **Implemented** (6 of 9 USSD codes): `main-balance` (3 variants, cross-card, 12 tests), `national-recharge-limit` (3 variants, 11 tests), `voice-balance` (3 variants, 8 tests), `sms-balance` (3 variants, 8 tests), `bonus-usd-plans` (3 variants + multi-bonus, 13 tests), `data-plan` (10 variants + multi-section, 16 tests). Total: 68 tests.
-**Awaiting ETECSA samples**: `postpaid-balance` (`*111#`, [#9](https://github.com/albertolicea00/Qvacell-apk/issues/9)), `tfa` (`*118#`, [#10](https://github.com/albertolicea00/Qvacell-apk/issues/10)), `friends-plan` (`*222*264#`, [#11](https://github.com/albertolicea00/Qvacell-apk/issues/11)) — no response text captured yet, UI wired to manual dial only.
+**Awaiting ETECSA samples**: `corp-balance` (`*111#`, [#9](https://github.com/albertolicea00/Qvacell-apk/issues/9)), `tfa` (`*118#`, [#10](https://github.com/albertolicea00/Qvacell-apk/issues/10)), `friends-plan` (`*222*264#`, [#11](https://github.com/albertolicea00/Qvacell-apk/issues/11)) — no response text captured yet, UI wired to manual dial only.
 **Stubbed**: all SMS parsers.
 
 ---
@@ -383,7 +383,7 @@ Full parsing rules, verbatim ETECSA response samples, regex patterns, and field 
 
 The dashboard cards (`MainBalanceCard`, `DataUsageCard`, `NationalBonusCard`, `VoiceSmsRow`, `RechargeLimitCard`) in `DynamicDashboardContent.kt` (unlocked flavor) collect live data from `DashboardDataRepository.observeCurrentValues()` and display three distinct states per card:
 
-The Pospago consultation card sits immediately above Saldo. TFA and Plan Amigo use full-width consultation cards below the data cards. These three consultation codes still lack response parsers and show the "UI Próximamente" badge.
+The Saldo Corporativo consultation card sits immediately above Saldo. TFA and Plan Amigo use full-width consultation cards below the data cards. These three consultation codes still lack response parsers and show the "UI Próximamente" badge.
 
 1. **Sin consultar** (never fetched) — `hasFetched = false`. Shown when no USSD query has populated the card's fields yet. Cards display a placeholder message ("Actualice el dashboard para ver la información." or "Aún no consultado.") instead of data. `DataUsageCard` also hides its "Tarifa por consumo" section and divider in this state.
 2. **Sin plan / No cuenta con...** (fetched, no active plan) — `hasFetched = true`, values are `"--"`. Voice/SMS cards show "Sin plan"; Data card shows "No cuenta con paquetes disponibles"; Bonus card shows "No cuenta con bonos disponibles".
@@ -459,7 +459,7 @@ The navbar click handler navigates directly with `popUpTo(validStartRoute)` — 
 - `PullToRefreshBox` (Material3 1.3.1) with custom pull indicator (dual arrows + "Arrastra/Suelta para refrescar" text).
 
 **Awaiting ETECSA samples**:
-- 3 consultation-card USSD codes (`postpaid-balance` `*111#`, `tfa` `*118#`, `friends-plan` `*222*264#`) — no response text captured yet, cannot write parsers without real samples.
+- 3 consultation-card USSD codes (`corp-balance` `*111#`, `tfa` `*118#`, `friends-plan` `*222*264#`) — no response text captured yet, cannot write parsers without real samples.
 - Every `SmsBodyParser` implementation — same reason.
 - `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — placeholder pending real sender-ID/short-code examples.
 

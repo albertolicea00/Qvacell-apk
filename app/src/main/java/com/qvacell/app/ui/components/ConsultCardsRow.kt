@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun PostpaidConsultCard(onQuery: () -> Unit) {
-    ConsultCard("POSTPAGO", Icons.Filled.CreditCard, Modifier.fillMaxWidth(), onQuery)
+fun CorporateBalanceConsultCard(onQuery: () -> Unit) {
+    ConsultCard("SALDO CORPORATIVO", Icons.Filled.CreditCard, Modifier.fillMaxWidth(), onQuery)
 }
 
 @Composable
