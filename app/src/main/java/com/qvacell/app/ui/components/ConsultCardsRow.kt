@@ -34,17 +34,21 @@ fun PostpaidConsultCard(onQuery: () -> Unit) {
 
 @Composable
 fun ConsultCardsRow(
+    tfaIsLoading: Boolean = false,
+    planAmigoIsLoading: Boolean = false,
     onTfaQuery: () -> Unit = {},
     onPlanAmigoQuery: () -> Unit = {}
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ConsultCard("TFA", Icons.Filled.PhoneAndroid, Modifier.fillMaxWidth(), onTfaQuery)
-        ConsultCard(
+        LoadingCardBorder(isLoading = tfaIsLoading) {
+            ConsultCard("TFA", Icons.Filled.PhoneAndroid, Modifier.fillMaxWidth(), onTfaQuery)
+        }
+        LoadingCardBorder(isLoading = planAmigoIsLoading) { ConsultCard(
             title = "PLAN AMIGO",
             icon = Icons.Filled.People,
             modifier = Modifier.fillMaxWidth(),
             onClick = onPlanAmigoQuery
-        )
+        ) }
     }
 }
 

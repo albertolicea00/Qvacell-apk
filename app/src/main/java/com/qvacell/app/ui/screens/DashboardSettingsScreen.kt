@@ -52,12 +52,14 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
     val dashboardRepository = remember { DashboardDataRepository(context) }
 
     val cardTapMode by settings.cardTapMode.collectAsStateWithLifecycle(initialValue = "tap_confirm")
+    val loadingStyle by settings.dashboardLoadingStyle.collectAsStateWithLifecycle(initialValue = "sweep")
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val smsCaptureEnabled by settings.smsCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
     val smsHistoryEnabled by settings.smsHistoryEnabled.collectAsStateWithLifecycle(initialValue = false)
     val hasRunSmsBackfill by settings.hasRunSmsBackfill.collectAsStateWithLifecycle(initialValue = false)
 
     var showCardTapModeSheet by remember { mutableStateOf(false) }
+    var showLoadingStyleSheet by remember { mutableStateOf(false) }
     var historyImporting by remember { mutableStateOf(false) }
 
     val cardTapModeLabel = when (cardTapMode) {
@@ -131,6 +133,17 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                     headline = "Acción de consulta USSD",
                     supporting = cardTapModeLabel,
                     onClick = { showCardTapModeSheet = true }
+                )
+                OptionsDivider()
+                OptionsRow(
+                    headline = "Animación de carga",
+                    supporting = when (loadingStyle) {
+                        "bottom" -> "Línea desde el centro"
+                        "perimeter" -> "Recorrido circular"
+                        "skeleton" -> "Esqueleto"
+                        else -> "Borde animado"
+                    },
+                    onClick = { showLoadingStyleSheet = true }
                 )
             }
 
@@ -242,6 +255,38 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = cardTapMode == mode, onClick = null)
+                        Text(label, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+
+    if (showLoadingStyleSheet) {
+        ModalBottomSheet(onDismissRequest = { showLoadingStyleSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text("Animación de carga", style = MaterialTheme.typography.titleLarge)
+                Text(
+                    "Elige cómo se indica la consulta en cada tarjeta del dashboard dinámico.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                )
+                listOf(
+                    "sweep" to "Borde animado",
+                    "bottom" to "Línea desde el centro",
+                    "perimeter" to "Recorrido circular",
+                    "skeleton" to "Esqueleto"
+                ).forEach { (style, label) ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            scope.launch { settings.setDashboardLoadingStyle(style) }
+                            showLoadingStyleSheet = false
+                        }.padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = loadingStyle == style, onClick = null)
                         Text(label, modifier = Modifier.padding(start = 8.dp))
                     }
                 }

@@ -29,6 +29,7 @@ class SettingsDataStore(private val context: Context) {
     private val hasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
     private val cardTapModeKey = stringPreferencesKey("card_tap_mode")
+    private val dashboardLoadingStyleKey = stringPreferencesKey("dashboard_loading_style")
     private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
     private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
@@ -86,6 +87,7 @@ class SettingsDataStore(private val context: Context) {
     // How dashboard cards trigger USSD queries: tap_confirm (default), tap, double_tap,
     // long_confirm, long, triple_tap.
     val cardTapMode = context.dataStore.data.map { it[cardTapModeKey] ?: "tap_confirm" }
+    val dashboardLoadingStyle = context.dataStore.data.map { it[dashboardLoadingStyleKey] ?: "sweep" }
 
     // Empty by default, so all manual-dashboard sections are visible.
     // Optional hidden sections: "consultas", "transferir", "recargar", "adelanta".
@@ -153,6 +155,10 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setCardTapMode(mode: String) {
         context.dataStore.edit { it[cardTapModeKey] = mode }
+    }
+
+    suspend fun setDashboardLoadingStyle(style: String) {
+        context.dataStore.edit { it[dashboardLoadingStyleKey] = style }
     }
 
     suspend fun setManualHiddenSections(sections: Set<String>) {

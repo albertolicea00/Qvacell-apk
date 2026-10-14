@@ -57,6 +57,7 @@ import com.qvacell.app.ui.components.NationalBonusCard
 import com.qvacell.app.ui.components.RechargeLimitCard
 import com.qvacell.app.ui.components.VoiceSmsRow
 import com.qvacell.app.ui.components.LoadingCardBorder
+import com.qvacell.app.ui.components.LocalLoadingAnimationStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +77,7 @@ fun DynamicDashboardContent(
 
     val settings = remember { SettingsDataStore(context) }
     val staleDays by settings.staleDaysThreshold.collectAsStateWithLifecycle(initialValue = 14)
+    val loadingStyle by settings.dashboardLoadingStyle.collectAsStateWithLifecycle(initialValue = "sweep")
 
     var hasSignal by remember { mutableStateOf(hasCellularService(context)) }
     LaunchedEffect(Unit) {
@@ -100,7 +102,10 @@ fun DynamicDashboardContent(
 
     val pullState = rememberPullToRefreshState()
 
-    CompositionLocalProvider(LocalStaleDaysThreshold provides staleDays) {
+    CompositionLocalProvider(
+        LocalStaleDaysThreshold provides staleDays,
+        LocalLoadingAnimationStyle provides loadingStyle
+    ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = { if (hasSignal) DashboardRefreshService.refresh(context, catalogRepository, dashboardRepository) },
@@ -167,7 +172,9 @@ fun DynamicDashboardContent(
                 onQuery = { requestQuery("national-recharge-limit") }
             )
             }
-            PostpaidConsultCard(onQuery = { requestQuery("postpaid-balance") })
+            LoadingCardBorder(isLoading = currentCodeId == "postpaid-balance") {
+                PostpaidConsultCard(onQuery = { requestQuery("postpaid-balance") })
+            }
             LoadingCardBorder(isLoading = currentCodeId == "main-balance") {
             MainBalanceCard(
                 balance = values[FieldTypes.MAIN_BALANCE]?.let { formatAmount(it.numericValue) } ?: "--",
@@ -242,6 +249,8 @@ fun DynamicDashboardContent(
             )
             }
             ConsultCardsRow(
+                tfaIsLoading = currentCodeId == "tfa",
+                planAmigoIsLoading = currentCodeId == "friends-plan",
                 // TODO: tfa (*118#) — parser not implemented, needs real ETECSA response samples
                 onTfaQuery = { requestQuery("tfa") },
                 // TODO: friends-plan (*222*264#) — parser not implemented, needs real ETECSA response samples
