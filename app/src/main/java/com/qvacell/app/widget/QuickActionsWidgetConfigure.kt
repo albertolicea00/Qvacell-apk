@@ -1,5 +1,7 @@
 package com.qvacell.app.widget
 
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.os.Bundle
@@ -214,7 +216,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                             decorationBox = { inner ->
                                                 if (query.isEmpty()) {
                                                     Text(
-                                                        "Buscar acción...",
+                                                        stringResource(R.string.widget_search_action_hint),
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                         fontSize = 16.sp
                                                     )
@@ -228,7 +230,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                             searchActive = false
                                             query = ""
                                         }) {
-                                            Icon(Icons.Filled.Close, contentDescription = "Cerrar búsqueda")
+                                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_close_search))
                                         }
                                     }
                                 )
@@ -237,15 +239,15 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                 }
                             } else {
                                 TopAppBar(
-                                    title = { Text("Configurar widget") },
+                                    title = { Text(stringResource(R.string.widget_configure)) },
                                     actions = {
                                         if (selectedTab == 0) {
                                             IconButton(onClick = { searchActive = true }) {
-                                                Icon(Icons.Filled.Search, contentDescription = "Buscar")
+                                                Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.action_search))
                                             }
                                         }
                                         TextButton(onClick = { saveAndFinish() }) {
-                                            Text("Listo", color = MaterialTheme.colorScheme.primary)
+                                            Text(stringResource(R.string.widget_done), color = MaterialTheme.colorScheme.primary)
                                         }
                                     }
                                 )
@@ -255,13 +257,13 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                 Tab(
                                     selected = selectedTab == 0,
                                     onClick = { selectedTab = 0 },
-                                    text = { Text("Acción") },
+                                    text = { Text(stringResource(R.string.widget_action_label)) },
                                     icon = { Icon(Icons.Filled.TouchApp, contentDescription = null) }
                                 )
                                 Tab(
                                     selected = selectedTab == 1,
                                     onClick = { selectedTab = 1; searchActive = false },
-                                    text = { Text("Estilo") },
+                                    text = { Text(stringResource(R.string.widget_style)) },
                                     icon = { Icon(Icons.Filled.Palette, contentDescription = null) }
                                 )
                                 if (activeSims.size >= 2) {
@@ -295,7 +297,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
-                                                text = "Sin resultados para \"$query\"",
+                                                text = stringResource(R.string.no_results_for, query),
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
@@ -396,7 +398,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                             horizontalAlignment = Alignment.CenterHorizontally
                                         ) {
                                             Text(
-                                                "Vista previa",
+                                                stringResource(R.string.widget_preview),
                                                 style = MaterialTheme.typography.labelMedium,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.padding(bottom = 16.dp)
@@ -416,7 +418,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                                 )
                                             }
                                             Text(
-                                                currentCode?.title?.value ?: "Acción",
+                                                currentCode?.title?.value ?: stringResource(R.string.widget_action_label),
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 modifier = Modifier.padding(top = 12.dp)
                                             )
@@ -426,7 +428,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
 
                                 item {
                                     Text(
-                                        "Personalización del widget",
+                                        stringResource(R.string.widget_customization),
                                         style = MaterialTheme.typography.titleSmall,
                                         color = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.padding(start = 4.dp)
@@ -437,27 +439,27 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                     ) {
                                         Column {
                                             val shapeLabel = when (selectedShape) {
-                                                "rounded_square"  -> "Redondeado"
-                                                "squircle"        -> "Squircle (Pixel)"
-                                                "circle"          -> "Círculo"
-                                                "square"          -> "Cuadrado"
-                                                "hexagon"         -> "Hexágono"
-                                                "rounded_hexagon" -> "Hexágono redondeado"
-                                                "diamond"         -> "Diamante"
-                                                "rounded_diamond" -> "Diamante redondeado"
-                                                "badge"           -> "Sello"
-                                                else -> "Redondeado"
+                                                "rounded_square"  -> stringResource(R.string.widget_shape_rounded)
+                                                "squircle"        -> stringResource(R.string.widget_shape_squircle)
+                                                "circle"          -> stringResource(R.string.widget_shape_circle)
+                                                "square"          -> stringResource(R.string.widget_shape_square)
+                                                "hexagon"         -> stringResource(R.string.widget_shape_hexagon)
+                                                "rounded_hexagon" -> stringResource(R.string.widget_shape_rounded_hexagon)
+                                                "diamond"         -> stringResource(R.string.widget_shape_diamond)
+                                                "rounded_diamond" -> stringResource(R.string.widget_shape_rounded_diamond)
+                                                "badge"           -> stringResource(R.string.widget_shape_badge)
+                                                else -> stringResource(R.string.widget_shape_rounded)
                                             }
                                             ListItem(
-                                                headlineContent = { Text("Forma") },
+                                                headlineContent = { Text(stringResource(R.string.widget_shape_label)) },
                                                 supportingContent = { Text(shapeLabel, style = MaterialTheme.typography.labelSmall) },
                                                 modifier = Modifier.clickable { showShapeSheet = true },
                                                 colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                                             )
                                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                                             ListItem(
-                                                headlineContent = { Text("Color de fondo") },
-                                                supportingContent = { Text("Fondo de este widget", style = MaterialTheme.typography.labelSmall) },
+                                                headlineContent = { Text(stringResource(R.string.widget_background_color)) },
+                                                supportingContent = { Text(stringResource(R.string.widget_background_this), style = MaterialTheme.typography.labelSmall) },
                                                 trailingContent = {
                                                     Box(
                                                         modifier = Modifier
@@ -472,8 +474,8 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                             )
                                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                                             ListItem(
-                                                headlineContent = { Text("Color del icono") },
-                                                supportingContent = { Text("Color del símbolo", style = MaterialTheme.typography.labelSmall) },
+                                                headlineContent = { Text(stringResource(R.string.widget_icon_color)) },
+                                                supportingContent = { Text(stringResource(R.string.widget_symbol_color), style = MaterialTheme.typography.labelSmall) },
                                                 trailingContent = {
                                                     Box(
                                                         modifier = Modifier
@@ -504,7 +506,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                             ) {
                                 item {
                                     Text(
-                                        "Línea para ejecutar esta acción",
+                                        stringResource(R.string.widget_sim_line),
                                         style = MaterialTheme.typography.titleSmall,
                                         color = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.padding(start = 4.dp)
@@ -529,9 +531,9 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
                                                 Column(modifier = Modifier.padding(start = 12.dp)) {
-                                                    Text("Predeterminada", style = MaterialTheme.typography.bodyLarge)
+                                                    Text(stringResource(R.string.widget_default), style = MaterialTheme.typography.bodyLarge)
                                                     Text(
-                                                        "Usa el ajuste global configurado en la app",
+                                                        stringResource(R.string.widget_global_sim_desc),
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                                     )
@@ -582,17 +584,17 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
                     ModalBottomSheet(onDismissRequest = { showShapeSheet = false }, sheetState = sheetState) {
                         Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
-                            Text("Forma de este widget", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
+                            Text(stringResource(R.string.widget_shape_this), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
                             listOf(
-                                "rounded_square"  to "Redondeado",
-                                "squircle"        to "Squircle (Pixel)",
-                                "circle"          to "Círculo",
-                                "square"          to "Cuadrado",
-                                "hexagon"         to "Hexágono",
-                                "rounded_hexagon" to "Hexágono redondeado",
-                                "diamond"         to "Diamante",
-                                "rounded_diamond" to "Diamante redondeado",
-                                "badge"           to "Sello",
+                                "rounded_square"  to stringResource(R.string.widget_shape_rounded),
+                                "squircle"        to stringResource(R.string.widget_shape_squircle),
+                                "circle"          to stringResource(R.string.widget_shape_circle),
+                                "square"          to stringResource(R.string.widget_shape_square),
+                                "hexagon"         to stringResource(R.string.widget_shape_hexagon),
+                                "rounded_hexagon" to stringResource(R.string.widget_shape_rounded_hexagon),
+                                "diamond"         to stringResource(R.string.widget_shape_diamond),
+                                "rounded_diamond" to stringResource(R.string.widget_shape_rounded_diamond),
+                                "badge"           to stringResource(R.string.widget_shape_badge),
                             ).forEach { (value, label) ->
                                 Row(
                                     modifier = Modifier
@@ -615,7 +617,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
 
                 if (showBgColorSheet) {
                     ColorPickerSheet(
-                        title = "Color de fondo del widget",
+                        title = stringResource(R.string.widget_bg_title),
                         initialColor = selectedBgColor,
                         showAlpha = true,
                         onColorSelected = { color -> selectedBgColor = color },
@@ -625,7 +627,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
 
                 if (showIconColorSheet) {
                     ColorPickerSheet(
-                        title = "Color del icono del widget",
+                        title = stringResource(R.string.widget_icon_title),
                         initialColor = selectedIconColor,
                         showAlpha = false,
                         onColorSelected = { color -> selectedIconColor = color },

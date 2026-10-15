@@ -30,14 +30,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.qvacell.app.R
 import kotlinx.coroutines.delay
 
 /** 0 (no service) through 3 (best) — mirrors iOS's `CellularMonitor.signalQuality`. */
 private data class CellularSignalStatus(
     val hasService: Boolean = false,
-    val networkType: String = "Buscando red...",
+    val networkType: String = "",
     val signalQuality: Int = 0
 )
 
@@ -70,7 +72,7 @@ fun ConnectionBanner() {
     LaunchedEffect(hasPermission) {
         val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
         while (true) {
-            status = readCellularSignalStatus(telephonyManager, hasPermission)
+            status = readCellularSignalStatus(context, telephonyManager, hasPermission)
             delay(5000)
         }
     }
@@ -83,11 +85,11 @@ fun ConnectionBanner() {
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     val statusText = when {
-        !status.hasService -> "Sin señal — el USSD no funcionará"
-        status.signalQuality == 3 -> "Señal óptima (${status.networkType})"
-        status.signalQuality == 2 -> "Señal buena (${status.networkType})"
-        status.signalQuality == 1 -> "Señal débil (riesgo de fallo)"
-        else -> status.networkType
+        !status.hasService -> stringResource(R.string.network_no_signal)
+        status.signalQuality == 3 -> stringResource(R.string.network_optimal, status.networkType)
+        status.signalQuality == 2 -> stringResource(R.string.network_good, status.networkType)
+        status.signalQuality == 1 -> stringResource(R.string.network_weak)
+        else -> if (status.networkType.isEmpty()) stringResource(R.string.network_searching) else status.networkType
     }
     val icon = when {
         !status.hasService -> Icons.Filled.SignalCellularOff
@@ -117,17 +119,18 @@ fun hasCellularService(context: Context): Boolean {
     val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
     val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) ==
         PackageManager.PERMISSION_GRANTED
-    return readCellularSignalStatus(tm, hasPermission).hasService
+    return readCellularSignalStatus(context, tm, hasPermission).hasService
 }
 
 private fun readCellularSignalStatus(
+    context: Context,
     telephonyManager: TelephonyManager?,
     hasPhoneStatePermission: Boolean
 ): CellularSignalStatus {
     // Network type can be UNKNOWN when READ_PHONE_STATE is missing or mobile data is off.
     // Neither case proves that voice/USSD service is unavailable.
     if (!hasPhoneStatePermission || telephonyManager == null) {
-        return CellularSignalStatus(hasService = true, networkType = "Estado no disponible")
+        return CellularSignalStatus(hasService = true, networkType = context.getString(R.string.network_status_unavailable))
     }
     val voiceNetworkType = try {
         telephonyManager.voiceNetworkType
@@ -164,11 +167,11 @@ private fun readCellularSignalStatus(
             val hasService = serviceState == null || serviceState == ServiceState.STATE_IN_SERVICE
             CellularSignalStatus(
                 hasService = hasService,
-                networkType = if (hasService) "Estado no disponible" else "Sin servicio celular",
+                networkType = context.getString(if (hasService) R.string.network_status_unavailable else R.string.network_no_cellular_service),
                 signalQuality = 0
             )
         }
         else ->
-            CellularSignalStatus(hasService = true, networkType = "Red celular", signalQuality = 2)
+            CellularSignalStatus(hasService = true, networkType = context.getString(R.string.network_cellular), signalQuality = 2)
     }
 }

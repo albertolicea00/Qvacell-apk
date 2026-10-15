@@ -50,9 +50,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qvacell.app.R
 import com.qvacell.app.model.Reminder
 import com.qvacell.app.model.ReminderTemplate
 import com.qvacell.app.service.ReminderRepository
@@ -91,7 +93,7 @@ fun ReminderListScreen(
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("Recordatorios") },
+                title = { Text(stringResource(R.string.reminders_title)) },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )
         }
@@ -108,8 +110,8 @@ fun ReminderListScreen(
         if (reminderToDelete != null) {
             AlertDialog(
                 onDismissRequest = { reminderToDelete = null },
-                title = { Text("¿Eliminar recordatorio?") },
-                text = { Text("Esta acción no se puede deshacer.") },
+                title = { Text(stringResource(R.string.dialog_delete_reminder_title)) },
+                text = { Text(stringResource(R.string.dialog_delete_reminder_desc)) },
                 confirmButton = {
                     TextButton(onClick = {
                         reminderToDelete?.let { r ->
@@ -119,10 +121,10 @@ fun ReminderListScreen(
                             }
                         }
                         reminderToDelete = null
-                    }) { Text("Eliminar", color = MaterialTheme.colorScheme.error) }
+                    }) { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { reminderToDelete = null }) { Text("Cancelar") }
+                    TextButton(onClick = { reminderToDelete = null }) { Text(stringResource(R.string.action_cancel)) }
                 }
             )
         }
@@ -137,8 +139,8 @@ fun ReminderListScreen(
             // Template sections
             ReminderTemplate.quickTemplates.forEach { template ->
                 val instances = reminders.filter { it.templateKey == template.key }
-
                 item(key = "header-${template.key}") {
+                    val templateTitle = stringResource(ReminderTemplate.titleRes(template.key))
                     Spacer(Modifier.height(8.dp))
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -152,7 +154,7 @@ fun ReminderListScreen(
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            template.title.uppercase(),
+                            templateTitle.uppercase(),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -160,6 +162,7 @@ fun ReminderListScreen(
                 }
 
                 item(key = "card-${template.key}") {
+                    val templateTitle = stringResource(ReminderTemplate.titleRes(template.key))
                     Card(
                         shape = MaterialTheme.shapes.large,
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
@@ -167,7 +170,7 @@ fun ReminderListScreen(
                         Column {
                             if (instances.isEmpty()) {
                                 Text(
-                                    "Sin recordatorios de este tipo.",
+                                    stringResource(R.string.reminders_empty_template),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(16.dp)
@@ -218,7 +221,7 @@ fun ReminderListScreen(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    "Agregar ${template.title}",
+                                    stringResource(R.string.reminders_add_template, templateTitle),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -245,7 +248,7 @@ fun ReminderListScreen(
                     )
                     Spacer(Modifier.width(6.dp))
                     Text(
-                        "PERSONALIZADOS",
+                        stringResource(R.string.reminders_custom_section),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -260,7 +263,7 @@ fun ReminderListScreen(
                     Column {
                         if (customReminders.isEmpty()) {
                             Text(
-                                "Sin recordatorios personalizados.",
+                                stringResource(R.string.reminders_empty_custom),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(16.dp)
@@ -310,7 +313,7 @@ fun ReminderListScreen(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Nuevo Recordatorio Personalizado",
+                                stringResource(R.string.reminders_new_custom),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.primary
                             )
@@ -359,7 +362,7 @@ private fun ReminderRowSwipeable(
                     .padding(end = 20.dp),
                 contentAlignment = Alignment.CenterEnd
             ) {
-                Icon(Icons.Filled.Delete, contentDescription = "Eliminar", tint = Color.White)
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.action_delete), tint = Color.White)
             }
         }
     ) {
@@ -410,8 +413,9 @@ private fun ReminderRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            val recurrenceLabel = stringResource(reminder.recurrence.labelRes)
             Text(
-                "${reminder.recurrence.label} · ${formatter.format(Date(reminder.date))}",
+                "$recurrenceLabel · ${formatter.format(Date(reminder.date))}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,

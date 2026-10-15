@@ -38,9 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.service.DialService
 import com.qvacell.app.data.SettingsDataStore
@@ -116,14 +118,14 @@ fun CategoryListScreen(
                     if (onBack == null) SimSelectorIcon()
                     if (categoryId == "purchase" && onNavigateToSms != null) {
                         IconButton(onClick = { showPurchaseMenu = true }, modifier = Modifier.size(36.dp)) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = "Menú", modifier = Modifier.size(22.dp))
+                            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_menu), modifier = Modifier.size(22.dp))
                         }
                         DropdownMenu(
                             expanded = showPurchaseMenu,
                             onDismissRequest = { showPurchaseMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Servicios por SMS") },
+                                text = { Text(stringResource(R.string.title_sms_services)) },
                                 onClick = {
                                     showPurchaseMenu = false
                                     onNavigateToSms()
@@ -131,7 +133,7 @@ fun CategoryListScreen(
                             )
                             if (advanceBalanceCodes.isNotEmpty()) {
                                 DropdownMenuItem(
-                                    text = { Text("Adelanta Saldo") },
+                                    text = { Text(stringResource(R.string.advance_balance)) },
                                     onClick = {
                                         showPurchaseMenu = false
                                         showAdvanceBalanceSheet = true
@@ -161,11 +163,11 @@ fun CategoryListScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Marcar sin Confirmación",
+                                stringResource(R.string.purchase_without_confirm),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                "Marca el código saltando el paso de confirmación de ETECSA",
+                                stringResource(R.string.purchase_without_confirm_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -193,7 +195,7 @@ fun CategoryListScreen(
                         modifier = Modifier.size(48.dp)
                     )
                     Text(
-                        "Sin resultados para \"$query\"",
+                        stringResource(R.string.no_results_for, query),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -280,7 +282,7 @@ fun CategoryListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    "Adelanta Saldo",
+                    stringResource(R.string.advance_balance),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )

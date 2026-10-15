@@ -23,13 +23,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.qvacell.app.R
 
 @Composable
 fun CorporateBalanceConsultCard(onQuery: () -> Unit) {
-    ConsultCard("SALDO CORPORATIVO", Icons.Filled.CreditCard, Modifier.fillMaxWidth(), onQuery)
+    ConsultCard(stringResource(R.string.dashboard_corporate_balance), Icons.Filled.CreditCard, Modifier.fillMaxWidth(), onQuery)
 }
 
 @Composable
@@ -44,7 +46,7 @@ fun ConsultCardsRow(
             ConsultCard("TFA", Icons.Filled.PhoneAndroid, Modifier.fillMaxWidth(), onTfaQuery)
         }
         LoadingCardBorder(isLoading = planAmigoIsLoading) { ConsultCard(
-            title = "PLAN AMIGO",
+            title = stringResource(R.string.dashboard_friends_plan_card),
             icon = Icons.Filled.People,
             modifier = Modifier.fillMaxWidth(),
             onClick = onPlanAmigoQuery
@@ -95,7 +97,7 @@ private fun ConsultCard(
 private fun ComingSoonBadge(modifier: Modifier = Modifier) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
         Text(
-            "UI Próximamente",
+            stringResource(R.string.action_coming_soon),
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 9.sp,
                 fontStyle = FontStyle.Italic

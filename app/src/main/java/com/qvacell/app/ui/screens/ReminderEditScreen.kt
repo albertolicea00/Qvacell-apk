@@ -64,9 +64,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.Reminder
 import com.qvacell.app.model.ReminderRecurrence
@@ -163,9 +165,9 @@ fun ReminderEditScreen(
             ) {
                 Text(
                     text = when {
-                        isEditing -> "Editar Recordatorio"
-                        template.title.isNotBlank() -> template.title
-                        else -> "Nuevo Recordatorio"
+                        isEditing -> stringResource(R.string.reminders_edit)
+                        template.title.isNotBlank() -> stringResource(ReminderTemplate.titleRes(template.key))
+                        else -> stringResource(R.string.reminders_new)
                     },
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier
@@ -175,7 +177,7 @@ fun ReminderEditScreen(
 
             // Recordatorio section
             Column {
-                SectionHeader("Recordatorio")
+                SectionHeader(stringResource(R.string.reminders_section_header))
                 Card(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -186,14 +188,14 @@ fun ReminderEditScreen(
                         EditorInputField(
                             value = title,
                             onValueChange = { title = it },
-                            placeholder = "Título",
+                            placeholder = stringResource(R.string.reminders_field_title),
                             singleLine = true
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                         EditorInputField(
                             value = message,
                             onValueChange = { message = it },
-                            placeholder = "Mensaje",
+                            placeholder = stringResource(R.string.reminders_field_message),
                             singleLine = false,
                             // minHeight = 72.dp
                         )
@@ -205,7 +207,7 @@ fun ReminderEditScreen(
             // Phone number section (only for transfer template)
             if (template.needsPhoneNumber) {
                 Column {
-                    SectionHeader("Número de Teléfono")
+                    SectionHeader(stringResource(R.string.reminders_phone_section))
                     Card(
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
@@ -234,7 +236,7 @@ fun ReminderEditScreen(
                                     decorationBox = { inner ->
                                         if (phoneNumber.isEmpty()) {
                                             Text(
-                                                "Número (+53 ...)",
+                                                stringResource(R.string.transfer_number_hint),
                                                 style = MaterialTheme.typography.bodyLarge,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                             )
@@ -252,7 +254,7 @@ fun ReminderEditScreen(
                                 ) {
                                     Icon(
                                         Icons.Filled.Person,
-                                        contentDescription = "Elegir de contactos",
+                                        contentDescription = stringResource(R.string.transfer_choose_contact),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                         modifier = Modifier.size(20.dp)
                                     )
@@ -262,7 +264,7 @@ fun ReminderEditScreen(
                         }
                     }
                     Text(
-                        "Se usará como destino al ejecutar la transferencia.",
+                        stringResource(R.string.reminders_phone_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp)
@@ -272,7 +274,7 @@ fun ReminderEditScreen(
 
             // Cuándo section
             Column {
-                SectionHeader("Cuándo")
+                SectionHeader(stringResource(R.string.reminders_when_section))
                 Card(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -288,7 +290,7 @@ fun ReminderEditScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 PickerRowItem(
-                                    label = "Fecha",
+                                    label = stringResource(R.string.reminders_field_date),
                                     value = dateFormatter.format(Date(dateMillis)),
                                     onClick = { showDatePicker = true },
                                     modifier = Modifier
@@ -302,7 +304,7 @@ fun ReminderEditScreen(
                             )
                             Column(modifier = Modifier.weight(1f)) {
                                 PickerRowItem(
-                                    label = "Hora",
+                                    label = stringResource(R.string.reminders_field_time),
                                     value = timeFormatter.format(Date(dateMillis)),
                                     onClick = { showTimePicker = true },
                                     modifier = Modifier
@@ -325,13 +327,13 @@ fun ReminderEditScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "Repetir",
+                                    stringResource(R.string.reminders_field_recurrence),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        recurrence.label,
+                                        stringResource(recurrence.labelRes),
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.primary
                                     )
@@ -350,7 +352,7 @@ fun ReminderEditScreen(
                             ) {
                                 ReminderRecurrence.entries.forEach { option ->
                                     DropdownMenuItem(
-                                        text = { Text(option.label) },
+                                        text = { Text(stringResource(option.labelRes)) },
                                         onClick = {
                                             recurrence = option
                                             recurrenceExpanded = false
@@ -369,7 +371,7 @@ fun ReminderEditScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    "Cada cuántos días",
+                                    stringResource(R.string.reminders_custom_days_label),
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f)
@@ -400,8 +402,8 @@ fun ReminderEditScreen(
 
             if (isEditing) {
                 DialogActionRow(
-                    cancelText = "Eliminar",
-                    confirmText = "Guardar",
+                    cancelText = stringResource(R.string.action_delete),
+                    confirmText = stringResource(R.string.action_save),
                     onCancel = { showDeleteConfirm = true },
                     onConfirm = {
                         val reminder = Reminder(
@@ -428,8 +430,8 @@ fun ReminderEditScreen(
                 )
             } else {
                 DialogActionRow(
-                    cancelText = "Cancelar",
-                    confirmText = "Guardar",
+                    cancelText = stringResource(R.string.action_cancel),
+                    confirmText = stringResource(R.string.action_save),
                     onCancel = { onBack?.invoke() ?: onDone() },
                     onConfirm = {
                         val reminder = Reminder(
@@ -461,8 +463,8 @@ fun ReminderEditScreen(
     if (showDeleteConfirm && reminderId != null) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
-            title = { Text("¿Eliminar recordatorio?") },
-            text = { Text("Esta acción no se puede deshacer.") },
+            title = { Text(stringResource(R.string.dialog_delete_reminder_title)) },
+            text = { Text(stringResource(R.string.dialog_delete_reminder_desc)) },
             confirmButton = {
                 TextButton(onClick = {
                     scope.launch {
@@ -472,12 +474,12 @@ fun ReminderEditScreen(
                         onDone()
                     }
                 }) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -502,10 +504,10 @@ fun ReminderEditScreen(
                         dateMillis = new.timeInMillis
                     }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancelar") }
+                TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.action_cancel)) }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -522,7 +524,7 @@ fun ReminderEditScreen(
 
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showTimePicker = false },
-            title = { Text("Seleccionar hora") },
+            title = { Text(stringResource(R.string.dialog_select_time)) },
             text = { TimePicker(state = timePickerState) },
             confirmButton = {
                 TextButton(onClick = {
@@ -533,10 +535,10 @@ fun ReminderEditScreen(
                     }
                     dateMillis = updated.timeInMillis
                     showTimePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showTimePicker = false }) { Text("Cancelar") }
+                TextButton(onClick = { showTimePicker = false }) { Text(stringResource(R.string.action_cancel)) }
             }
         )
     }

@@ -6,10 +6,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
+
 /** Standard "go back" chevron for nested screens' TopAppBar — iOS-style back affordance. */
 @Composable
 fun BackNavigationIcon(onBack: () -> Unit) {
     IconButton(onClick = onBack) {
-        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
     }
 }

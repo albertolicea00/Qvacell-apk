@@ -62,6 +62,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -157,47 +158,47 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
                     )
                     OnboardingPage.FeatureContacts -> FeaturePage(
                         icon = Icons.Filled.People,
-                        title = "Contactos",
-                        subtitle = "Gestiona y llama directamente desde la app",
+                        title = stringResource(R.string.onboarding_contacts_title),
+                        subtitle = stringResource(R.string.onboarding_contacts_subtitle),
                         bullets = listOf(
-                            "Marcación directa a cualquier contacto",
-                            "Compara planes entre contactos",
-                            "Búsqueda rápida en tu agenda"
+                            stringResource(R.string.onboarding_contacts_bullet1),
+                            stringResource(R.string.onboarding_contacts_bullet2),
+                            stringResource(R.string.onboarding_contacts_bullet3)
                         ),
                         onNext = ::next
                     )
                     OnboardingPage.FeatureHome -> FeaturePage(
                         icon = Icons.Filled.Home,
-                        title = "Inicio",
-                        subtitle = "Acceso rápido a los servicios más usados",
+                        title = stringResource(R.string.onboarding_home_title),
+                        subtitle = stringResource(R.string.onboarding_home_subtitle),
                         bullets = listOf(
-                            "Recargas y paquetes en un toque",
-                            "Dashboard Dinámico desde la barra superior",
-                            "Consultas USSD sin salir de la app"
+                            stringResource(R.string.onboarding_home_bullet1),
+                            stringResource(R.string.onboarding_home_bullet2),
+                            stringResource(R.string.onboarding_home_bullet3)
                         ),
                         onNext = ::next
                     )
                     OnboardingPage.FeaturePurchases -> FeaturePage(
                         icon = Icons.Filled.ShoppingCart,
-                        title = "Compras",
-                        subtitle = "Todos los paquetes y servicios ETECSA",
+                        title = stringResource(R.string.onboarding_purchases_title),
+                        subtitle = stringResource(R.string.onboarding_purchases_subtitle),
                         bullets = listOf(
-                            "Paquetes de datos, Nauta, voz y combinados",
-                            "Activación de servicios especiales",
-                            "Confirmación antes de marcar"
+                            stringResource(R.string.onboarding_purchases_bullet1),
+                            stringResource(R.string.onboarding_purchases_bullet2),
+                            stringResource(R.string.onboarding_purchases_bullet3)
                         ),
                         onNext = ::next
                     )
                     OnboardingPage.FeatureOptions -> FeaturePage(
                         icon = SquareGrid2x2,
-                        title = "Personalización",
-                        subtitle = "Adapta la app a tu estilo y necesidades",
+                        title = stringResource(R.string.onboarding_options_title),
+                        subtitle = stringResource(R.string.onboarding_options_subtitle),
                         bullets = listOf(
-                            "Tema claro, oscuro o automático",
-                            "Color de acento personalizado",
-                            "Recordatorios automáticos de recarga"
+                            stringResource(R.string.onboarding_options_bullet1),
+                            stringResource(R.string.onboarding_options_bullet2),
+                            stringResource(R.string.onboarding_options_bullet3)
                         ),
-                        buttonLabel = "¡Listo, vamos!",
+                        buttonLabel = stringResource(R.string.onboarding_ready_button),
                         onNext = ::next
                     )
                     null -> Unit
@@ -212,7 +213,7 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
                         .padding(horizontal = 32.dp)
                         .padding(bottom = 12.dp)
                 ) {
-                    Text("Saltar tour", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.onboarding_skip_tour), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -250,7 +251,7 @@ private fun PageLayout(
     title: String,
     subtitle: String,
     content: @Composable ColumnScope.() -> Unit = {},
-    buttonLabel: String = "Continuar",
+    buttonLabel: String? = null,
     onButton: (() -> Unit)?,
     buttonEnabled: Boolean = true,
     skipLabel: String? = null,
@@ -319,7 +320,7 @@ private fun PageLayout(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(50)
             ) {
-                Text(buttonLabel, modifier = Modifier.padding(vertical = 4.dp))
+                Text(buttonLabel ?: stringResource(R.string.onboarding_continue), modifier = Modifier.padding(vertical = 4.dp))
             }
         }
 
@@ -359,7 +360,7 @@ private fun GrantedBadge() {
             Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(10.dp))
             Text(
-                "Permiso concedido",
+                stringResource(R.string.onboarding_ussd_granted),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -398,7 +399,7 @@ private fun WelcomePage(onNext: () -> Unit) {
 
         TextButton(onClick = { uriHandler.openUri("https://github.com/albertolicea00") }) {
             Text(
-                "by @albertolicea00",
+                stringResource(R.string.onboarding_author),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -407,7 +408,7 @@ private fun WelcomePage(onNext: () -> Unit) {
         Spacer(Modifier.height(24.dp))
 
         Text(
-            "Bienvenido a Qvacell",
+            stringResource(R.string.onboarding_welcome_title),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
@@ -415,7 +416,7 @@ private fun WelcomePage(onNext: () -> Unit) {
         Spacer(Modifier.height(12.dp))
 
         Text(
-            "Tu asistente para servicios ETECSA y Cubacel en Cuba",
+            stringResource(R.string.onboarding_welcome_subtitle),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -428,7 +429,7 @@ private fun WelcomePage(onNext: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(50)
         ) {
-            Text("Comenzar", modifier = Modifier.padding(vertical = 4.dp))
+            Text(stringResource(R.string.onboarding_start), modifier = Modifier.padding(vertical = 4.dp))
         }
 
         Spacer(Modifier.height(16.dp))
@@ -439,19 +440,19 @@ private fun WelcomePage(onNext: () -> Unit) {
 private fun UssdPermissionPage(granted: Boolean, onRequest: () -> Unit, onNext: () -> Unit) {
     PageLayout(
         icon = Icons.Filled.Phone,
-        title = "Marcación USSD",
-        subtitle = "Permite a Qvacell marcar códigos como *222# directamente sin abrir el marcador",
+        title = stringResource(R.string.onboarding_ussd_title),
+        subtitle = stringResource(R.string.onboarding_ussd_subtitle),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                BulletItem(Icons.Filled.ShoppingCart, "Compras y recargas sin salir de la app")
-                BulletItem(Icons.Filled.AccountBalance, "Consultas de saldo en tiempo real")
-                BulletItem(Icons.Filled.Sms, "Activación de servicios ETECSA")
+                BulletItem(Icons.Filled.ShoppingCart, stringResource(R.string.onboarding_ussd_bullet1))
+                BulletItem(Icons.Filled.AccountBalance, stringResource(R.string.onboarding_ussd_bullet2))
+                BulletItem(Icons.Filled.Sms, stringResource(R.string.onboarding_ussd_bullet3))
                 Spacer(Modifier.height(4.dp))
                 if (granted) {
                     GrantedBadge()
                 } else {
                     Text(
-                        "Sin este permiso abriremos el marcador del sistema. Puedes concederlo más tarde desde Opciones.",
+                        stringResource(R.string.onboarding_ussd_rationale),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -459,9 +460,9 @@ private fun UssdPermissionPage(granted: Boolean, onRequest: () -> Unit, onNext: 
                 }
             }
         },
-        buttonLabel = if (granted) "Continuar" else "Conceder Permiso",
+        buttonLabel = if (granted) stringResource(R.string.onboarding_continue) else stringResource(R.string.onboarding_grant_permission),
         onButton = if (granted) onNext else onRequest,
-        skipLabel = if (!granted) "Saltar por ahora" else null,
+        skipLabel = if (!granted) stringResource(R.string.onboarding_skip_for_now) else null,
         onSkip = if (!granted) onNext else null
     )
 }
@@ -472,7 +473,7 @@ private fun FeaturePage(
     title: String,
     subtitle: String,
     bullets: List<String>,
-    buttonLabel: String = "Continuar",
+    buttonLabel: String? = null,
     onNext: () -> Unit
 ) {
     PageLayout(

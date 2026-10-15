@@ -21,7 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import com.qvacell.app.ui.components.BackNavigationIcon
 
 @Composable
@@ -33,7 +35,7 @@ fun DashboardHelpScreen(
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("Ayuda del Dashboard") },
+                title = { Text(stringResource(R.string.title_dashboard_help)) },
                 navigationIcon = { BackNavigationIcon(onBack) }
             )
         }
@@ -45,34 +47,31 @@ fun DashboardHelpScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 8.dp)
         ) {
-            DashboardHelpSection("¿Qué es el Dashboard Dinámico?") {
+            DashboardHelpSection(stringResource(R.string.help_dashboard_compare_q)) {
                 DashboardHelpInfoRow(
-                    title = "Dashboard Dinámico vs Marcación Rápida",
-                    text = "El Dashboard Dinámico consulta tu saldo, datos y bonos automáticamente " +
-                        "y muestra los resultados en cards actualizables. La Marcación Rápida es el " +
-                        "modo clásico: una lista de accesos directos a los códigos USSD sin consulta " +
-                        "automática."
+                    title = stringResource(R.string.help_dashboard_compare_q),
+                    text = stringResource(R.string.help_dashboard_compare_a)
                 )
             }
 
-            DashboardHelpSection("Cómo funciona") {
+            DashboardHelpSection(stringResource(R.string.dashboard_help_how)) {
                 DashboardHelpInfoRow(
-                    title = "Consulta de datos",
-                    text = "TODO: Explicar cómo se consultan los datos del dashboard dinámico."
+                    title = stringResource(R.string.dashboard_help_data_title),
+                    text = stringResource(R.string.dashboard_help_data_desc)
                 )
                 DashboardHelpInfoRow(
-                    title = "Actualización",
-                    text = "TODO: Explicar cómo se actualizan las cards (pull-to-refresh, botón de navbar)."
+                    title = stringResource(R.string.dashboard_help_refresh_title),
+                    text = stringResource(R.string.dashboard_help_refresh_desc)
                 )
                 DashboardHelpInfoRow(
-                    title = "Interacción con las cards",
-                    text = "TODO: Explicar las diferentes acciones de consulta USSD configurables."
+                    title = stringResource(R.string.dashboard_help_cards_title),
+                    text = stringResource(R.string.dashboard_help_cards_desc)
                 )
             }
 
-            DashboardHelpSection("Configuración") {
+            DashboardHelpSection(stringResource(R.string.dashboard_help_settings_title)) {
                 DashboardHelpLinkRow(
-                    label = "Abrir Configuración del Dashboard",
+                    label = stringResource(R.string.dashboard_help_open_settings),
                     icon = Icons.Filled.Settings,
                     onClick = onOpenSettings
                 )

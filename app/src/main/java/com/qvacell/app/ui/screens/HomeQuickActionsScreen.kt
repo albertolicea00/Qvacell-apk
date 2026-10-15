@@ -32,8 +32,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qvacell.app.R
 import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
@@ -113,7 +115,7 @@ fun HomeQuickActionsScreen(
                     ) {
                         Icon(
                             Icons.Filled.Refresh,
-                            contentDescription = "Actualizar",
+                            contentDescription = stringResource(R.string.action_refresh),
                             modifier = Modifier
                                 .size(22.dp)
                                 .then(if (isRefreshing) Modifier.rotate(rotation) else Modifier)
@@ -127,7 +129,7 @@ fun HomeQuickActionsScreen(
                     ) {
                         Icon(
                             Icons.Filled.MoreVert,
-                            contentDescription = "Menú",
+                            contentDescription = stringResource(R.string.action_menu),
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -136,28 +138,28 @@ fun HomeQuickActionsScreen(
                         onDismissRequest = { showDashboardMenu = false }
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Recordatorios") },
+                            text = { Text(stringResource(R.string.reminders_title)) },
                             onClick = {
                                 showDashboardMenu = false
                                 onNavigateToReminders()
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Eventos") },
+                            text = { Text(stringResource(R.string.title_events)) },
                             onClick = {
                                 showDashboardMenu = false
                                 onNavigateToEvents()
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Opciones") },
+                            text = { Text(stringResource(R.string.tab_options)) },
                             onClick = {
                                 showDashboardMenu = false
                                 onNavigateToSettings()
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Ayuda") },
+                            text = { Text(stringResource(R.string.help_title)) },
                             onClick = {
                                 showDashboardMenu = false
                                 onNavigateToHelp()
@@ -172,7 +174,7 @@ fun HomeQuickActionsScreen(
                     ) {
                         Icon(
                             Icons.Filled.GridView,
-                            contentDescription = "Cambiar a manual",
+                            contentDescription = stringResource(R.string.action_switch_to_manual),
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -183,7 +185,7 @@ fun HomeQuickActionsScreen(
                     ) {
                         Icon(
                             Icons.Filled.MoreVert,
-                            contentDescription = "Menú",
+                            contentDescription = stringResource(R.string.action_menu),
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -193,7 +195,7 @@ fun HomeQuickActionsScreen(
                     ) {
                         if ("transferir" in manualHiddenSections) {
                             DropdownMenuItem(
-                                text = { Text("Transferir Saldo") },
+                                text = { Text(stringResource(R.string.quick_action_transfer)) },
                                 onClick = {
                                     showManualMenu = false
                                     showTransferSheet = true
@@ -202,7 +204,7 @@ fun HomeQuickActionsScreen(
                         }
                         if ("recargar" in manualHiddenSections) {
                             DropdownMenuItem(
-                                text = { Text("Recargar Saldo") },
+                                text = { Text(stringResource(R.string.quick_action_recharge)) },
                                 onClick = {
                                     showManualMenu = false
                                     showRechargeSheet = true
@@ -210,14 +212,14 @@ fun HomeQuickActionsScreen(
                             )
                         }
                         DropdownMenuItem(
-                            text = { Text("Gestionar Plan Amigo") },
+                            text = { Text(stringResource(R.string.options_friends_plan)) },
                             onClick = {
                                 showManualMenu = false
                                 onNavigateToFriendsPlan()
                             }
                         )
                         DropdownMenuItem(
-                            text = { Text("Recordatorios") },
+                            text = { Text(stringResource(R.string.reminders_title)) },
                             onClick = {
                                 showManualMenu = false
                                 onNavigateToReminders()
@@ -236,7 +238,7 @@ fun HomeQuickActionsScreen(
                     ) {
                         Icon(
                             Icons.Filled.InsertChart,
-                            contentDescription = "Cambiar a dinámico",
+                            contentDescription = stringResource(R.string.action_switch_to_dynamic),
                             modifier = Modifier.size(22.dp)
                         )
                     }
@@ -273,13 +275,13 @@ fun HomeQuickActionsScreen(
     if (showUnavailableDialog) {
         AlertDialog(
             onDismissRequest = { showUnavailableDialog = false },
-            title = { Text("Dashboard Dinámico no disponible") },
+            title = { Text(stringResource(R.string.dialog_dynamic_dashboard_unavailable_title)) },
             text = {
-                Text("El Dashboard Dinámico solo está disponible en la versión descargada desde GitHub.")
+                Text(stringResource(R.string.dialog_dynamic_dashboard_unavailable_desc))
             },
             confirmButton = {
                 TextButton(onClick = { showUnavailableDialog = false }) {
-                    Text("Entendido")
+                    Text(stringResource(R.string.action_got_it))
                 }
             }
         )

@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.data.SettingsDataStore
+import com.qvacell.app.R
 import com.qvacell.app.service.DialService
 
 /** Calls directly after CALL_PHONE is granted, without opening the dialer. */
@@ -27,7 +28,7 @@ fun rememberDirectDialAction(onDialed: () -> Unit = {}): (String) -> Unit {
                 DialService.dialDirect(context, code)
                 onDialed()
             } else {
-                Toast.makeText(context, "Concede el permiso de llamadas para marcar directamente", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.dial_permission_required), Toast.LENGTH_SHORT).show()
             }
         }
         pendingCode = null

@@ -42,7 +42,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import com.qvacell.app.R
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
@@ -94,7 +96,7 @@ fun TransferBottomSheet(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                "Transferir Saldo",
+                stringResource(R.string.transfer_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
@@ -102,7 +104,7 @@ fun TransferBottomSheet(
             // Number field (hidden when contact is pre-filled)
             if (fixedNumber == null) {
                 Text(
-                    "Destinatario",
+                    stringResource(R.string.dashboard_recipient),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 4.dp, top = 4.dp)
@@ -124,7 +126,7 @@ fun TransferBottomSheet(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (number.isEmpty()) Text("Número (+53 ...)", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                if (number.isEmpty()) Text(stringResource(R.string.transfer_number_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                 inner()
                             }
                         )
@@ -137,7 +139,7 @@ fun TransferBottomSheet(
                         ) {
                             Icon(
                                 Icons.Filled.Person,
-                                contentDescription = "Elegir de contactos",
+                                contentDescription = stringResource(R.string.transfer_choose_contact),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier.size(20.dp)
                             )
@@ -149,7 +151,7 @@ fun TransferBottomSheet(
 
             // PIN + Amount card
             Text(
-                "Clave y Monto",
+                stringResource(R.string.dialog_pin_amount),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 4.dp, top = 4.dp)
@@ -178,7 +180,7 @@ fun TransferBottomSheet(
                                 visualTransformation = if (pinVisible) VisualTransformation.None else PasswordVisualTransformation(),
                                 singleLine = true,
                                 decorationBox = { inner ->
-                                    if (pin.isEmpty()) Text("Clave", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                    if (pin.isEmpty()) Text(stringResource(R.string.dialog_pin), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                     inner()
                                 }
                             )
@@ -202,7 +204,7 @@ fun TransferBottomSheet(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (amount.isEmpty()) Text("Monto", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                if (amount.isEmpty()) Text(stringResource(R.string.dialog_amount), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                 inner()
                             }
                         )
@@ -221,7 +223,7 @@ fun TransferBottomSheet(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Transferir", style = MaterialTheme.typography.bodyMedium, color = tint)
+                        Text(stringResource(R.string.dialog_transfer), style = MaterialTheme.typography.bodyMedium, color = tint)
                         Spacer(Modifier.width(4.dp))
                         Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
                     }
@@ -233,10 +235,10 @@ fun TransferBottomSheet(
     if (showNonCubanError) {
         AlertDialog(
             onDismissRequest = { showNonCubanError = false },
-            title = { Text("Número no válido") },
-            text = { Text("El número seleccionado no es un número cubano (+53). Solo se puede transferir saldo a números cubanos.") },
+            title = { Text(stringResource(R.string.dialog_invalid_number)) },
+            text = { Text(stringResource(R.string.dialog_non_cuban_number)) },
             confirmButton = {
-                TextButton(onClick = { showNonCubanError = false }) { Text("Aceptar") }
+                TextButton(onClick = { showNonCubanError = false }) { Text(stringResource(R.string.action_accept)) }
             }
         )
     }

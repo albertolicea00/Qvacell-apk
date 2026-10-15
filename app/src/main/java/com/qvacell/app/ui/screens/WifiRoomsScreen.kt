@@ -1,5 +1,7 @@
 package com.qvacell.app.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -53,7 +55,7 @@ fun WifiProvinceListScreen(onProvinceSelected: (String) -> Unit, onBack: (() -> 
     Scaffold(
         topBar = {
             SearchableTopAppBar(
-                title = "Salas de Navegación",
+                title = stringResource(R.string.title_wifi_rooms),
                 query = query,
                 onQueryChange = { query = it },
                 searching = searching,
@@ -75,7 +77,7 @@ fun WifiProvinceListScreen(onProvinceSelected: (String) -> Unit, onBack: (() -> 
                     modifier = Modifier.size(48.dp)
                 )
                 Text(
-                    "Sin resultados para \"$query\"",
+                    stringResource(R.string.no_results_for, query),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -103,7 +105,7 @@ fun WifiProvinceListScreen(onProvinceSelected: (String) -> Unit, onBack: (() -> 
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(province.province, style = MaterialTheme.typography.bodyLarge)
                                     Text(
-                                        "${province.rooms.size} salas · ${province.hotspots.size} municipios con WiFi",
+                                        stringResource(R.string.wifi_rooms_summary, province.rooms.size, province.hotspots.size),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -155,7 +157,7 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
         topBar = {
             SearchableTopAppBar(
                 title = provinceName,
-                subtitle = "Salas de Navegación",
+                subtitle = stringResource(R.string.title_wifi_rooms),
                 query = query,
                 onQueryChange = { query = it },
                 searching = searching,
@@ -177,7 +179,7 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
                     modifier = Modifier.size(48.dp)
                 )
                 Text(
-                    "Sin resultados para \"$query\"",
+                    stringResource(R.string.no_results_for, query),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -194,7 +196,7 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
                 item {
                     Column {
                         Text(
-                            "Salas de Navegación",
+                            stringResource(R.string.title_wifi_rooms),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -212,10 +214,8 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(room.name, style = MaterialTheme.typography.bodyLarge)
-                                        val details = buildString {
-                                            if (!room.address.isNullOrBlank()) append(room.address)
-                                            room.positions?.let { append(" · $it puestos") }
-                                        }
+                                        val positionsText = room.positions?.let { stringResource(R.string.wifi_rooms_positions, it) }
+                                        val details = listOfNotNull(room.address?.takeIf { it.isNotBlank() }, positionsText).joinToString(" · ")
                                         if (details.isNotBlank()) {
                                             Text(
                                                 details,
@@ -229,7 +229,7 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
                                     }) {
                                         Icon(
                                             Icons.Filled.Place,
-                                            contentDescription = "Ver en mapa",
+                                            contentDescription = stringResource(R.string.wifi_view_on_map),
                                             tint = MaterialTheme.colorScheme.primary
                                         )
                                     }
@@ -245,7 +245,7 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
             if (filteredHotspots.isNotEmpty()) {
                 item {
                     Text(
-                        "Puntos WiFi por Municipio",
+                        stringResource(R.string.wifi_hotspots_by_municipality),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -277,7 +277,7 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
                                 )
                                 Icon(
                                     imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                                    contentDescription = if (isExpanded) "Contraer" else "Expandir"
+                                    contentDescription = if (isExpanded) stringResource(R.string.action_collapse) else stringResource(R.string.action_expand)
                                 )
                             }
                             if (isExpanded) {
@@ -301,7 +301,7 @@ fun WifiProvinceDetailScreen(provinceName: String, onBack: (() -> Unit)? = null)
                                             ) {
                                                 Icon(
                                                     Icons.Filled.Place,
-                                                    contentDescription = "Ver en mapa",
+                                                    contentDescription = stringResource(R.string.wifi_view_on_map),
                                                     tint = MaterialTheme.colorScheme.primary,
                                                     modifier = Modifier.size(18.dp)
                                                 )

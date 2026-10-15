@@ -1,5 +1,7 @@
 package com.qvacell.app.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import android.Manifest
 import android.content.pm.PackageManager
 import android.widget.Toast
@@ -63,12 +65,12 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
     var historyImporting by remember { mutableStateOf(false) }
 
     val cardTapModeLabel = when (cardTapMode) {
-        "long_confirm" -> "Presionar + confirmación"
-        "long" -> "Solo Presionar"
-        "tap" -> "Un tap"
-        "double_tap" -> "Doble tap"
-        "triple_tap" -> "Triple tap"
-        else -> "Un tap + confirmación"
+        "long_confirm" -> stringResource(R.string.dashboard_setting_long_confirm)
+        "long" -> stringResource(R.string.dashboard_setting_long)
+        "tap" -> stringResource(R.string.dashboard_setting_tap)
+        "double_tap" -> stringResource(R.string.dashboard_setting_double_tap)
+        "triple_tap" -> stringResource(R.string.dashboard_setting_triple_tap)
+        else -> stringResource(R.string.dashboard_setting_tap_confirm)
     }
 
     val ussdCapturePermissionLauncher = rememberLauncherForActivityResult(
@@ -99,7 +101,7 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                     settings.setHasRunSmsBackfill(true)
                     settings.setSmsHistoryEnabled(true)
                 } else {
-                    Toast.makeText(context, "No se pudo leer el historial de SMS", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.dashboard_setting_sms_history_error), Toast.LENGTH_SHORT).show()
                 }
             } finally {
                 historyImporting = false
@@ -117,7 +119,7 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("Dashboard Dinámico") },
+                title = { Text(stringResource(R.string.title_dashboard_settings)) },
                 navigationIcon = { BackNavigationIcon(onBack) }
             )
         }
@@ -128,29 +130,29 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                 .verticalScroll(rememberScrollState())
                 .padding(vertical = 8.dp)
         ) {
-            OptionsSection(header = "Interacción") {
+            OptionsSection(header = stringResource(R.string.dashboard_setting_interaction)) {
                 OptionsRow(
-                    headline = "Acción de consulta USSD",
+                    headline = stringResource(R.string.dashboard_setting_ussd_action),
                     supporting = cardTapModeLabel,
                     onClick = { showCardTapModeSheet = true }
                 )
                 OptionsDivider()
                 OptionsRow(
-                    headline = "Animación de carga",
+                    headline = stringResource(R.string.dashboard_setting_loading),
                     supporting = when (loadingStyle) {
-                        "bottom" -> "Línea desde el centro"
-                        "perimeter" -> "Recorrido circular"
-                        "skeleton" -> "Esqueleto"
-                        else -> "Borde animado"
+                        "bottom" -> stringResource(R.string.dashboard_setting_center_line)
+                        "perimeter" -> stringResource(R.string.dashboard_setting_circular)
+                        "skeleton" -> stringResource(R.string.dashboard_setting_skeleton)
+                        else -> stringResource(R.string.dashboard_setting_animated_border)
                     },
                     onClick = { showLoadingStyleSheet = true }
                 )
             }
 
-            OptionsSection(header = "Captura de datos (experimental)") {
+            OptionsSection(header = stringResource(R.string.dashboard_setting_capture)) {
                 OptionsRow(
-                    headline = "Consulta automática de saldo",
-                    supporting = "Lee la respuesta USSD sin abrir el marcador, usando el mismo permiso de Compras.",
+                    headline = stringResource(R.string.dashboard_setting_auto_balance),
+                    supporting = stringResource(R.string.dashboard_setting_auto_balance_desc),
                     trailingContent = {
                         Switch(
                             checked = ussdCaptureEnabled,
@@ -166,8 +168,8 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                 )
                 OptionsDivider()
                 OptionsRow(
-                    headline = "Detectar nuevos SMS",
-                    supporting = "Lee los nuevos SMS de ETECSA. Si permites el registro de llamadas, también estima tu consumo.",
+                    headline = stringResource(R.string.dashboard_setting_new_sms),
+                    supporting = stringResource(R.string.dashboard_setting_new_sms_desc),
                     trailingContent = {
                         Switch(
                             checked = smsCaptureEnabled,
@@ -189,9 +191,9 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                 )
                 OptionsDivider()
                 OptionsRow(
-                    headline = "Leer historial de SMS",
-                    supporting = if (historyImporting) "Importando historial..." else
-                        "Importa una vez los SMS anteriores de ETECSA para completar los datos del dashboard.",
+                    headline = stringResource(R.string.dashboard_setting_sms_history),
+                    supporting = if (historyImporting) stringResource(R.string.dashboard_setting_importing) else
+                        stringResource(R.string.dashboard_setting_sms_history_desc),
                     trailingContent = {
                         Switch(
                             checked = smsHistoryEnabled,
@@ -213,8 +215,8 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
 
             OptionsSection(header = "") {
                 OptionsRow(
-                    headline = "Ayuda del Dashboard",
-                    supporting = "Conoce cómo funciona el dashboard dinámico",
+                    headline = stringResource(R.string.dashboard_menu_help),
+                    supporting = stringResource(R.string.dashboard_setting_help_desc),
                     icon = Icons.AutoMirrored.Filled.Help,
                     onClick = onNavigateToHelp
                 )
@@ -226,23 +228,23 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
         ModalBottomSheet(onDismissRequest = { showCardTapModeSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "Acción de consulta USSD",
+                    stringResource(R.string.dashboard_setting_ussd_action),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    "Define cómo interactuar con las cards para realizar la marcación USSD.",
+                    stringResource(R.string.dashboard_setting_ussd_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
                 listOf(
-                    "tap_confirm" to "Un tap + confirmación",
-                    "long_confirm" to "Presionar + confirmación",
-                    "long" to "Solo Presionar",
-                    "tap" to "Un tap",
-                    "double_tap" to "Doble tap",
-                    "triple_tap" to "Triple tap"
+                    "tap_confirm" to stringResource(R.string.dashboard_setting_tap_confirm),
+                    "long_confirm" to stringResource(R.string.dashboard_setting_long_confirm),
+                    "long" to stringResource(R.string.dashboard_setting_long),
+                    "tap" to stringResource(R.string.dashboard_setting_tap),
+                    "double_tap" to stringResource(R.string.dashboard_setting_double_tap),
+                    "triple_tap" to stringResource(R.string.dashboard_setting_triple_tap)
                 ).forEach { (mode, label) ->
                     Row(
                         modifier = Modifier
@@ -266,18 +268,18 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
     if (showLoadingStyleSheet) {
         ModalBottomSheet(onDismissRequest = { showLoadingStyleSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text("Animación de carga", style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.dashboard_setting_loading), style = MaterialTheme.typography.titleLarge)
                 Text(
-                    "Elige cómo se indica la consulta en cada tarjeta del dashboard dinámico.",
+                    stringResource(R.string.dashboard_setting_loading_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                 )
                 listOf(
-                    "sweep" to "Borde animado",
-                    "bottom" to "Línea desde el centro",
-                    "perimeter" to "Recorrido circular",
-                    "skeleton" to "Esqueleto"
+                    "sweep" to stringResource(R.string.dashboard_setting_animated_border),
+                    "bottom" to stringResource(R.string.dashboard_setting_center_line),
+                    "perimeter" to stringResource(R.string.dashboard_setting_circular),
+                    "skeleton" to stringResource(R.string.dashboard_setting_skeleton)
                 ).forEach { (style, label) ->
                     Row(
                         modifier = Modifier.fillMaxWidth().clickable {

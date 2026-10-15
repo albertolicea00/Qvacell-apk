@@ -82,6 +82,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -103,22 +105,22 @@ import com.qvacell.app.ui.resolveAndroidIcon
 import kotlinx.coroutines.launch
 
 private val ACCENT_COLOR_OPTIONS = listOf(
-    "#0099CC" to "Cian (predeterminado)",
-    "#1976D2" to "Azul",
-    "#6750A4" to "Morado",
-    "#2E7D32" to "Verde",
-    "#EF6C00" to "Naranja",
-    "#D81B60" to "Rosa"
+    "#0099CC" to R.string.options_color_cyan,
+    "#1976D2" to R.string.options_color_blue,
+    "#6750A4" to R.string.options_color_purple,
+    "#2E7D32" to R.string.options_color_green,
+    "#EF6C00" to R.string.options_color_orange,
+    "#D81B60" to R.string.options_color_pink
 )
 
 private val INTEREST_LINKS = listOf(
-    "Login Nauta Hogar" to "https://secure.etecsa.net:8443/",
-    "Portal Nauta" to "https://www.nauta.cu/",
-    "Tienda Web ETECSA" to "https://tienda.etecsa.cu/",
-    "Páginas Amarillas de Cuba" to "https://pamarillas.cu/",
-    "Webmail Correo Nauta" to "https://webmail.nauta.cu/",
-    "Webmail Correo ENET" to "https://webmail.enet.cu/",
-    "Portal Nauta (antiguo)" to "https://www.portal.nauta.cu/",
+    R.string.options_link_nauta_home to "https://secure.etecsa.net:8443/",
+    R.string.options_link_nauta_portal to "https://www.nauta.cu/",
+    R.string.options_link_etecsa_store to "https://tienda.etecsa.cu/",
+    R.string.options_link_yellow_pages to "https://pamarillas.cu/",
+    R.string.options_link_nauta_mail to "https://webmail.nauta.cu/",
+    R.string.options_link_enet_mail to "https://webmail.enet.cu/",
+    R.string.options_link_old_portal to "https://www.portal.nauta.cu/",
 )
 
 sealed class OptionsDestination {
@@ -225,45 +227,46 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             versionTapCount = 0
             val newState = !dbSearchUnlocked
             scope.launch { settings.setDebugDatabaseSearchEnabled(newState) }
-            val message = if (newState) "Buscar en BBDD desbloqueada" else "Buscar en BBDD ocultada"
+            val message = context.getString(if (newState) R.string.options_db_unlocked else R.string.options_db_hidden)
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 
     val themeModeLabel = when (themeMode) {
-        ThemeMode.SYSTEM -> "Sistema"
-        ThemeMode.LIGHT -> "Claro"
-        ThemeMode.DARK -> "Oscuro"
+        ThemeMode.SYSTEM -> stringResource(R.string.options_theme_system)
+        ThemeMode.LIGHT -> stringResource(R.string.options_theme_light)
+        ThemeMode.DARK -> stringResource(R.string.options_theme_dark)
     }
-    val defaultTabLabel = bottomTabs.firstOrNull { it.route == defaultTab }?.label ?: "Inicio"
+    val defaultTabLabel = bottomTabs.firstOrNull { it.route == defaultTab }?.labelRes?.let { stringResource(it) } ?: stringResource(R.string.tab_home)
     val quickActionsStyleLabel = when (quickActionsStyle) {
-        "outline" -> "Contorno"
-        "list" -> "Lista"
-        else -> "Rellenas"
+        "outline" -> stringResource(R.string.options_quick_actions_outline)
+        "list" -> stringResource(R.string.options_quick_actions_list)
+        else -> stringResource(R.string.options_quick_actions_filled)
     }
-    val manualVisibilityLabel = if (manualHiddenSections.isEmpty()) "Todas visibles"
-        else "${manualHiddenSections.size} acción${if (manualHiddenSections.size > 1) "es" else ""} oculta${if (manualHiddenSections.size > 1) "s" else ""}"
-    val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second
+    val manualVisibilityLabel = if (manualHiddenSections.isEmpty()) stringResource(R.string.options_dashboards_visible_all)
+        else if (manualHiddenSections.size == 1) stringResource(R.string.options_hidden_action_singular)
+        else stringResource(R.string.options_hidden_action_plural, manualHiddenSections.size)
+    val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second?.let { stringResource(it) }
         ?: accentColor
     val autoUpdateLabel = when (autoUpdateCheck) {
-        "playstore" -> "Versión Play Store"
-        "none" -> "No buscar"
-        else -> "Versión Unlocked"
+        "playstore" -> stringResource(R.string.options_auto_update_playstore)
+        "none" -> stringResource(R.string.options_auto_update_none)
+        else -> stringResource(R.string.options_unlocked_version)
     }
     val simLabel = if (activeSims.size < 2) null
     else {
         val idx = activeSims.indexOfFirst { it.simSlotIndex == selectedSimSlot }
-        if (idx >= 0) SimUtils.simLabel(context, activeSims[idx]) else "Predeterminada del sistema"
+        if (idx >= 0) SimUtils.simLabel(context, activeSims[idx]) else stringResource(R.string.options_sim_system_default)
     }
 
-    Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text("Opciones") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text(stringResource(R.string.tab_options)) }) }) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                OptionsSection(header = "Cuenta") {
+                OptionsSection(header = stringResource(R.string.options_section_account_short)) {
                     if (payPerUseCode != null) {
                         OptionsRow(
                             headline = payPerUseCode.title.value,
@@ -303,23 +306,23 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     }
                     if (advanceBalanceCodes.isNotEmpty()) {
                         OptionsRow(
-                            headline = "Adelanta Saldo",
-                            supporting = "Solicita un adelanto de saldo a ETECSA",
+                            headline = stringResource(R.string.options_account_advance_balance),
+                            supporting = stringResource(R.string.options_account_advance_balance_desc),
                             icon = Icons.Filled.Payments,
                             onClick = { showAdvanceBalanceSheet = true }
                         )
                         OptionsDivider()
                     }
                     OptionsRow(
-                        headline = "Gestionar Plan Amigo",
-                        supporting = "Activa, desactiva o modifica tu Plan Amigo",
+                        headline = stringResource(R.string.help_friends_plan_q),
+                        supporting = stringResource(R.string.options_account_friends_plan_desc),
                         icon = Icons.Filled.People,
                         onClick = { onNavigate(OptionsDestination.FriendsPlanManage) }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Gestionar PIN de Transferencia",
-                        supporting = "Cambia o guarda tu PIN de transferencia",
+                        headline = stringResource(R.string.options_manage_transfer_pin),
+                        supporting = stringResource(R.string.options_account_transfer_pin_desc),
                         icon = Icons.Filled.Lock,
                         onClick = { onNavigate(OptionsDestination.TransferPinManage) }
                     )
@@ -327,39 +330,39 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             }
 
             item {
-                OptionsSection(header = "Utilidades") {
+                OptionsSection(header = stringResource(R.string.options_section_tools_short)) {
                     OptionsRow(
-                        headline = "Recordatorios",
-                        supporting = "Avisos para recargar o comprar paquetes",
+                        headline = stringResource(R.string.reminders_title),
+                        supporting = stringResource(R.string.options_tools_reminders_desc),
                         icon = Icons.Filled.Notifications,
                         onClick = { onNavigate(OptionsDestination.Reminders) }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Servicios por SMS",
-                        supporting = "Horóscopos, noticias, recetas y más por SMS",
+                        headline = stringResource(R.string.help_sms_title),
+                        supporting = stringResource(R.string.options_tools_sms_desc),
                         icon = Icons.Filled.Sms,
                         onClick = { onNavigate(OptionsDestination.SmsServices) }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Salas de Navegación WiFi",
-                        supporting = "Ubica salas y puntos de acceso por provincia",
+                        headline = stringResource(R.string.options_wifi_rooms),
+                        supporting = stringResource(R.string.options_tools_wifi_desc),
                         icon = Icons.Filled.Wifi,
                         onClick = { onNavigate(OptionsDestination.WifiRooms) }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Buscar en Directorio",
-                        supporting = "Directorio telefónico de ETECSA (en desarrollo)",
+                        headline = stringResource(R.string.options_tools_directory),
+                        supporting = stringResource(R.string.options_tools_directory_desc),
                         icon = Icons.Filled.Search,
                         onClick = { onNavigate(OptionsDestination.YellowPagesSearch) }
                     )
                     if (dbSearchUnlocked) {
                         OptionsDivider()
                         OptionsRow(
-                            headline = "Buscar en BBDD",
-                            supporting = "Búsqueda inversa por número en una base de datos local",
+                            headline = stringResource(R.string.options_tools_db_search),
+                            supporting = stringResource(R.string.options_tools_db_search_desc),
                             icon = Icons.Filled.Storage,
                             onClick = { onNavigate(OptionsDestination.DirectorySearch) }
                         )
@@ -368,15 +371,15 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             }
 
             item {
-                OptionsSection(header = "Preferencias") {
+                OptionsSection(header = stringResource(R.string.options_section_preferences)) {
                     OptionsRow(
-                        headline = "Tema",
+                        headline = stringResource(R.string.options_theme),
                         supporting = themeModeLabel,
                         onClick = { showThemeSheet = true }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Color de acento",
+                        headline = stringResource(R.string.options_accent_color),
                         supporting = accentColorLabel,
                         onClick = { showAccentColorSheet = true },
                         trailingContent = {
@@ -390,20 +393,20 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Pestaña predeterminada",
+                        headline = stringResource(R.string.options_default_tab),
                         supporting = defaultTabLabel,
                         onClick = { showDefaultTabSheet = true }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Llamadas *99 y ocultas en Contactos",
-                        supporting = if (contactCallMode == "direct") "Marcación directa" else "App Teléfono",
+                        headline = stringResource(R.string.options_pref_call_contacts),
+                        supporting = if (contactCallMode == "direct") stringResource(R.string.options_pref_call_contacts_direct) else stringResource(R.string.options_pref_call_contacts_dialer),
                         onClick = { showContactCallModeSheet = true }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Aviso de señal celular",
-                        supporting = "Muestra un banner con la calidad de la señal antes de marcar",
+                        headline = stringResource(R.string.options_pref_network_title),
+                        supporting = stringResource(R.string.options_pref_network_desc),
                         trailingContent = {
                             Switch(
                                 checked = showNetworkStatus,
@@ -415,8 +418,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Acción sin Confirmación",
-                        supporting = "En Compras, marca el código saltando el paso de confirmación de ETECSA.",
+                        headline = stringResource(R.string.options_pref_quick_title),
+                        supporting = stringResource(R.string.options_pref_quick_desc),
                         trailingContent = {
                             Switch(
                                 checked = quickPurchaseNoConfirm,
@@ -428,7 +431,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Buscar actualizaciones",
+                        headline = stringResource(R.string.options_auto_update),
                         supporting = autoUpdateLabel,
                         onClick = { showAutoUpdateSheet = true }
                     )
@@ -436,7 +439,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         OptionsDivider()
                         val selectedSim = activeSims.firstOrNull { it.simSlotIndex == selectedSimSlot }
                         OptionsRow(
-                            headline = "SIM predeterminada",
+                            headline = stringResource(R.string.options_sim_title),
                             supporting = simLabel,
                             trailingContent = selectedSim?.let { sim ->
                                 {
@@ -455,23 +458,23 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             }
 
             item {
-                OptionsSection(header = "Dashboards") {
+                OptionsSection(header = stringResource(R.string.options_dashboards_section)) {
                     OptionsRow(
-                        headline = "Estilo de acciones",
+                        headline = stringResource(R.string.options_dashboards_style),
                         supporting = quickActionsStyleLabel,
                         onClick = { showQuickActionsStyleSheet = true }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Acciones visibles",
+                        headline = stringResource(R.string.options_dashboards_visible),
                         supporting = manualVisibilityLabel,
                         onClick = { showManualVisibilitySheet = true }
                     )
                     if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
                         OptionsDivider()
                         OptionsRow(
-                            headline = "Funcionamiento del Dashboard",
-                            supporting = "Conoce y configura cómo funciona nuestro dashboard dinámico",
+                            headline = stringResource(R.string.options_dashboards_how_it_works),
+                            supporting = stringResource(R.string.options_dashboards_how_it_works_desc),
                             onClick = { onNavigate(OptionsDestination.DashboardSettings) }
                         )
                     }
@@ -479,45 +482,45 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             }
 
             item {
-                OptionsSection(header = "Acerca de") {
+                OptionsSection(header = stringResource(R.string.options_section_about)) {
                     OptionsRow(
-                        headline = "Enlaces de interés",
-                        supporting = "Portales y servicios en línea de ETECSA",
+                        headline = stringResource(R.string.options_about_links),
+                        supporting = stringResource(R.string.options_about_links_desc),
                         icon = Icons.Filled.Link,
                         onClick = { showInterestLinksSheet = true }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Identificador de Llamadas",
-                        supporting = if (isCallerIdRoleHeld) "Activo" else "Solicitar rol de selección de llamadas",
+                        headline = stringResource(R.string.options_about_caller_id),
+                        supporting = if (isCallerIdRoleHeld) stringResource(R.string.options_about_caller_id_active) else stringResource(R.string.options_about_caller_id_inactive),
                         icon = if (isCallerIdRoleHeld) Icons.Filled.PhoneInTalk else Icons.Filled.PhoneDisabled,
                         onClick = { onNavigate(OptionsDestination.CallerID) }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Widgets de Inicio",
-                        supporting = "Widgets para la pantalla de inicio de tu teléfono",
+                        headline = stringResource(R.string.options_about_widgets),
+                        supporting = stringResource(R.string.options_about_widgets_desc),
                         icon = Icons.Filled.Widgets,
                         onClick = { onNavigate(OptionsDestination.HomeWidgets) }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Atajos de Voz (Gemini)",
-                        supporting = "Controla Qvacell con tu voz mediante Gemini",
+                        headline = stringResource(R.string.options_about_gemini),
+                        supporting = stringResource(R.string.options_about_gemini_desc),
                         icon = Icons.Filled.Mic,
                         onClick = { onNavigate(OptionsDestination.VoiceShortcuts) }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Ayuda",
-                        supporting = "Preguntas frecuentes y recursos de soporte",
+                        headline = stringResource(R.string.help_title),
+                        supporting = stringResource(R.string.options_about_help_desc),
                         icon = Icons.AutoMirrored.Filled.Help,
                         onClick = { onNavigate(OptionsDestination.Help) }
                     )
                     OptionsDivider()
                     OptionsRow(
-                        headline = "Buscar Actualizaciones",
-                        supporting = if (updateChecking) "Buscando..." else "Verificar si hay una nueva versión disponible",
+                        headline = stringResource(R.string.options_about_updates),
+                        supporting = if (updateChecking) stringResource(R.string.options_checking) else stringResource(R.string.options_about_updates_desc),
                         icon = Icons.Filled.SystemUpdate,
                         trailingContent = if (updateChecking) ({
                             CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -534,10 +537,10 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                                             showUpdateDialog = true
                                         }
                                         UpdateCheckResult.UpToDate -> Toast.makeText(
-                                            context, "Estás usando la versión más reciente", Toast.LENGTH_SHORT
+                                            context, context.getString(R.string.options_update_latest), Toast.LENGTH_SHORT
                                         ).show()
                                         UpdateCheckResult.Failed -> Toast.makeText(
-                                            context, "No se pudo comprobar la versión. Revisa tu conexión e inténtalo de nuevo.", Toast.LENGTH_LONG
+                                            context, context.getString(R.string.options_update_failed), Toast.LENGTH_LONG
                                         ).show()
                                     }
                                 }
@@ -557,7 +560,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            "No afiliado, respaldado ni patrocinado por ETECSA. Los códigos pueden cambiar en cualquier momento a discreción del operador.",
+                            stringResource(R.string.options_about_disclaimer),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
@@ -574,7 +577,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        "Versión ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                        stringResource(R.string.options_version_label, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         textAlign = TextAlign.Center
@@ -594,7 +597,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ModalBottomSheet(onDismissRequest = { showSimSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "SIM predeterminada",
+                    stringResource(R.string.options_sim_title),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -616,9 +619,9 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Column(modifier = Modifier.padding(start = 12.dp)) {
-                        Text("Predeterminada", style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(R.string.options_sim_default_label), style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            "Usar ajuste o selección del sistema",
+                            stringResource(R.string.options_sim_default_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -668,11 +671,11 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     if (showThemeSheet) {
         ModalBottomSheet(onDismissRequest = { showThemeSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Text("Tema", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
+                Text(stringResource(R.string.options_theme), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
                 listOf(
-                    ThemeMode.SYSTEM to "Sistema",
-                    ThemeMode.LIGHT to "Claro",
-                    ThemeMode.DARK to "Oscuro"
+                    ThemeMode.SYSTEM to stringResource(R.string.options_theme_system),
+                    ThemeMode.LIGHT to stringResource(R.string.options_theme_light),
+                    ThemeMode.DARK to stringResource(R.string.options_theme_dark)
                 ).forEach { (mode, label) ->
                     Row(
                         modifier = Modifier
@@ -696,7 +699,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ModalBottomSheet(onDismissRequest = { showDefaultTabSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "Pestaña predeterminada",
+                    stringResource(R.string.options_default_tab),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -712,7 +715,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = defaultTab == tab.route, onClick = null)
-                        Text(tab.label, modifier = Modifier.padding(start = 8.dp))
+                        Text(stringResource(tab.labelRes), modifier = Modifier.padding(start = 8.dp))
                     }
                 }
             }
@@ -723,13 +726,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ModalBottomSheet(onDismissRequest = { showContactCallModeSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "Llamadas *99 y ocultas en Contactos",
+                    stringResource(R.string.options_pref_call_contacts),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 listOf(
-                    "dialer" to "Abrir App Teléfono",
-                    "direct" to "Marcación directa"
+                    "dialer" to stringResource(R.string.options_open_phone_app),
+                    "direct" to stringResource(R.string.options_pref_call_contacts_direct)
                 ).forEach { (mode, label) ->
                     Row(
                         modifier = Modifier
@@ -763,7 +766,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ModalBottomSheet(onDismissRequest = { showAccentColorSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "Color de acento",
+                    stringResource(R.string.options_accent_color),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -785,7 +788,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             contentAlignment = Alignment.Center
                         ) {
                             if (isSelected) {
-                                Icon(Icons.Filled.Check, contentDescription = label, tint = Color.White)
+                                Icon(Icons.Filled.Check, contentDescription = stringResource(label), tint = Color.White)
                             }
                         }
                     }
@@ -798,7 +801,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             .clickable { showCustomColorInput = true },
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Filled.Add, contentDescription = "Personalizado")
+                        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.recurrence_custom))
                     }
                 }
 
@@ -827,8 +830,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             }
             if (showCustomColorInput) {
                 DialogActionRow(
-                    cancelText = "Cancelar",
-                    confirmText = "Aplicar",
+                    cancelText = stringResource(R.string.action_cancel),
+                    confirmText = stringResource(R.string.action_apply),
                     onCancel = { showCustomColorInput = false },
                     onConfirm = {
                         val hex = "#%06X".format(0xFFFFFF and customColor.toArgb())
@@ -845,14 +848,14 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ModalBottomSheet(onDismissRequest = { showQuickActionsStyleSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "Estilo de acciones",
+                    stringResource(R.string.options_dashboards_style),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 listOf(
-                    "filled" to "Rellenas",
-                    "outline" to "Contorno",
-                    "list" to "Lista"
+                    "filled" to stringResource(R.string.options_quick_actions_filled),
+                    "outline" to stringResource(R.string.options_quick_actions_outline),
+                    "list" to stringResource(R.string.options_quick_actions_list)
                 ).forEach { (style, label) ->
                     Row(
                         modifier = Modifier
@@ -877,15 +880,15 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ModalBottomSheet(onDismissRequest = { showManualVisibilitySheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "Acciones visibles",
+                    stringResource(R.string.options_dashboards_visible),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 listOf(
                     // "consultas" to "Consultas",
-                    "transferir" to "Transferir Saldo",
-                    "recargar" to "Recargar Saldo",
-                    "adelanta" to "Adelanta Saldo"
+                    "transferir" to stringResource(R.string.reminders_template_transfer_title),
+                    "recargar" to stringResource(R.string.template_recharge_card),
+                    "adelanta" to stringResource(R.string.options_account_advance_balance)
                 ).forEach { (key, label) ->
                     val isHidden = key in manualHiddenSections
                     Row(
@@ -912,14 +915,14 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ModalBottomSheet(onDismissRequest = { showAutoUpdateSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
-                    "Buscar actualizaciones",
+                    stringResource(R.string.options_auto_update),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 listOf(
-                    "unlocked" to "Versión Unlocked",
-                    "playstore" to "Versión Play Store",
-                    "none" to "No buscar"
+                    "unlocked" to stringResource(R.string.options_unlocked_version),
+                    "playstore" to stringResource(R.string.options_auto_update_playstore),
+                    "none" to stringResource(R.string.options_auto_update_none)
                 ).forEach { (mode, label) ->
                     Row(
                         modifier = Modifier
@@ -946,11 +949,11 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             "playstore" -> info.storeApkUrl ?: info.htmlUrl
             else -> info.unlockedApkUrl ?: info.htmlUrl
         }
-        val titleText = if (info.isFlavorUpgrade) "Versión Unlocked disponible" else "Nueva actualización disponible"
+        val titleText = if (info.isFlavorUpgrade) stringResource(R.string.options_update_unlocked_title) else stringResource(R.string.options_update_available_title_new)
         val bodyText = if (info.isFlavorUpgrade) {
-            "Pasa a la edición Unlocked para disfrutar de la experiencia completa de Qvacell.\n\nInstalada: v${BuildConfig.VERSION_NAME}  →  Disponible: v${info.versionName}"
+            stringResource(R.string.options_update_upgrade_desc, BuildConfig.VERSION_NAME, info.versionName)
         } else {
-            "Hay una nueva versión lista para instalar.\n\nInstalada: v${BuildConfig.VERSION_NAME}  →  Nueva: v${info.versionName}"
+            stringResource(R.string.options_update_new_desc, BuildConfig.VERSION_NAME, info.versionName)
         }
         AlertDialog(
             onDismissRequest = { showUpdateDialog = false },
@@ -963,12 +966,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(downloadUrl))
                     context.startActivity(intent)
                 }) {
-                    Text("Descargar")
+                    Text(stringResource(R.string.options_update_download))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showUpdateDialog = false }) {
-                    Text("Ahora no")
+                    Text(stringResource(R.string.options_update_not_now))
                 }
             }
         )
@@ -987,7 +990,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    "Adelanta Saldo",
+                    stringResource(R.string.options_account_advance_balance),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
@@ -1048,7 +1051,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    "Enlaces de interés",
+                    stringResource(R.string.options_about_links),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
@@ -1068,7 +1071,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(title, style = MaterialTheme.typography.bodyLarge,
+                                    Text(stringResource(title), style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.primary)
                                     Text(url, style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -1,5 +1,7 @@
 package com.qvacell.app.ui.components
 
+import com.qvacell.app.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -59,7 +61,7 @@ fun ContactRow(
         backgroundContent = {
             val (color, icon, label, alignment) = when (dismissState.dismissDirection) {
                 SwipeToDismissBoxValue.StartToEnd ->
-                    SwipeBackground(MaterialTheme.colorScheme.secondary, Icons.Filled.Security, "Oculto", Alignment.CenterStart)
+                    SwipeBackground(MaterialTheme.colorScheme.secondary, Icons.Filled.Security, stringResource(R.string.contact_hidden), Alignment.CenterStart)
                 SwipeToDismissBoxValue.EndToStart ->
                     SwipeBackground(MaterialTheme.colorScheme.primary, Icons.Filled.Call, "*99", Alignment.CenterEnd)
                 SwipeToDismissBoxValue.Settled ->

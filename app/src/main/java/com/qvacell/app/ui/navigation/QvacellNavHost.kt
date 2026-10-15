@@ -48,8 +48,10 @@ import com.qvacell.app.service.AppTelemetry
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -204,7 +206,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                         ) {
                             Icon(Icons.Filled.Warning, contentDescription = null, tint = warningColor, modifier = Modifier.size(16.dp))
                             Text(
-                                refreshFailure ?: "Sin servicio, las actualizaciones del panel quedan en pausa.",
+                                refreshFailure ?: stringResource(R.string.network_no_service_pause),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = warningColor,
                                 modifier = Modifier.padding(start = 8.dp)
@@ -230,6 +232,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         }
+                        val tabLabel = stringResource(tab.labelRes)
                         Column(
                             modifier = Modifier
                                 .weight(1f)
@@ -269,12 +272,12 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                             }
                             Icon(
                                 icon,
-                                contentDescription = tab.label,
+                                contentDescription = tabLabel,
                                 tint = tint,
                                 modifier = Modifier.size(22.dp)
                             )
                             Text(
-                                tab.label,
+                                tabLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = tint,
                                 modifier = Modifier.padding(top = 1.dp)
@@ -298,7 +301,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 .consumeWindowInsets(padding)
         ) {
             composable(BottomTab.Helplines.route) {
-                CategoryListScreen(categoryId = "helplines", title = "Líneas de Ayuda")
+                CategoryListScreen(categoryId = "helplines", title = stringResource(R.string.title_helplines))
             }
             composable(BottomTab.Contacts.route) {
                 ContactsListScreen()
@@ -316,7 +319,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             composable(BottomTab.Purchase.route) {
                 CategoryListScreen(
                     categoryId = "purchase",
-                    title = "Compras",
+                    title = stringResource(R.string.title_purchase),
                     onNavigateToSms = { navController.navigate(Routes.SMS_SERVICES) }
                 )
             }
@@ -380,7 +383,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             composable(Routes.SMS_SERVICES) {
                 CategoryListScreen(
                     categoryId = "sms",
-                    title = "Servicios por SMS",
+                    title = stringResource(R.string.title_sms_services),
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -414,8 +417,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             }
             composable(Routes.YELLOW_PAGES_SEARCH) {
                 PlaceholderScreen(
-                    title = "Buscar en Directorio",
-                    description = "Búsqueda en el directorio telefónico de ETECSA — función en desarrollo.",
+                    title = stringResource(R.string.title_directory_search),
+                    description = stringResource(R.string.title_directory_search_placeholder),
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -439,8 +442,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             }
             composable(Routes.DASHBOARD_EVENTS) {
                 PlaceholderScreen(
-                    title = "Eventos",
-                    description = "Calendario de eventos — próximamente.",
+                    title = stringResource(R.string.title_dashboard_events),
+                    description = stringResource(R.string.title_dashboard_events_placeholder),
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -452,8 +455,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             }
             composable(Routes.CALLER_ID) {
                 PlaceholderScreen(
-                    title = "Identificador de Llamadas",
-                    description = "Identifica llamadas entrantes con información del directorio — función en desarrollo.",
+                    title = stringResource(R.string.title_caller_id),
+                    description = stringResource(R.string.title_caller_id_placeholder),
                     onBack = { navController.popBackStack() }
                 )
             }

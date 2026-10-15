@@ -1,5 +1,7 @@
 package com.qvacell.app.ui.components
 
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import android.telephony.SubscriptionInfo
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -74,12 +76,12 @@ fun SimSelectorIcon() {
         ) {
             Icon(
                 Icons.Filled.SimCard,
-                contentDescription = currentSim?.let { SimUtils.simLabel(context, it) } ?: "Predeterminada",
+                contentDescription = currentSim?.let { SimUtils.simLabel(context, it) } ?: stringResource(R.string.options_sim_default_label),
                 modifier = Modifier.size(18.dp),
                 tint = currentSim?.let { SimUtils.simColor(it.simSlotIndex) } ?: MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = if (isDefault) "Auto" else (currentNumber ?: "SIM ${(currentSim?.simSlotIndex ?: 0) + 1}"),
+                text = if (isDefault) stringResource(R.string.sim_auto) else (currentNumber ?: "SIM ${(currentSim?.simSlotIndex ?: 0) + 1}"),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(start = 6.dp)
@@ -95,7 +97,7 @@ fun SimSelectorIcon() {
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Text(
-                    "Seleccionar SIM",
+                    stringResource(R.string.sim_select),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -121,11 +123,11 @@ fun SimSelectorIcon() {
                     )
                     Column(modifier = Modifier.padding(start = 12.dp)) {
                         Text(
-                            "Predeterminada",
+                            stringResource(R.string.options_sim_default_label),
                             style = MaterialTheme.typography.bodyLarge
                         )
                         Text(
-                            "Usar ajuste o selección del sistema",
+                            stringResource(R.string.options_sim_default_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

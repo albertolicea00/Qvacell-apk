@@ -1,14 +1,16 @@
 package com.qvacell.app.model
 
+import androidx.annotation.StringRes
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.qvacell.app.R
 
-enum class ReminderRecurrence(val label: String) {
-    NONE("Una vez"),
-    DAILY("Cada día"),
-    WEEKLY("Cada semana"),
-    MONTHLY("Cada mes"),
-    CUSTOM("Personalizado");
+enum class ReminderRecurrence(val label: String, @StringRes val labelRes: Int) {
+    NONE("Una vez", R.string.recurrence_none),
+    DAILY("Cada día", R.string.recurrence_daily),
+    WEEKLY("Cada semana", R.string.recurrence_weekly),
+    MONTHLY("Cada mes", R.string.recurrence_monthly),
+    CUSTOM("Personalizado", R.string.recurrence_custom);
 }
 
 data class ReminderTemplate(
@@ -30,6 +32,14 @@ data class ReminderTemplate(
 
         fun forKey(key: String?): ReminderTemplate =
             quickTemplates.find { it.key == key } ?: custom
+
+        @StringRes
+        fun titleRes(key: String?): Int = when (key) {
+            "purchase-package" -> R.string.template_purchase_package
+            "transfer-direct" -> R.string.template_transfer_direct
+            "recharge-card" -> R.string.template_recharge_card
+            else -> R.string.template_custom
+        }
     }
 }
 

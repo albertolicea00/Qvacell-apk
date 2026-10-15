@@ -2,6 +2,7 @@ package com.qvacell.app.service
 
 import android.content.Context
 import android.provider.ContactsContract
+import com.qvacell.app.R
 import com.qvacell.app.data.QvacellDatabase
 import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.WrappedCaller
@@ -47,20 +48,20 @@ class ContactsRepository(private val context: Context) {
 
             while (cursor.moveToNext()) {
                 val id = cursor.getString(idIdx) ?: continue
-                val name = cursor.getString(nameIdx) ?: "Sin nombre"
+                val name = cursor.getString(nameIdx) ?: context.getString(R.string.contacts_unnamed)
                 val number = cursor.getString(numberIdx) ?: continue
                 val typeInt = cursor.getInt(typeIdx)
                 val customLabel = cursor.getString(labelIdx)
 
                 names[id] = name
                 val normalized = CubanPhoneNumber.normalize(number)
-                val label = phoneTypeLabel(typeInt, customLabel)
+                val label = phoneTypeLabel(context, typeInt, customLabel)
                 contacts.getOrPut(id) { mutableListOf() }.add(ContactPhoneNumber(number, normalized, label))
             }
         }
 
         contacts.map { (id, numbers) ->
-            DeviceContact(id = id, name = names[id] ?: "Sin nombre", numbers = numbers)
+            DeviceContact(id = id, name = names[id] ?: context.getString(R.string.contacts_unnamed), numbers = numbers)
         }.filter { it.cubanNumbers.isNotEmpty() }
             .sortedBy { it.name.lowercase() }
     }
@@ -101,15 +102,15 @@ data class ContactEntry(
     val label: String?
 )
 
-private fun phoneTypeLabel(type: Int, customLabel: String?): String = when (type) {
-    ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> "Móvil"
-    ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> "Casa"
-    ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> "Trabajo"
-    ContactsContract.CommonDataKinds.Phone.TYPE_MAIN -> "Principal"
-    ContactsContract.CommonDataKinds.Phone.TYPE_OTHER -> "Otro"
-    ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM -> customLabel ?: "Otro"
-    ContactsContract.CommonDataKinds.Phone.TYPE_FAX_HOME -> "Fax casa"
-    ContactsContract.CommonDataKinds.Phone.TYPE_FAX_WORK -> "Fax trabajo"
-    ContactsContract.CommonDataKinds.Phone.TYPE_PAGER -> "Buscapersonas"
-    else -> "Teléfono"
+private fun phoneTypeLabel(context: Context, type: Int, customLabel: String?): String = when (type) {
+    ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE -> context.getString(R.string.contacts_type_mobile)
+    ContactsContract.CommonDataKinds.Phone.TYPE_HOME -> context.getString(R.string.contacts_type_home)
+    ContactsContract.CommonDataKinds.Phone.TYPE_WORK -> context.getString(R.string.contacts_type_work)
+    ContactsContract.CommonDataKinds.Phone.TYPE_MAIN -> context.getString(R.string.contacts_type_main)
+    ContactsContract.CommonDataKinds.Phone.TYPE_OTHER -> context.getString(R.string.contacts_type_other)
+    ContactsContract.CommonDataKinds.Phone.TYPE_CUSTOM -> customLabel ?: context.getString(R.string.contacts_type_other)
+    ContactsContract.CommonDataKinds.Phone.TYPE_FAX_HOME -> context.getString(R.string.contacts_type_fax_home)
+    ContactsContract.CommonDataKinds.Phone.TYPE_FAX_WORK -> context.getString(R.string.contacts_type_fax_work)
+    ContactsContract.CommonDataKinds.Phone.TYPE_PAGER -> context.getString(R.string.contacts_type_pager)
+    else -> context.getString(R.string.contacts_type_phone)
 }

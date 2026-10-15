@@ -44,10 +44,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import com.qvacell.app.service.ContactEntry
 import com.qvacell.app.service.TransferPinStore
 
@@ -105,20 +107,20 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.Call, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Llamar con *99", modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.contacts_call_99), modifier = Modifier.padding(start = 8.dp))
                 }
                 OutlinedButton(
                     onClick = { callContact("#31#$number") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.Security, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Llamar Anónimo", modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.contacts_call_anonymous), modifier = Modifier.padding(start = 8.dp))
                 }
             }
 
             // Transfer section
             Text(
-                "Transferir Saldo",
+                stringResource(R.string.contacts_transfer_section),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 32.dp, top = 8.dp, bottom = 4.dp)
@@ -147,7 +149,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                                 visualTransformation = if (pinVisible) VisualTransformation.None else PasswordVisualTransformation(),
                                 singleLine = true,
                                 decorationBox = { inner ->
-                                    if (pin.isEmpty()) Text("Clave", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                    if (pin.isEmpty()) Text(stringResource(R.string.contacts_pin_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                     inner()
                                 }
                             )
@@ -170,7 +172,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (amount.isEmpty()) Text("Monto", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                if (amount.isEmpty()) Text(stringResource(R.string.contacts_amount_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                 inner()
                             }
                         )
@@ -190,7 +192,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Transferir", style = MaterialTheme.typography.bodyMedium, color = tint)
+                        Text(stringResource(R.string.contacts_transfer_action), style = MaterialTheme.typography.bodyMedium, color = tint)
                         Spacer(Modifier.width(4.dp))
                         Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
                     }
@@ -219,7 +221,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Agregar al Plan Amigo",
+                            stringResource(R.string.contacts_add_friends_plan),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f)
@@ -248,7 +250,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Eliminar del Plan Amigo",
+                            stringResource(R.string.contacts_remove_friends_plan),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f)
@@ -264,7 +266,7 @@ fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
             }
         } else {
             Text(
-                "Este contacto no tiene un número en formato cubano.",
+                stringResource(R.string.contacts_no_cuban_number),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp)

@@ -35,6 +35,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.ui.components.BackNavigationIcon
@@ -47,7 +49,7 @@ fun VoiceShortcutsScreen(onBack: (() -> Unit)? = null) {
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("Gemini y Atajos de Voz") },
+                title = { Text(stringResource(R.string.voice_shortcuts_title)) },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )
         }
@@ -82,13 +84,13 @@ fun VoiceShortcutsScreen(onBack: (() -> Unit)? = null) {
                 }
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Gemini y Atajos de Voz",
+                    stringResource(R.string.voice_shortcuts_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Controla Qvacell usando tu voz con Google Gemini o creando atajos directos desde el lanzador.",
+                    stringResource(R.string.voice_shortcuts_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -97,7 +99,7 @@ fun VoiceShortcutsScreen(onBack: (() -> Unit)? = null) {
             }
 
             // ¿Cómo funciona?
-            SectionHeader("¿Cómo funciona?")
+            SectionHeader(stringResource(R.string.voice_shortcuts_how_it_works))
             Card(
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
@@ -105,91 +107,91 @@ fun VoiceShortcutsScreen(onBack: (() -> Unit)? = null) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     InfoRow(
                         icon = Icons.Filled.AutoAwesome,
-                        text = "Los atajos se crean automáticamente al instalar la app. Mantén presionado el ícono de Qvacell para verlos."
+                        text = stringResource(R.string.voice_shortcuts_info1)
                     )
                     InfoRow(
                         icon = Icons.Filled.Security,
-                        text = "Cada orden por voz abre la app y prepara el marcado exacto, solicitando confirmación del sistema antes de llamar."
+                        text = stringResource(R.string.voice_shortcuts_info2)
                     )
                 }
             }
 
             // Llamar Oculto o por Cobrar
-            SectionHeader("Llamar Oculto o por Cobrar (*99)")
+            SectionHeader(stringResource(R.string.voice_call_section))
             Card(
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     VoicePhraseRow(
-                        phrase = "\"Oye Google, llama con *99 en Qvacell\"",
-                        subtitle = "Abre el marcador con el prefijo *99 (cobro revertido)"
+                        phrase = stringResource(R.string.voice_collect_phrase),
+                        subtitle = stringResource(R.string.voice_collect_desc)
                     )
                     PhraseDivider()
                     VoicePhraseRow(
-                        phrase = "\"Oye Google, llama oculto en Qvacell\"",
-                        subtitle = "Abre el marcador con el prefijo #31# (número oculto)"
+                        phrase = stringResource(R.string.voice_hidden_phrase),
+                        subtitle = stringResource(R.string.voice_hidden_desc)
                     )
                 }
             }
 
             // Consultar Saldo
-            SectionHeader("Consultar Saldo y Servicios")
+            SectionHeader(stringResource(R.string.voice_check_section))
             Card(
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     VoicePhraseRow(
-                        phrase = "\"Oye Google, consulta mi saldo en Qvacell\"",
-                        subtitle = "Consulta de saldo principal (*222#)"
+                        phrase = stringResource(R.string.voice_balance_phrase),
+                        subtitle = stringResource(R.string.voice_balance_desc)
                     )
                     PhraseDivider()
                     VoicePhraseRow(
-                        phrase = "\"Oye Google, marca Bonos y Planes en Qvacell\"",
-                        subtitle = "Consulta de datos, bonos y voz (*222*266#)"
+                        phrase = stringResource(R.string.voice_bonuses_phrase),
+                        subtitle = stringResource(R.string.voice_bonuses_desc)
                     )
                 }
             }
 
             // Comprar Planes
-            SectionHeader("Comprar Planes por Voz")
+            SectionHeader(stringResource(R.string.voice_buy_section))
             Card(
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     VoicePhraseRow(
-                        phrase = "\"Oye Google, compra Plan de 4.5GB en Qvacell\"",
-                        subtitle = "Plan de datos móviles 4.5GB (LTE)"
+                        phrase = stringResource(R.string.voice_data_phrase),
+                        subtitle = stringResource(R.string.voice_data_desc)
                     )
                     PhraseDivider()
                     VoicePhraseRow(
-                        phrase = "\"Oye Google, compra Combo 2GB en Qvacell\"",
-                        subtitle = "Plan combinado de datos, voz y SMS"
+                        phrase = stringResource(R.string.voice_combo_phrase),
+                        subtitle = stringResource(R.string.voice_combo_desc)
                     )
                     PhraseDivider()
                     VoicePhraseRow(
-                        phrase = "\"Oye Google, compra Plan de 20 SMS en Qvacell\"",
-                        subtitle = "Paquete de mensajes de texto"
+                        phrase = stringResource(R.string.voice_sms_phrase),
+                        subtitle = stringResource(R.string.voice_sms_desc)
                     )
                 }
             }
             Text(
-                "Usa siempre el código estándar seguro que abre la pantalla de confirmación interactiva de ETECSA antes de realizar la compra.",
+                stringResource(R.string.voice_purchase_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
 
             // Atajos del lanzador
-            SectionHeader("Atajos del Lanzador")
+            SectionHeader(stringResource(R.string.voice_shortcuts_launcher_title))
             Card(
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Text(
-                    "Mantén presionado el ícono de Qvacell en tu pantalla de inicio para ver los atajos rápidos. También puedes arrastrarlos como widgets independientes a tu escritorio.",
+                    stringResource(R.string.voice_shortcuts_launcher_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp)
@@ -208,10 +210,10 @@ fun VoiceShortcutsScreen(onBack: (() -> Unit)? = null) {
             ) {
                 Icon(Icons.Filled.Settings, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Abrir Ajustes de la App")
+                Text(stringResource(R.string.voice_shortcuts_open_settings))
             }
             Text(
-                "Verifica que los permisos de «Asistente de Google» estén activados para Qvacell.",
+                stringResource(R.string.voice_shortcuts_settings_note),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)

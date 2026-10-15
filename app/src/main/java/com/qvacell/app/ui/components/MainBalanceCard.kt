@@ -20,7 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import com.qvacell.app.R
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.BaselineShift
@@ -65,7 +67,7 @@ fun MainBalanceCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            "SALDO",
+                            stringResource(R.string.dashboard_balance),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 6.dp)
@@ -74,7 +76,7 @@ fun MainBalanceCard(
                     if (hasFetched) {
                         if (lineActiveUntil != "--") {
                             Text(
-                                "Activa hasta $lineActiveUntil",
+                                stringResource(R.string.dashboard_active_until, lineActiveUntil),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
@@ -84,7 +86,7 @@ fun MainBalanceCard(
                         }
                         if (accountDueDate != "--") {
                             Text(
-                                "Vence el $accountDueDate",
+                                stringResource(R.string.dashboard_expires, accountDueDate),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
@@ -97,7 +99,7 @@ fun MainBalanceCard(
                 Column(horizontalAlignment = Alignment.End) {
                     if (!hasFetched) {
                         Text(
-                            "Aún no consultado.",
+                            stringResource(R.string.dashboard_not_checked),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 12.dp)

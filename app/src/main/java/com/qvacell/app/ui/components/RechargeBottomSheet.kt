@@ -37,7 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
 
 @Composable
@@ -64,7 +66,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Recargar Saldo",
+                stringResource(R.string.recharge_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 2.dp)
             )
@@ -93,7 +95,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
-                            "Recargar por Llamada",
+                            stringResource(R.string.recharge_by_call),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(start = 8.dp)
@@ -130,7 +132,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                             decorationBox = { inner ->
                                 if (cardNumber.isEmpty()) {
                                     Text(
-                                        "Número de tarjeta",
+                                        stringResource(R.string.recharge_card_hint),
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                     )
@@ -141,7 +143,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                         IconButton(onClick = { /* TODO: camera scan */ }, modifier = Modifier.size(40.dp)) {
                             Icon(
                                 Icons.Filled.CameraAlt,
-                                contentDescription = "Escanear tarjeta",
+                                contentDescription = stringResource(R.string.recharge_scan_card),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier.size(20.dp)
                             )
@@ -161,7 +163,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Recargar con Tarjeta", style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
+                        Text(stringResource(R.string.recharge_with_card), style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
                         Spacer(Modifier.width(4.dp))
                         Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = rechargeTint, modifier = Modifier.size(16.dp))
                     }
@@ -172,7 +174,7 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
             if (advanceBalanceCodes.isNotEmpty()) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        "ADELANTA SALDO",
+                        stringResource(R.string.recharge_advance_section),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)

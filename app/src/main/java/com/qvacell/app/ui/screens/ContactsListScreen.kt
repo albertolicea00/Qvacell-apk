@@ -47,8 +47,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import androidx.core.content.ContextCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -110,7 +112,7 @@ fun ContactsListScreen() {
     Scaffold(
         topBar = {
             SearchableTopAppBar(
-                title = "Contactos",
+                title = stringResource(R.string.title_contacts),
                 query = query,
                 onQueryChange = { query = it },
                 searching = searching,
@@ -142,18 +144,18 @@ fun ContactsListScreen() {
                         )
                     }
                     Text(
-                        "Sin acceso a tus contactos",
+                        stringResource(R.string.contacts_no_permission_title),
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        "Qvacell necesita acceso a tus contactos para identificar números cubanos y facilitar llamadas desde la app.",
+                        stringResource(R.string.contacts_no_permission_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
                     Button(onClick = { launcher.launch(Manifest.permission.READ_CONTACTS) }) {
-                        Text("Permitir acceso a contactos")
+                        Text(stringResource(R.string.contacts_allow_permission))
                     }
                 }
             } else if (isLoading) {
@@ -164,7 +166,7 @@ fun ContactsListScreen() {
                 ) {
                     CircularProgressIndicator()
                     Text(
-                        "Cargando contactos…",
+                        stringResource(R.string.contacts_loading),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -190,12 +192,12 @@ fun ContactsListScreen() {
                         )
                     }
                     Text(
-                        "No se encontraron números cubanos",
+                        stringResource(R.string.contacts_no_cuban_title),
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        "Solo se muestran contactos con un número en formato cubano (+53). Revisa que tus contactos tengan el código de país correcto.",
+                        stringResource(R.string.contacts_no_cuban_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -223,7 +225,7 @@ fun ContactsListScreen() {
                             modifier = Modifier.size(48.dp)
                         )
                         Text(
-                            "Sin resultados para \"$query\"",
+                            stringResource(R.string.no_results_for, query),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
@@ -287,7 +289,7 @@ fun ContactsListScreen() {
                             },
                             shape = CircleShape
                         ) {
-                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "Volver arriba")
+                            Icon(Icons.Filled.KeyboardArrowUp, contentDescription = stringResource(R.string.action_scroll_to_top))
                         }
                     }
                 }

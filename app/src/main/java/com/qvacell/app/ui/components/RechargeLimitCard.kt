@@ -19,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import com.qvacell.app.R
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -73,7 +75,7 @@ fun RechargeLimitCard(
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
-                        "Límite Mensual ($limitAmount)",
+                        stringResource(R.string.dashboard_recharge_limit_card, limitAmount),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 6.dp)
@@ -81,7 +83,7 @@ fun RechargeLimitCard(
                 }
                 if (parsedAvailableDate != null) {
                     Text(
-                        "Puede Recargar el ${formatSpanishDate(parsedAvailableDate)}",
+                        stringResource(R.string.dashboard_can_recharge_on, formatSpanishDate(parsedAvailableDate)),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 2.dp)
@@ -93,6 +95,7 @@ fun RechargeLimitCard(
                 ChronoUnit.DAYS.between(LocalDate.now(), it)
             }
             if (daysUntilAvailable != null) {
+                val dayUnit = stringResource(if (daysUntilAvailable == 1L) R.string.dashboard_day_unit else R.string.dashboard_days_unit)
                 Text(
                     buildAnnotatedString {
                         withStyle(
@@ -105,7 +108,8 @@ fun RechargeLimitCard(
                             append("$daysUntilAvailable")
                         }
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.onSurfaceVariant)) {
-                            append(if (daysUntilAvailable == 1L) " día" else " días")
+                            append(" ")
+                            append(dayUnit)
                         }
                     },
                     style = MaterialTheme.typography.bodySmall

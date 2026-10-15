@@ -7,6 +7,7 @@ import android.os.Build
 import android.telecom.Call
 import android.telecom.CallScreeningService
 import androidx.core.app.NotificationCompat
+import com.qvacell.app.R
 import com.qvacell.app.data.QvacellDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,12 +61,12 @@ class CallerIdScreeningService : CallScreeningService() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "Identificador de Llamadas", NotificationManager.IMPORTANCE_HIGH)
+                NotificationChannel(CHANNEL_ID, getString(R.string.notif_channel_caller_id), NotificationManager.IMPORTANCE_HIGH)
             )
         }
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.sym_call_incoming)
-            .setContentTitle("Llamada por cobrar de $name")
+            .setContentTitle(getString(R.string.caller_id_incoming_collect, name))
             .setContentText(number)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_CALL)

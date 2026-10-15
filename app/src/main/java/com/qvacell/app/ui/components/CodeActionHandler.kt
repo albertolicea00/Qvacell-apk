@@ -1,5 +1,7 @@
 package com.qvacell.app.ui.components
 
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -133,7 +135,7 @@ fun rememberCodeActionHandler(
                                     singleLine = true,
                                     decorationBox = { inner ->
                                         if (inputText.isEmpty()) Text(
-                                            code.inputPlaceholder ?: "Valor",
+                                            code.inputPlaceholder ?: stringResource(R.string.code_value),
                                             style = MaterialTheme.typography.bodyLarge,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                         )
@@ -152,7 +154,7 @@ fun rememberCodeActionHandler(
                                 horizontalArrangement = Arrangement.End,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Enviar", style = MaterialTheme.typography.bodyMedium, color = tint)
+                                Text(stringResource(R.string.action_send), style = MaterialTheme.typography.bodyMedium, color = tint)
                                 Spacer(Modifier.width(4.dp))
                                 Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
                             }
@@ -213,7 +215,7 @@ fun rememberCodeActionHandler(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    "Confirmar compra",
+                    stringResource(R.string.code_confirm_purchase),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -243,7 +245,7 @@ fun rememberCodeActionHandler(
                         modifier = Modifier.size(11.dp).padding(end = 2.dp)
                     )
                     Text(
-                        "Se marcará directamente, sin confirmación de respuesta de ETECSA.",
+                        stringResource(R.string.code_action_direct_warning),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         textAlign = TextAlign.Center
@@ -251,8 +253,8 @@ fun rememberCodeActionHandler(
                 }
             }
             DialogActionRow(
-                cancelText = "Cancelar",
-                confirmText = "Aceptar",
+                cancelText = stringResource(R.string.action_cancel),
+                confirmText = stringResource(R.string.action_accept),
                 onCancel = { pendingConfirmCode = null },
                 onConfirm = {
                     if (DialService.hasCallPermission(context)) {

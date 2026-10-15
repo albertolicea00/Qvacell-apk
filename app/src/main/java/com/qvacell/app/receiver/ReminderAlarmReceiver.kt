@@ -9,6 +9,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.qvacell.app.MainActivity
+import com.qvacell.app.R
 import com.qvacell.app.service.ReminderRepository
 import com.qvacell.app.service.ReminderScheduler
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +48,7 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Recordatorios",
+                context.getString(R.string.notif_channel_reminders),
                 NotificationManager.IMPORTANCE_HIGH
             )
             manager.createNotificationChannel(channel)
@@ -86,8 +87,8 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
             .setContentText(message)
             .setAutoCancel(true)
             .setContentIntent(contentIntent)
-            .addAction(0, "Marcar hecho", markDoneIntent)
-            .addAction(0, "Posponer 1 día", snoozeIntent)
+            .addAction(0, context.getString(R.string.reminders_action_done), markDoneIntent)
+            .addAction(0, context.getString(R.string.reminders_action_snooze), snoozeIntent)
             .build()
 
         manager.notify(reminderId.hashCode(), notification)

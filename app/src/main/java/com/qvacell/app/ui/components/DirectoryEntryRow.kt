@@ -22,9 +22,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.service.DirectoryEntry
+import com.qvacell.app.R
 
 @Composable
 fun DirectoryEntryRow(entry: DirectoryEntry, onClick: () -> Unit, modifier: Modifier = Modifier) {
@@ -46,14 +48,14 @@ fun DirectoryEntryRow(entry: DirectoryEntry, onClick: () -> Unit, modifier: Modi
             if (entry.isMobile) {
                 Icon(
                     Icons.Filled.PhoneAndroid,
-                    contentDescription = "Móvil",
+                    contentDescription = stringResource(R.string.contacts_type_mobile),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             } else {
                 Icon(
                     Icons.Filled.Fax,
-                    contentDescription = "Fijo",
+                    contentDescription = stringResource(R.string.contacts_type_landline),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
@@ -62,12 +64,12 @@ fun DirectoryEntryRow(entry: DirectoryEntry, onClick: () -> Unit, modifier: Modi
         trailingContent = {
             IconButton(onClick = {
                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                clipboard.setPrimaryClip(ClipData.newPlainText("número", entry.number))
-                Toast.makeText(context, "Número copiado", Toast.LENGTH_SHORT).show()
+                clipboard.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.db_search_number_hint), entry.number))
+                Toast.makeText(context, context.getString(R.string.directory_number_copied), Toast.LENGTH_SHORT).show()
             }) {
                 Icon(
                     Icons.Filled.ContentCopy,
-                    contentDescription = "Copiar",
+                    contentDescription = stringResource(R.string.directory_copy),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )

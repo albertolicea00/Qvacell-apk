@@ -36,6 +36,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -70,20 +72,20 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
                 when (result) {
                     is ImportResult.Success -> {
                         imported = true
-                        Toast.makeText(context, "Base de datos importada", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.directory_import_success), Toast.LENGTH_SHORT).show()
                     }
                     is ImportResult.Truncated -> {
                         Toast.makeText(
                             context,
-                            "Copia incompleta (${result.copied / 1_000_000}MB de ${result.expected / 1_000_000}MB) — inténtalo de nuevo",
+                            context.getString(R.string.directory_import_incomplete, result.copied / 1_000_000, result.expected / 1_000_000),
                             Toast.LENGTH_LONG
                         ).show()
                     }
                     is ImportResult.InvalidSchema -> {
-                        Toast.makeText(context, "Archivo no reconocido como base de datos válida", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.directory_invalid_file), Toast.LENGTH_LONG).show()
                     }
                     is ImportResult.Error -> {
-                        Toast.makeText(context, "Error al importar", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.directory_import_error), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -109,7 +111,7 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
         if (!database.isImported()) {
             imported = false
             results = emptyList()
-            Toast.makeText(context, "Base de datos corrupta, importa de nuevo", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.directory_corrupt_db), Toast.LENGTH_LONG).show()
         }
     }
 
@@ -117,7 +119,7 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("Buscar en BBDD") },
+                title = { Text(stringResource(R.string.options_tools_db_search)) },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )
         }
@@ -136,12 +138,12 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                         )
                         Text(
-                            "Sin base de datos",
+                            stringResource(R.string.db_search_no_db_title),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(top = 16.dp)
                         )
                         Text(
-                            "Importa un archivo .db para buscar números",
+                            stringResource(R.string.db_search_no_db_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 4.dp)
@@ -158,7 +160,7 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
                             } else {
-                                Text("Importar base de datos")
+                                Text(stringResource(R.string.db_search_import_button))
                             }
                         }
                     }
@@ -167,12 +169,12 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = { Text("Número") },
+                    placeholder = { Text(stringResource(R.string.db_search_number_hint)) },
                     leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                     trailingIcon = {
                         if (query.isNotEmpty()) {
                             IconButton(onClick = { query = "" }) {
-                                Icon(Icons.Filled.Close, contentDescription = "Limpiar")
+                                Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_clear))
                             }
                         }
                     },
@@ -208,12 +210,12 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                 )
                                 Text(
-                                    "Buscar en Base de Datos",
+                                    stringResource(R.string.db_search_title),
                                     style = MaterialTheme.typography.titleMedium,
                                     modifier = Modifier.padding(top = 16.dp)
                                 )
                                 Text(
-                                    "Escribe un número para buscar",
+                                    stringResource(R.string.db_search_prompt),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = 4.dp)
@@ -237,13 +239,13 @@ fun DirectorySearchScreen(onBack: (() -> Unit)? = null) {
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                                 )
                                 Text(
-                                    "Sin resultados para \"$query\"",
+                                    stringResource(R.string.no_results_for, query),
                                     style = MaterialTheme.typography.titleMedium,
                                     textAlign = TextAlign.Center,
                                     modifier = Modifier.padding(top = 16.dp, start = 32.dp, end = 32.dp)
                                 )
                                 Text(
-                                    "Revisa el número o intenta otra búsqueda",
+                                    stringResource(R.string.db_search_no_results_desc),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = 4.dp)

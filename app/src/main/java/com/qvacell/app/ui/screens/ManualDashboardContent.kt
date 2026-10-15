@@ -59,6 +59,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.UssdCode
@@ -69,18 +72,18 @@ import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.components.rememberDirectDialAction
 import com.qvacell.app.ui.resolveAndroidIcon
 
-private data class QuickTile(val codeId: String, val label: String)
+private data class QuickTile(val codeId: String, @StringRes val labelRes: Int)
 
 private val QUICK_TILES = listOf(
-    QuickTile("main-balance",            "Saldo"),
-    QuickTile("national-recharge-limit", "Límite"),
-    QuickTile("corp-balance",            "Corp"),
-    QuickTile("data-plan",               "Datos"),
-    QuickTile("voice-balance",           "Voz"),
-    QuickTile("sms-balance",             "SMS"),
-    QuickTile("bonus-usd-plans",         "Bono"),
-    QuickTile("friends-plan",            "Amigo"),
-    QuickTile("tfa",                     "TFA"),
+    QuickTile("main-balance",            R.string.dashboard_tile_balance),
+    QuickTile("national-recharge-limit", R.string.dashboard_tile_limit),
+    QuickTile("corp-balance",            R.string.dashboard_tile_corp),
+    QuickTile("data-plan",               R.string.dashboard_tile_data),
+    QuickTile("voice-balance",           R.string.dashboard_tile_voice),
+    QuickTile("sms-balance",             R.string.dashboard_tile_sms),
+    QuickTile("bonus-usd-plans",         R.string.dashboard_tile_bonus),
+    QuickTile("friends-plan",            R.string.dashboard_tile_friends),
+    QuickTile("tfa",                     R.string.dashboard_tile_tfa),
 )
 
 private const val TILE_COLUMNS = 3
@@ -147,7 +150,7 @@ fun ManualDashboardContent(
         if (resolvedTiles.isNotEmpty() && "consultas" !in hiddenSections) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "CONSULTAS",
+                    stringResource(R.string.dashboard_consultas),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp)
@@ -186,7 +189,7 @@ fun ManualDashboardContent(
                                     row.forEach { (tile, code) ->
                                         QuickActionTile(
                                             code = code,
-                                            label = tile.label,
+                                            label = stringResource(tile.labelRes),
                                             size = tileSize,
                                             outline = tileStyle == "outline",
                                             onClick = {
@@ -212,7 +215,7 @@ fun ManualDashboardContent(
         val transferEnabled = transferNumber.isNotBlank() && transferPin.isNotBlank() && transferAmount.isNotBlank()
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                "TRANSFERIR SALDO",
+                stringResource(R.string.transfer_title).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
@@ -237,7 +240,7 @@ fun ManualDashboardContent(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (transferNumber.isEmpty()) Text("Número (+53 ...)", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                if (transferNumber.isEmpty()) Text(stringResource(R.string.transfer_number_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                 inner()
                             }
                         )
@@ -251,7 +254,7 @@ fun ManualDashboardContent(
                         ) {
                             Icon(
                                 Icons.Filled.Person,
-                                contentDescription = "Elegir de contactos",
+                                contentDescription = stringResource(R.string.transfer_choose_contact),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier.size(20.dp)
                             )
@@ -278,7 +281,7 @@ fun ManualDashboardContent(
                                 visualTransformation = if (transferPinVisible) VisualTransformation.None else PasswordVisualTransformation(),
                                 singleLine = true,
                                 decorationBox = { inner ->
-                                    if (transferPin.isEmpty()) Text("Clave", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                    if (transferPin.isEmpty()) Text(stringResource(R.string.contacts_pin_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                     inner()
                                 }
                             )
@@ -301,7 +304,7 @@ fun ManualDashboardContent(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (transferAmount.isEmpty()) Text("Monto", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                if (transferAmount.isEmpty()) Text(stringResource(R.string.contacts_amount_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                 inner()
                             }
                         )
@@ -320,7 +323,7 @@ fun ManualDashboardContent(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Transferir", style = MaterialTheme.typography.bodyMedium, color = transferTint)
+                        Text(stringResource(R.string.contacts_transfer_action), style = MaterialTheme.typography.bodyMedium, color = transferTint)
                         Spacer(Modifier.width(4.dp))
                         Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = transferTint, modifier = Modifier.size(16.dp))
                     }
@@ -333,7 +336,7 @@ fun ManualDashboardContent(
         if ("recargar" !in hiddenSections) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                "RECARGAR SALDO",
+                stringResource(R.string.recharge_title).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
@@ -359,7 +362,7 @@ fun ManualDashboardContent(
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
-                            "Recargar por Llamada",
+                            stringResource(R.string.recharge_by_call),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(start = 8.dp)
@@ -396,14 +399,14 @@ fun ManualDashboardContent(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         decorationBox = { inner ->
-                            if (cardNumber.isEmpty()) Text("Número de tarjeta", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                            if (cardNumber.isEmpty()) Text(stringResource(R.string.recharge_card_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                             inner()
                         }
                     )
                     IconButton(onClick = { /* TODO: camera scan */ }, modifier = Modifier.size(40.dp)) {
                         Icon(
                             Icons.Filled.CameraAlt,
-                            contentDescription = "Escanear tarjeta",
+                            contentDescription = stringResource(R.string.recharge_scan_card),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                             modifier = Modifier.size(20.dp)
                         )
@@ -423,7 +426,7 @@ fun ManualDashboardContent(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Recargar con Tarjeta", style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
+                    Text(stringResource(R.string.recharge_with_card), style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
                     Spacer(Modifier.width(4.dp))
                     Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = rechargeTint, modifier = Modifier.size(16.dp))
                 }
@@ -435,7 +438,7 @@ fun ManualDashboardContent(
         if (advanceBalanceCodes.isNotEmpty() && "adelanta" !in hiddenSections) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "ADELANTA SALDO",
+                    stringResource(R.string.recharge_advance_section),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
@@ -460,10 +463,10 @@ fun ManualDashboardContent(
     if (showNonCubanError) {
         AlertDialog(
             onDismissRequest = { showNonCubanError = false },
-            title = { Text("Número no válido") },
-            text = { Text("El número seleccionado no es un número cubano (+53). Solo se puede transferir saldo a números cubanos.") },
+            title = { Text(stringResource(R.string.transfer_invalid_number_title)) },
+            text = { Text(stringResource(R.string.transfer_invalid_number_desc)) },
             confirmButton = {
-                TextButton(onClick = { showNonCubanError = false }) { Text("Aceptar") }
+                TextButton(onClick = { showNonCubanError = false }) { Text(stringResource(R.string.action_ok)) }
             }
         )
     }

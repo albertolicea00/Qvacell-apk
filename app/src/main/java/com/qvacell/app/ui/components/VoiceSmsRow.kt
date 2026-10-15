@@ -22,7 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
+import com.qvacell.app.R
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -52,7 +54,7 @@ fun VoiceSmsRow(
                 icon = Icons.Filled.Mic,
                 accentColor = MaterialTheme.colorScheme.primary,
                 badge = voiceDaysRemaining,
-                label = "VOZ",
+                label = stringResource(R.string.dashboard_minutes),
                 value = voiceDuration,
                 hasFetched = voiceHasFetched,
                 lastUpdatedAt = voiceLastUpdatedAt,
@@ -65,7 +67,7 @@ fun VoiceSmsRow(
                 icon = Icons.Filled.Sms,
                 accentColor = MaterialTheme.colorScheme.primary,
                 badge = smsDaysRemaining,
-                label = "SMS",
+                label = stringResource(R.string.dashboard_sms),
                 value = smsCount,
                 hasFetched = smsHasFetched,
                 lastUpdatedAt = smsLastUpdatedAt,
@@ -117,14 +119,14 @@ private fun UsageStatCard(
                 }
                 if (!hasFetched) {
                     Text(
-                        "Aún no consultado.",
+                        stringResource(R.string.dashboard_not_checked),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 } else if (value == "--") {
                     Text(
-                        "Sin plan",
+                        stringResource(R.string.dashboard_no_plan),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 8.dp)
@@ -149,7 +151,7 @@ private fun UsageStatCard(
                     val expiryDays = badge.filter { it.isDigit() }.toIntOrNull()
                     if (expiryDays != null) {
                         Text(
-                            "Vence el ${formatSpanishDate(LocalDate.now().plusDays(expiryDays.toLong()))}",
+                            stringResource(R.string.dashboard_expires, formatSpanishDate(LocalDate.now().plusDays(expiryDays.toLong()))),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(top = 6.dp)

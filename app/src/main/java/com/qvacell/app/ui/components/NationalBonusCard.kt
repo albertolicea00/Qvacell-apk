@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.qvacell.app.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
@@ -61,7 +63,7 @@ fun NationalBonusCard(
                     modifier = Modifier.size(14.dp)
                 )
                 Text(
-                    "BONOS",
+                    stringResource(R.string.dashboard_national_bonus),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 6.dp)
@@ -70,14 +72,14 @@ fun NationalBonusCard(
 
             if (!hasFetched) {
                 Text(
-                    "Actualice el dashboard para ver la información.",
+                    stringResource(R.string.dashboard_refresh_to_see),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
                 )
             } else if (!hasBonus && !hasNocturno) {
                 Text(
-                    "No cuenta con bonos disponibles",
+                    stringResource(R.string.dashboard_no_bonuses),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
@@ -91,7 +93,7 @@ fun NationalBonusCard(
                     ) {
                         Column {
                             Text(
-                                "Nacionales:",
+                                stringResource(R.string.dashboard_national_label),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 modifier = Modifier.padding(top = 5.dp)
@@ -141,13 +143,13 @@ fun NationalBonusCard(
                         modifier = Modifier.size(13.dp)
                     )
                     Text(
-                        "DATOS ILIMITADOS (Nocturnos): ",
+                        stringResource(R.string.dashboard_unlimited_night_label),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 4.dp)
                     )
                     Text(
-                        nocturnoStatus,
+                        if (hasNocturno) nocturnoStatus else stringResource(R.string.dashboard_not_available),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.primary
@@ -156,7 +158,7 @@ fun NationalBonusCard(
 
                 if (nocturnoExpiry != "--") {
                     Text(
-                        "Vence el $nocturnoExpiry",
+                        stringResource(R.string.dashboard_expires, nocturnoExpiry),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 2.dp)

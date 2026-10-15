@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.qvacell.app.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -71,7 +73,7 @@ fun DataUsageCard(
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
-                        "DATOS",
+                        stringResource(R.string.dashboard_data),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 6.dp)
@@ -81,14 +83,14 @@ fun DataUsageCard(
 
             if (!hasFetched) {
                 Text(
-                    "Actualice el dashboard para ver la información.",
+                    stringResource(R.string.dashboard_refresh_to_see),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
             } else if (!hasAnyPackage) {
                 Text(
-                    "No cuenta con paquetes disponibles",
+                    stringResource(R.string.dashboard_no_packages),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -102,14 +104,14 @@ fun DataUsageCard(
                     ) {
                         Column {
                             Text(
-                                "Diaria (24h):",
+                                stringResource(R.string.dashboard_daily_24h),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 modifier = Modifier.padding(top = 5.dp)
                             )
                             if (diariaExpiry != "--") {
                                 Text(
-                                    "Vence el $diariaExpiry",
+                                    stringResource(R.string.dashboard_expires, diariaExpiry),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -144,13 +146,13 @@ fun DataUsageCard(
                     ) {
                         Column {
                             Text(
-                                "Datos:",
+                                stringResource(R.string.dashboard_data_prefix),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
                             if (datosExpiry != "--") {
                                 Text(
-                                    "Vence el $datosExpiry",
+                                    stringResource(R.string.dashboard_expires, datosExpiry),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -191,7 +193,7 @@ fun DataUsageCard(
                             )
                             if (todusExpiry != "--") {
                                 Text(
-                                    "Vence el $todusExpiry",
+                                    stringResource(R.string.dashboard_expires, todusExpiry),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -230,7 +232,7 @@ fun DataUsageCard(
                         modifier = Modifier.size(13.dp).padding(top = 4.dp)
                     )
                     Text(
-                        "Tarifa por consumo: ",
+                        stringResource(R.string.dashboard_usage_rate),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(start = 4.dp)

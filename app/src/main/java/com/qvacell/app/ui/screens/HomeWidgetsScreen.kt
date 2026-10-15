@@ -1,5 +1,7 @@
 package com.qvacell.app.ui.screens
 
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -350,7 +352,7 @@ fun ColorPickerSheet(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Brillo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.widget_brightness), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text("${(bri * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     GradientSlider(
@@ -372,7 +374,7 @@ fun ColorPickerSheet(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Opacidad", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.widget_opacity), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text("${(alpha * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         GradientSlider(
@@ -399,14 +401,14 @@ fun ColorPickerSheet(
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f).height(52.dp)
                     ) {
-                        Text("Cancelar", textAlign = TextAlign.Center)
+                        Text(stringResource(R.string.action_cancel), textAlign = TextAlign.Center)
                     }
                     VerticalDivider(modifier = Modifier.height(52.dp))
                     TextButton(
                         onClick = { onColorSelected(currentColor); onDismiss() },
                         modifier = Modifier.weight(1f).height(52.dp)
                     ) {
-                        Text("Aplicar", color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center)
+                        Text(stringResource(R.string.action_apply), color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center)
                     }
                 }
             }
@@ -609,7 +611,7 @@ private fun WidgetPreview(
                             if (showText) {
                                 val textSize = if (showIcon) 9.sp else 13.sp
                                 Text(
-                                    "Saldo",
+                                    stringResource(R.string.dashboard_tile_balance),
                                     color = contentColor,
                                     fontSize = textSize,
                                     style = MaterialTheme.typography.labelSmall
@@ -655,7 +657,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("Widgets de Inicio") },
+                title = { Text(stringResource(R.string.options_about_widgets)) },
                 navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
             )
         }
@@ -679,7 +681,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
             item {
                 Text(
-                    "Cómo agregar",
+                    stringResource(R.string.widget_how_to_add),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
@@ -690,9 +692,9 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         listOf(
-                            "1. Mantén pulsado en la pantalla de inicio de tu teléfono.",
-                            "2. Toca \"Widgets\" y busca Qvacell.",
-                            "3. Arrastra \"Consultas Rápidas\" a la pantalla y selecciona la acción."
+                            stringResource(R.string.widget_add_step1),
+                            stringResource(R.string.widget_add_step2),
+                            stringResource(R.string.widget_add_step3)
                         ).forEach {
                             Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -702,7 +704,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
             item {
                 Text(
-                    "Estilo Widget 1×1",
+                    stringResource(R.string.widget_style_1x1),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
@@ -711,16 +713,16 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                     Column {
                         /*
                         ListItem(
-                            headlineContent = { Text("Contenido") },
-                            supportingContent = { Text("Solo icono", style = MaterialTheme.typography.labelSmall) },
+                            headlineContent = { Text(stringResource(R.string.widget_content)) },
+                            supportingContent = { Text(stringResource(R.string.widget_icon_only), style = MaterialTheme.typography.labelSmall) },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                         )
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                         */
 
                         ListItem(
-                            headlineContent = { Text("Color de fondo") },
-                            supportingContent = { Text("Fondo del área del widget", style = MaterialTheme.typography.labelSmall) },
+                            headlineContent = { Text(stringResource(R.string.widget_background_color)) },
+                            supportingContent = { Text(stringResource(R.string.widget_background_desc), style = MaterialTheme.typography.labelSmall) },
                             trailingContent = {
                                 Box(
                                     modifier = Modifier
@@ -751,8 +753,8 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                         ListItem(
-                            headlineContent = { Text("Color del contenido") },
-                            supportingContent = { Text("Color del ícono y texto", style = MaterialTheme.typography.labelSmall) },
+                            headlineContent = { Text(stringResource(R.string.widget_content_color)) },
+                            supportingContent = { Text(stringResource(R.string.widget_content_desc), style = MaterialTheme.typography.labelSmall) },
                             trailingContent = {
                                 Box(
                                     modifier = Modifier
@@ -768,19 +770,19 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                         val shapeOptions = listOf(
-                            "rounded_square"   to "Redondeado",
-                            "squircle"         to "Squircle (Pixel)",
-                            "circle"           to "Círculo",
-                            "square"           to "Cuadrado",
-                            "hexagon"          to "Hexágono",
-                            "rounded_hexagon"  to "Hexágono redondeado",
-                            "diamond"          to "Diamante",
-                            "rounded_diamond"  to "Diamante redondeado",
-                            "badge"            to "Sello",
+                            "rounded_square"   to stringResource(R.string.widget_shape_rounded),
+                            "squircle"         to stringResource(R.string.widget_shape_squircle),
+                            "circle"           to stringResource(R.string.widget_shape_circle),
+                            "square"           to stringResource(R.string.widget_shape_square),
+                            "hexagon"          to stringResource(R.string.widget_shape_hexagon),
+                            "rounded_hexagon"  to stringResource(R.string.widget_shape_rounded_hexagon),
+                            "diamond"          to stringResource(R.string.widget_shape_diamond),
+                            "rounded_diamond"  to stringResource(R.string.widget_shape_rounded_diamond),
+                            "badge"            to stringResource(R.string.widget_shape_badge),
                         )
-                        val shapeLabel = shapeOptions.firstOrNull { it.first == iconShape }?.second ?: "Redondeado"
+                        val shapeLabel = shapeOptions.firstOrNull { it.first == iconShape }?.second ?: stringResource(R.string.widget_shape_rounded)
                         ListItem(
-                            headlineContent = { Text("Forma del widget") },
+                            headlineContent = { Text(stringResource(R.string.widget_shape)) },
                             supportingContent = { Text(shapeLabel, style = MaterialTheme.typography.labelSmall) },
                             modifier = Modifier.clickable { showIconShapeSheet = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -788,14 +790,14 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
                         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 
                         val alignmentOptions = listOf(
-                            "fill"   to "Llenar cuadrícula (Completo)",
-                            "center" to "Centrado (Mantener proporción)",
-                            "top"    to "Arriba",
-                            "bottom" to "Abajo",
+                            "fill"   to stringResource(R.string.widget_fill_grid_full),
+                            "center" to stringResource(R.string.widget_center_keep_ratio),
+                            "top"    to stringResource(R.string.widget_alignment_top),
+                            "bottom" to stringResource(R.string.widget_alignment_bottom),
                         )
-                        val alignmentLabel = alignmentOptions.firstOrNull { it.first == alignment }?.second ?: "Llenar cuadrícula"
+                        val alignmentLabel = alignmentOptions.firstOrNull { it.first == alignment }?.second ?: stringResource(R.string.widget_fill_grid)
                         ListItem(
-                            headlineContent = { Text("Alineación y tamaño") },
+                            headlineContent = { Text(stringResource(R.string.widget_alignment_size)) },
                             supportingContent = { Text(alignmentLabel, style = MaterialTheme.typography.labelSmall) },
                             modifier = Modifier.clickable { showAlignmentSheet = true },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)
@@ -814,17 +816,17 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(onDismissRequest = { showIconShapeSheet = false }, sheetState = sheetState) {
             Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
-                Text("Forma del widget", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
+                Text(stringResource(R.string.widget_shape), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
                 listOf(
-                    "rounded_square"  to "Redondeado",
-                    "squircle"        to "Squircle (Pixel)",
-                    "circle"          to "Círculo",
-                    "square"          to "Cuadrado",
-                    "hexagon"         to "Hexágono",
-                    "rounded_hexagon" to "Hexágono redondeado",
-                    "diamond"         to "Diamante",
-                    "rounded_diamond" to "Diamante redondeado",
-                    "badge"           to "Sello",
+                    "rounded_square"  to stringResource(R.string.widget_shape_rounded),
+                    "squircle"        to stringResource(R.string.widget_shape_squircle),
+                    "circle"          to stringResource(R.string.widget_shape_circle),
+                    "square"          to stringResource(R.string.widget_shape_square),
+                    "hexagon"         to stringResource(R.string.widget_shape_hexagon),
+                    "rounded_hexagon" to stringResource(R.string.widget_shape_rounded_hexagon),
+                    "diamond"         to stringResource(R.string.widget_shape_diamond),
+                    "rounded_diamond" to stringResource(R.string.widget_shape_rounded_diamond),
+                    "badge"           to stringResource(R.string.widget_shape_badge),
                 ).forEach { (value, label) ->
                     Row(
                         modifier = Modifier
@@ -849,7 +851,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
     if (showBgColorSheet) {
         ColorPickerSheet(
-            title = "Color de fondo",
+            title = stringResource(R.string.widget_background_color),
             initialColor = bgColor,
             showAlpha = true,
             onColorSelected = { color ->
@@ -863,7 +865,7 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
 
     if (showContentColorSheet) {
         ColorPickerSheet(
-            title = "Color del contenido",
+            title = stringResource(R.string.widget_content_color),
             initialColor = contentColor,
             showAlpha = false,
             onColorSelected = { color ->
@@ -880,12 +882,12 @@ fun HomeWidgetsScreen(onBack: (() -> Unit)? = null) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(onDismissRequest = { showAlignmentSheet = false }, sheetState = sheetState) {
             Column(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 32.dp)) {
-                Text("Alineación y tamaño", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
+                Text(stringResource(R.string.widget_alignment_size), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp))
                 listOf(
-                    "fill"   to "Llenar cuadrícula (Completo)",
-                    "center" to "Centrado (Mantener proporción)",
-                    "top"    to "Arriba (Mantener proporción)",
-                    "bottom" to "Abajo (Mantener proporción)",
+                    "fill"   to stringResource(R.string.widget_fill_grid_full),
+                    "center" to stringResource(R.string.widget_center_keep_ratio),
+                    "top"    to stringResource(R.string.widget_top_keep_ratio),
+                    "bottom" to stringResource(R.string.widget_bottom_keep_ratio),
                 ).forEach { (value, label) ->
                     Row(
                         modifier = Modifier
