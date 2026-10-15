@@ -551,7 +551,7 @@
     <string name="options_open_phone_app">Open Phone app</string>
     <string name="options_version_label">Version %1$s (%2$d)</string>
     <string name="options_update_upgrade_desc">Upgrade to the Unlocked edition for the full Qvacell experience.\n\nInstalled: v%1$s  →  Available: v%2$s</string>
-    <string name="options_update_new_desc">A new version is ready to install.\n\nInstalled: v%1$s  →  New: v%2$s</string>
+    <string name="options_update_new_desc">The new version is ready.\nYou can update from v%1$s to v%2$s.</string>
     <!-- Dashboard and widgets -->
     <string name="dashboard_setting_interaction">Interaction</string>
     <string name="dashboard_setting_ussd_action">USSD inquiry action</string>
