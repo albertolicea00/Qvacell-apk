@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.FieldTypes
+import com.qvacell.app.model.DashboardValueSnapshot
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DashboardRefreshService
 import java.text.DecimalFormat
@@ -72,7 +73,12 @@ fun DynamicDashboardContent(
     val catalogRepository = remember { repository }
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
     val currentCodeId by DashboardRefreshService.currentCodeId.collectAsState()
-    val values by dashboardRepository.observeCurrentValues().collectAsState(initial = emptyMap())
+    val valuesFlow = remember(dashboardRepository) { dashboardRepository.observeCurrentValues() }
+    val valuesState = valuesFlow.collectAsState<
+        Map<String, DashboardValueSnapshot>,
+        Map<String, DashboardValueSnapshot>?
+    >(initial = null)
+    val values = valuesState.value ?: return
 
     var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
 
