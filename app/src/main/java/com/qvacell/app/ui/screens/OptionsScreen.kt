@@ -177,6 +177,17 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
     val autoUpdateCheck by settings.autoUpdateCheck.collectAsStateWithLifecycle(initialValue = "unlocked")
+    val isPlayStoreInstall = remember(context) {
+        !BuildConfig.DASHBOARD_CAPTURE_ENABLED && runCatching {
+            val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getInstallerPackageName(context.packageName)
+            }
+            installer == "com.android.vending"
+        }.getOrDefault(false)
+    }
     val activeSims = remember { SimUtils.getActiveSubscriptions(context) }
 
     var showThemeSheet by remember { mutableStateOf(false) }
@@ -192,12 +203,17 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     var updateChecking by remember { mutableStateOf(false) }
     var updateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    var updateTargetMode by remember { mutableStateOf("unlocked") }
     var showUpdateDialog by remember { mutableStateOf(false) }
-    LaunchedEffect(autoUpdateCheck) {
-        if (autoUpdateCheck == "none") return@LaunchedEffect
+    LaunchedEffect(isPlayStoreInstall, autoUpdateCheck) {
+        if (isPlayStoreInstall && autoUpdateCheck != "none") settings.setAutoUpdateCheck("none")
+    }
+    LaunchedEffect(autoUpdateCheck, isPlayStoreInstall) {
+        if (isPlayStoreInstall || autoUpdateCheck == "none") return@LaunchedEffect
         val result = UpdateChecker.check(targetMode = autoUpdateCheck)
         if (result is UpdateCheckResult.Available) {
             updateInfo = result.info
+            updateTargetMode = autoUpdateCheck
             showUpdateDialog = true
         }
     }
@@ -429,12 +445,14 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             )
                         }
                     )
-                    OptionsDivider()
-                    OptionsRow(
-                        headline = stringResource(R.string.options_auto_update),
-                        supporting = autoUpdateLabel,
-                        onClick = { showAutoUpdateSheet = true }
-                    )
+                    if (!isPlayStoreInstall) {
+                        OptionsDivider()
+                        OptionsRow(
+                            headline = stringResource(R.string.options_auto_update),
+                            supporting = autoUpdateLabel,
+                            onClick = { showAutoUpdateSheet = true }
+                        )
+                    }
                     if (simLabel != null) {
                         OptionsDivider()
                         val selectedSim = activeSims.firstOrNull { it.simSlotIndex == selectedSimSlot }
@@ -529,11 +547,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             if (!updateChecking) {
                                 updateChecking = true
                                 scope.launch {
-                                    val result = UpdateChecker.check(targetMode = autoUpdateCheck)
+                                    val result = UpdateChecker.check(targetMode = "unlocked")
                                     updateChecking = false
                                     when (result) {
                                         is UpdateCheckResult.Available -> {
                                             updateInfo = result.info
+                                            updateTargetMode = "unlocked"
                                             showUpdateDialog = true
                                         }
                                         UpdateCheckResult.UpToDate -> Toast.makeText(
@@ -911,7 +930,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         }
     }
 
-    if (showAutoUpdateSheet) {
+    if (showAutoUpdateSheet && !isPlayStoreInstall) {
         ModalBottomSheet(onDismissRequest = { showAutoUpdateSheet = false }) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                 Text(
@@ -945,7 +964,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     if (showUpdateDialog && updateInfo != null) {
         val info = updateInfo!!
-        val downloadUrl = when (autoUpdateCheck) {
+        val downloadUrl = when (updateTargetMode) {
             "playstore" -> info.storeApkUrl ?: info.htmlUrl
             else -> info.unlockedApkUrl ?: info.htmlUrl
         }
