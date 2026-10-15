@@ -1,6 +1,5 @@
 package com.qvacell.app.ui.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -65,7 +64,7 @@ private fun ConsultCard(
     Card(
         modifier = modifier
             .clip(cardShape)
-            .clickable(onClick = onClick),
+            .dashboardQueryGesture(onClick),
         shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {

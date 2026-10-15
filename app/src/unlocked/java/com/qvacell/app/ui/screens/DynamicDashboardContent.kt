@@ -58,6 +58,7 @@ import com.qvacell.app.ui.components.RechargeLimitCard
 import com.qvacell.app.ui.components.VoiceSmsRow
 import com.qvacell.app.ui.components.LoadingCardBorder
 import com.qvacell.app.ui.components.LocalLoadingAnimationStyle
+import com.qvacell.app.ui.components.LocalDashboardCardTapMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,7 +105,8 @@ fun DynamicDashboardContent(
 
     CompositionLocalProvider(
         LocalStaleDaysThreshold provides staleDays,
-        LocalLoadingAnimationStyle provides loadingStyle
+        LocalLoadingAnimationStyle provides loadingStyle,
+        LocalDashboardCardTapMode provides cardTapMode
     ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,

@@ -1,6 +1,5 @@
 package com.qvacell.app.ui.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -45,7 +44,7 @@ fun MainBalanceCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .then(if (onQuery != null) Modifier.clickable { onQuery() } else Modifier),
+            .then(if (onQuery != null) Modifier.dashboardQueryGesture(onQuery) else Modifier),
         shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
