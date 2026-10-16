@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -34,6 +35,7 @@ class SettingsDataStore(private val context: Context) {
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
     private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
     private val autoUpdateCheckKey = stringPreferencesKey("auto_update_check")
+    private val lastSuccessfulUpdateCheckAtKey = longPreferencesKey("last_successful_update_check_at")
 
     val themeMode = context.dataStore.data.map {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
@@ -100,6 +102,7 @@ class SettingsDataStore(private val context: Context) {
 
     // "unlocked" (default), "playstore", or "none"
     val autoUpdateCheck = context.dataStore.data.map { it[autoUpdateCheckKey] ?: "unlocked" }
+    val lastSuccessfulUpdateCheckAt = context.dataStore.data.map { it[lastSuccessfulUpdateCheckAtKey] ?: 0L }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[themeModeKey] = mode.name }
@@ -174,7 +177,14 @@ class SettingsDataStore(private val context: Context) {
     }
 
     suspend fun setAutoUpdateCheck(mode: String) {
-        context.dataStore.edit { it[autoUpdateCheckKey] = mode }
+        context.dataStore.edit {
+            if (it[autoUpdateCheckKey] != mode) it.remove(lastSuccessfulUpdateCheckAtKey)
+            it[autoUpdateCheckKey] = mode
+        }
+    }
+
+    suspend fun setLastSuccessfulUpdateCheckAt(timeMillis: Long) {
+        context.dataStore.edit { it[lastSuccessfulUpdateCheckAtKey] = timeMillis }
     }
 
     companion object {

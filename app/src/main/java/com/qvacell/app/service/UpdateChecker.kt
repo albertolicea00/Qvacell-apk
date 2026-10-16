@@ -1,7 +1,11 @@
 package com.qvacell.app.service
 
+import android.content.Context
+import android.os.Build
 import com.qvacell.app.BuildConfig
+import com.qvacell.app.data.SettingsDataStore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import java.net.HttpURLConnection
@@ -22,6 +26,33 @@ sealed interface UpdateCheckResult {
 }
 
 object UpdateChecker {
+
+    private const val CHECK_INTERVAL_MILLIS = 24 * 60 * 60 * 1000L
+
+    fun isPlayStoreInstall(context: Context): Boolean =
+        !BuildConfig.DASHBOARD_CAPTURE_ENABLED && runCatching {
+            val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getInstallerPackageName(context.packageName)
+            }
+            installer == "com.android.vending"
+        }.getOrDefault(false)
+
+    /** Runs at app open when the selected channel has not been checked successfully today. */
+    suspend fun checkIfDue(settings: SettingsDataStore, targetMode: String): UpdateCheckResult? {
+        if (targetMode == "none") return null
+        val now = System.currentTimeMillis()
+        val lastCheck = settings.lastSuccessfulUpdateCheckAt.first()
+        if (lastCheck in 1..now && now - lastCheck < CHECK_INTERVAL_MILLIS) return null
+
+        val result = check(targetMode)
+        if (result != UpdateCheckResult.Failed) {
+            settings.setLastSuccessfulUpdateCheckAt(System.currentTimeMillis())
+        }
+        return result
+    }
 
     private const val RELEASES_URL =
         "https://api.github.com/repos/albertolicea00/Qvacell-apk/releases"

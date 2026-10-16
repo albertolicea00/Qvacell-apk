@@ -34,12 +34,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.hasCellularService
@@ -52,6 +55,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.R
+import com.qvacell.app.BuildConfig
+import com.qvacell.app.service.UpdateCheckResult
+import com.qvacell.app.service.UpdateChecker
+import com.qvacell.app.service.UpdateInfo
+import com.qvacell.app.ui.components.UpdateAvailableDialog
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -59,6 +67,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import com.qvacell.app.ui.screens.CategoryListScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
 import com.qvacell.app.ui.screens.DashboardHelpScreen
@@ -158,6 +167,29 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
 
     val context = LocalContext.current
     val settings = remember { SettingsDataStore(context) }
+    var foregroundOpenCount by remember { mutableIntStateOf(0) }
+    var automaticUpdateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    var automaticUpdateMode by remember { mutableStateOf("unlocked") }
+    LifecycleEventEffect(Lifecycle.Event.ON_START) { foregroundOpenCount++ }
+    LaunchedEffect(foregroundOpenCount, currentRoute != null && currentRoute != Routes.ONBOARDING) {
+        if (foregroundOpenCount == 0 || currentRoute == null || currentRoute == Routes.ONBOARDING) {
+            return@LaunchedEffect
+        }
+        if (UpdateChecker.isPlayStoreInstall(context)) return@LaunchedEffect
+
+        val configuredMode = settings.autoUpdateCheck.first()
+        val mode = if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && configuredMode == "playstore") {
+            settings.setAutoUpdateCheck("unlocked")
+            "unlocked"
+        } else configuredMode
+        when (val result = UpdateChecker.checkIfDue(settings, mode)) {
+            is UpdateCheckResult.Available -> {
+                automaticUpdateMode = mode
+                automaticUpdateInfo = result.info
+            }
+            else -> Unit // Automatic failures are silent; the next app opening retries.
+        }
+    }
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     val refreshFailure by DashboardRefreshService.refreshFailure.collectAsStateWithLifecycle(initialValue = null)
     var isDynamicDashboard by remember { mutableStateOf(false) }
@@ -461,5 +493,12 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 )
             }
         }
+    }
+    automaticUpdateInfo?.let { info ->
+        UpdateAvailableDialog(
+            info = info,
+            targetMode = automaticUpdateMode,
+            onDismiss = { automaticUpdateInfo = null }
+        )
     }
 }

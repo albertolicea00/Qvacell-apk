@@ -99,6 +99,7 @@ import com.qvacell.app.service.UpdateInfo
 import com.qvacell.app.service.SimUtils
 import com.qvacell.app.ui.components.ColorWheelPicker
 import com.qvacell.app.ui.components.DialogActionRow
+import com.qvacell.app.ui.components.UpdateAvailableDialog
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 import com.qvacell.app.ui.navigation.bottomTabs
 import com.qvacell.app.ui.resolveAndroidIcon
@@ -180,17 +181,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val effectiveAutoUpdateCheck = if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && autoUpdateCheck == "playstore") {
         "unlocked"
     } else autoUpdateCheck
-    val isPlayStoreInstall = remember(context) {
-        !BuildConfig.DASHBOARD_CAPTURE_ENABLED && runCatching {
-            val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                context.packageManager.getInstallSourceInfo(context.packageName).installingPackageName
-            } else {
-                @Suppress("DEPRECATION")
-                context.packageManager.getInstallerPackageName(context.packageName)
-            }
-            installer == "com.android.vending"
-        }.getOrDefault(false)
-    }
+    val isPlayStoreInstall = remember(context) { UpdateChecker.isPlayStoreInstall(context) }
     val activeSims = remember { SimUtils.getActiveSubscriptions(context) }
 
     var showThemeSheet by remember { mutableStateOf(false) }
@@ -214,16 +205,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             settings.setAutoUpdateCheck("unlocked")
         }
     }
-    LaunchedEffect(effectiveAutoUpdateCheck, isPlayStoreInstall) {
-        if (isPlayStoreInstall || effectiveAutoUpdateCheck == "none") return@LaunchedEffect
-        val result = UpdateChecker.check(targetMode = effectiveAutoUpdateCheck)
-        if (result is UpdateCheckResult.Available) {
-            updateInfo = result.info
-            updateTargetMode = effectiveAutoUpdateCheck
-            showUpdateDialog = true
-        }
-    }
-
     var versionTapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
     var versionTapHandled by remember { mutableStateOf(false) }
@@ -978,36 +959,10 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     }
 
     if (showUpdateDialog && updateInfo != null) {
-        val info = updateInfo!!
-        val downloadUrl = when (updateTargetMode) {
-            "playstore" -> info.storeApkUrl ?: info.htmlUrl
-            else -> info.unlockedApkUrl ?: info.htmlUrl
-        }
-        val titleText = if (info.isFlavorUpgrade) stringResource(R.string.options_update_unlocked_title) else stringResource(R.string.options_update_available_title_new)
-        val bodyText = if (info.isFlavorUpgrade) {
-            stringResource(R.string.options_update_upgrade_desc, BuildConfig.VERSION_NAME, info.versionName)
-        } else {
-            stringResource(R.string.options_update_new_desc, BuildConfig.VERSION_NAME, info.versionName)
-        }
-        AlertDialog(
-            onDismissRequest = { showUpdateDialog = false },
-            icon = { Icon(Icons.Filled.SystemUpdate, contentDescription = null) },
-            title = { Text(titleText) },
-            text = { Text(bodyText) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showUpdateDialog = false
-                    val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(downloadUrl))
-                    context.startActivity(intent)
-                }) {
-                    Text(stringResource(R.string.options_update_download))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showUpdateDialog = false }) {
-                    Text(stringResource(R.string.options_update_not_now))
-                }
-            }
+        UpdateAvailableDialog(
+            info = updateInfo!!,
+            targetMode = updateTargetMode,
+            onDismiss = { showUpdateDialog = false }
         )
     }
 
