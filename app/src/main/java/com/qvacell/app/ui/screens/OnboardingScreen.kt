@@ -184,11 +184,13 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
                         icon = Icons.Filled.Home,
                         title = stringResource(R.string.onboarding_home_title),
                         subtitle = stringResource(R.string.onboarding_home_subtitle),
-                        bullets = listOf(
-                            stringResource(R.string.onboarding_home_bullet1),
-                            stringResource(R.string.onboarding_home_bullet2),
-                            stringResource(R.string.onboarding_home_bullet3)
-                        ),
+                        bullets = buildList {
+                            add(stringResource(R.string.onboarding_home_bullet1))
+                            if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                                add(stringResource(R.string.onboarding_home_bullet2))
+                            }
+                            add(stringResource(R.string.onboarding_home_bullet3))
+                        },
                         onNext = ::next
                     )
                     OnboardingPage.FeaturePurchases -> FeaturePage(
