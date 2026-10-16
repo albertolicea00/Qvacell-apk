@@ -77,13 +77,13 @@ There is no MVVM view-model layer and no cross-screen navigation state machine b
 | `receiver/ReminderAlarmReceiver.kt`                | `BroadcastReceiver` fired by `AlarmManager`; shows the reminder notification and reschedules if recurring.                                                                                                                                                                                         |
 | `receiver/ReminderActionReceiver.kt`               | Handles the "Mark done" / "Snooze 1 day" notification actions.                                                                                                                                                                                                                                     |
 | `receiver/BootCompletedReceiver.kt`                | Re-registers all enabled reminders after `ACTION_BOOT_COMPLETED`, since `AlarmManager` alarms are cleared on reboot (§6) — a correctness step iOS local notifications don't need.                                                                                                                  |
-| `ui/AndroidIconResolver.kt`                        | Resolves the `icon` string in this repo's `codes.json` (e.g. `"Filled.Home"` — this repo's own copy replaces iOS's SF Symbol names with Material icon identifiers in that same field) to a `androidx.compose.material.icons` `ImageVector` via reflection; falls back to a generic circle icon when unset or unresolvable. |
+| `ui/AndroidIconResolver.kt`                        | Maps Android Material icon identifiers in this repo's `codes.json` (e.g. `"Filled.Home"`) to `ImageVector` references directly, without reflection; falls back to a generic circle for null or unknown identifiers. Explicit references let R8 retain used icons while removing unused ones (§20). |
 | `ui/components/`                                   | Reusable composables: `CodeRow`, `ContactRow` (per-number entry with optional type label), `ContactOptionsSheet`, `TransferBottomSheet`, `DirectoryEntryRow`, `ConnectionBanner` (includes `hasCellularService()` signal check), `SimSelectorChip` (§16), `SearchableTopAppBar` (with `extraActions` slot), `CodeActionHandler`, and dashboard cards — `MainBalanceCard`, `DataUsageCard`, `NationalBonusCard`, `VoiceSmsRow`, `RechargeLimitCard`, `ConsultCardsRow`, plus `TimeAgoText`/`LocalStaleDaysThreshold` (§15.10). |
 | `ui/navigation/NavGraph.kt`                        | `BottomTab` sealed class (the 5 fixed tabs) and `Routes` (nested route constants for screens pushed from Options).                                                                                                                                                                                 |
 | `ui/navigation/QvacellNavHost.kt`                  | Compose `NavHost` wiring bottom-tab routes and nested routes together.                                                                                                                                                                                                                             |
 | `ui/screens/`                                      | `CategoryListScreen` (Ayuda/Compras), `ContactsListScreen` (per-number flat list, §17), `HomeQuickActionsScreen`, `ManualDashboardContent`/`DynamicDashboardContent` (live dashboard with signal gating, pull-to-refresh, `LoadingCardBorder` animation — §15.9–§15.13), `ReminderListScreen`/`ReminderEditScreen`, `FriendsPlanManageScreen`, `DirectorySearchScreen`, `WifiRoomsScreen`, `OptionsScreen` (includes SIM selector, §16), `HelpScreen`, `SmsServicesScreen`. |
 | `widget/`                                          | `QuickActionsWidget` (AppWidgetProvider), `QuickActionsWidgetConfigure` (config activity with code + SIM picker), `WidgetPrefs` (per-widget SharedPreferences: code ID, SIM slot, icon shape, colors), `DialTrampolineActivity` (reads per-widget SIM and dials via `DialService`).                |
-| `app/src/main/assets/codes.json`                   | Static, bundled dataset: version, carrier, categories → groups → codes, each with its dial string and presentation metadata (§3). Byte-identical to the iOS app's copy.                                                                                                                            |
+| `app/src/main/assets/codes.json`                   | Static, bundled dataset: version, carrier, categories → groups → codes, each with its dial string and presentation metadata (§3). Catalog structure is kept in sync with iOS; platform-specific presentation values such as icons may differ. |
 | `app/src/main/assets/wifi_navigation_rooms.json`   | Static, bundled dataset: one entry per province with its navigation rooms and free WiFi hotspots. Byte-identical to the iOS app's copy.                                                                                                                                                            |
 
 No separate networking layer or dependency-injection container exists — the `service/` package _is_ the service layer, and each service is instantiated where it's needed (typically inside a `remember { }` in the composable that uses it).
@@ -92,18 +92,18 @@ No separate networking layer or dependency-injection container exists — the `s
 
 ## 3. Configuration Data: `codes.json`
 
-`codes.json` is the single source of truth for **what USSD/call/SMS codes exist** and is treated as read-only, bundled data, shared verbatim with the iOS app. It decodes into:
+`codes.json` is the single source of truth for **what USSD/call/SMS codes exist** and is treated as read-only, bundled data. Its catalog structure is kept in sync with iOS; platform-specific presentation values such as `icon` may differ (iOS uses SF Symbols, Android uses Material icon identifiers). It decodes into:
 
 ```
 UssdCatalog
  ├─ version, carrier
  └─ categories: [UssdCategory]
-     ├─ id, name, icon (Material icon identifier, e.g. `"Filled.Home"` — resolved via AndroidIconResolver.kt; iOS's copy of this same field holds an SF Symbol name instead)
+     ├─ id, name, icon (Android Material identifier, e.g. `"Filled.Home"` — resolved via AndroidIconResolver.kt; iOS uses SF Symbols)
      └─ groups: [UssdCodeGroup]        (a named sub-heading, or nil-named for no header)
          ├─ name: String?
          └─ codes: [UssdCode]
              ├─ id, code, title, details
-             ├─ icon (Material icon identifier, only present on codes that already had an SF Symbol on iOS), price, compact, showsNumber   (all optional — presentation hints)
+             ├─ icon (Android Material identifier, price, compact, showsNumber — optional presentation hints; icon may differ from iOS's SF Symbol)
              ├─ type: UssdActionType   (USSD / CALL / SMS — drives dial-vs-dialog-vs-SMS-intent behavior)
              ├─ requiresInput: Boolean, inputPlaceholder: String?
              ├─ noConfirmCode: String?             (Quick-Purchase-without-confirmation variant of `code`)
@@ -189,12 +189,13 @@ These shape the UX and are not fixable in code:
 - **Silent failure on decode errors**: a malformed `codes.json` or `wifi_navigation_rooms.json` would throw during `CatalogRepository` init — acceptable only because both files are bundled and never user-supplied.
 - **No data migrations**: `codes.json` has a `version` field that nothing currently reads; adding a new optional field to `UssdCode` is safe, but renaming/retyping an existing field will break decoding for the exact build that ships it.
 - **`codes.json`/`wifi_navigation_rooms.json` are compiled-in**: adding a new code, category, or WiFi room requires a new app build and Play Store review — there is no remote-config or in-app update path.
+- **Android catalog icons have an explicit resolver**: when adding an icon identifier to this repo's `codes.json`, add the matching `Icons.Filled.*` or `Icons.AutoMirrored.Filled.*` case to `AndroidIconResolver.kt`. Unknown or missing identifiers fall back to `Circle`; `AndroidIconResolverTest` checks every catalog icon and catches omissions.
 
 ---
 
 ## 10. Extension Points
 
-- **New code, group, or category** → edit `codes.json` only; UI adapts automatically for a new code/group. A whole new top-level category needs a matching tab wired into `NavGraph.kt`/`QvacellNavHost.kt` (§4 — the tab set is not a generic loop).
+- **New code, group, or category** → edit `codes.json`; when it introduces a new Android icon, also add it to `AndroidIconResolver.kt` (§20). UI adapts automatically for a new code/group. A whole new top-level category needs a matching tab wired into `NavGraph.kt`/`QvacellNavHost.kt` (§4 — the tab set is not a generic loop).
 - **Search** → `CategoryListScreen`/`SmsServicesScreen` would need local as-you-type filtering added; no `CatalogRepository` search API exists yet.
 - **Favorites / recents** → `TransferPinStore` (§12) is already a precedent for small encrypted local state beside the read-only catalog; a DataStore-backed store would work the same way for something non-secret.
 - **Remote catalog updates** → replace `CatalogRepository`'s asset-loading with a cached-remote strategy; the `version` field in the JSON exists for this.
@@ -526,3 +527,24 @@ Analytics automatically reports first opens, sessions, engagement, and other SDK
 `first_open` measures the first launch after installation or reinstallation, **not raw downloads/installations**. Google Play Console remains the source for actual Play install counts; Firebase covers first launches across both distribution channels. Verify screen events in Analytics DebugView and crash reports with a controlled test crash on a test build/device after the Firebase console has Crashlytics enabled.
 
 Performance Monitoring automatically measures app startup and Activity screen rendering; the Gradle plugin instruments eligible HTTP/S requests. Qvacell's Compose destinations share one Activity, so those automatic screen traces do not provide a separate duration for each destination. `AppTelemetry.startTrace()` adds a `contacts_load` custom duration trace around `ContactsRepository.loadContacts()` without recording contact data. Performance Monitoring does not directly report CPU, memory, or battery consumption; use Android profiling tools for those resource measurements.
+
+---
+
+## 20. Release APK Optimization (R8)
+
+The `release` build type enables `isMinifyEnabled = true` and `isShrinkResources = true` in `app/build.gradle.kts`. R8 removes unused app and dependency code, optimizes bytecode, and shortens names where possible; resource shrinking removes resources that are no longer referenced. Debug builds remain unminified. Release uses the optimized default ProGuard configuration plus project rules from `app/proguard-rules.pro`.
+
+The catalog stores icon names as strings, so R8 cannot infer references from `codes.json`. `AndroidIconResolver.kt` maps every catalog icon to a direct Compose icon reference. This avoids reflection and tells R8 which icon accessors to retain. Avoid a broad keep rule for all Material icons because it would retain unused icons and reduce the size savings. An icon missing from the resolver falls back to `Icons.Filled.Circle`; `AndroidIconResolverTest` reads `codes.json` and fails if any catalog icon resolves to that fallback. When adding or changing Android icon identifiers, update the resolver and run the app unit tests.
+
+R8 can change or remove code reached only through reflection, JNI, or external names. New dynamic access needs a narrow keep rule and a test against the minified release build. Crashlytics mapping files are generated and uploaded by the Crashlytics Gradle plugin for minified release builds, keeping obfuscated crash traces readable. Keep the mapping file associated with each distributed APK.
+
+APK size depends on dependencies, resources, tool versions, and build variant. In the local comparison made for v1.0.6, the store APK measured 3.76 MiB and unlocked measured 3.81 MiB, compared with the unminified v1.0.5 APKs at 16.72 MiB and 16.74 MiB. These are observed outputs, not guaranteed future sizes; compare the same variant and output type when reviewing size changes.
+
+Build both release APKs and run the icon coverage and app unit tests with:
+
+```sh
+./gradlew :app:assembleStoreRelease :app:assembleUnlockedRelease
+./gradlew :app:testStoreDebugUnitTest :app:testUnlockedDebugUnitTest
+```
+
+Release APKs are written under `app/build/outputs/apk/release/`.

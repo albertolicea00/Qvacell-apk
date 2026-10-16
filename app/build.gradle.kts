@@ -18,8 +18,8 @@ android {
     // an AGP version the installed Android Studio (2025.1 Meerkat) actually supports syncing.
     compileSdk = 36
 
-    val baseVersionCode = 6
-    val appVersionName = "1.0.6"
+    val baseVersionCode = 7
+    val appVersionName = "1.0.7"
 
     defaultConfig {
         applicationId = "com.qvacell.app"
@@ -78,7 +78,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (releasePropsFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
