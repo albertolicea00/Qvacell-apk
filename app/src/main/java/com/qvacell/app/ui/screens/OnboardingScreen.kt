@@ -49,6 +49,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,9 +68,11 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.BuildConfig
 import com.qvacell.app.R
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DialService
+import com.qvacell.app.service.OnboardingDataPrefetch
 import kotlinx.coroutines.launch
 
 private sealed class OnboardingPage {
@@ -92,6 +95,7 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
 
     var currentPageIndex by remember { mutableIntStateOf(0) }
     var ussdGranted by remember { mutableStateOf(DialService.hasCallPermission(context)) }
+    var dashboardPrefetchStarted by remember { mutableStateOf(false) }
 
     val pages = remember {
         buildList {
@@ -107,6 +111,15 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
     val ussdPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> ussdGranted = granted }
+
+    LaunchedEffect(currentPageIndex, ussdGranted) {
+        if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && ussdGranted &&
+            currentPageIndex >= 1 && !dashboardPrefetchStarted
+        ) {
+            dashboardPrefetchStarted = true
+            OnboardingDataPrefetch.startBackgroundFetch(context.applicationContext)
+        }
+    }
 
     fun next() {
         if (currentPageIndex < pages.lastIndex) {
