@@ -177,6 +177,9 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
     val autoUpdateCheck by settings.autoUpdateCheck.collectAsStateWithLifecycle(initialValue = "unlocked")
+    val effectiveAutoUpdateCheck = if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && autoUpdateCheck == "playstore") {
+        "unlocked"
+    } else autoUpdateCheck
     val isPlayStoreInstall = remember(context) {
         !BuildConfig.DASHBOARD_CAPTURE_ENABLED && runCatching {
             val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -207,13 +210,16 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showUpdateDialog by remember { mutableStateOf(false) }
     LaunchedEffect(isPlayStoreInstall, autoUpdateCheck) {
         if (isPlayStoreInstall && autoUpdateCheck != "none") settings.setAutoUpdateCheck("none")
+        else if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && autoUpdateCheck == "playstore") {
+            settings.setAutoUpdateCheck("unlocked")
+        }
     }
-    LaunchedEffect(autoUpdateCheck, isPlayStoreInstall) {
-        if (isPlayStoreInstall || autoUpdateCheck == "none") return@LaunchedEffect
-        val result = UpdateChecker.check(targetMode = autoUpdateCheck)
+    LaunchedEffect(effectiveAutoUpdateCheck, isPlayStoreInstall) {
+        if (isPlayStoreInstall || effectiveAutoUpdateCheck == "none") return@LaunchedEffect
+        val result = UpdateChecker.check(targetMode = effectiveAutoUpdateCheck)
         if (result is UpdateCheckResult.Available) {
             updateInfo = result.info
-            updateTargetMode = autoUpdateCheck
+            updateTargetMode = effectiveAutoUpdateCheck
             showUpdateDialog = true
         }
     }
@@ -264,7 +270,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         else stringResource(R.string.options_hidden_action_plural, manualHiddenSections.size)
     val accentColorLabel = ACCENT_COLOR_OPTIONS.firstOrNull { it.first.equals(accentColor, ignoreCase = true) }?.second?.let { stringResource(it) }
         ?: accentColor
-    val autoUpdateLabel = when (autoUpdateCheck) {
+    val autoUpdateLabel = when (effectiveAutoUpdateCheck) {
         "playstore" -> stringResource(R.string.options_auto_update_playstore)
         "none" -> stringResource(R.string.options_auto_update_none)
         else -> stringResource(R.string.options_unlocked_version)
@@ -938,11 +944,15 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
-                listOf(
-                    "unlocked" to stringResource(R.string.options_unlocked_version),
-                    "playstore" to stringResource(R.string.options_auto_update_playstore),
-                    "none" to stringResource(R.string.options_auto_update_none)
-                ).forEach { (mode, label) ->
+                val updateModes = buildList {
+                    add("unlocked" to stringResource(R.string.options_unlocked_version))
+                    // The Play Store channel only applies to the store flavor.
+                    if (!BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                        add("playstore" to stringResource(R.string.options_auto_update_playstore))
+                    }
+                    add("none" to stringResource(R.string.options_auto_update_none))
+                }
+                updateModes.forEach { (mode, label) ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -953,7 +963,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             .padding(vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        RadioButton(selected = autoUpdateCheck == mode, onClick = null)
+                        RadioButton(selected = effectiveAutoUpdateCheck == mode, onClick = null)
                         Text(label, modifier = Modifier.padding(start = 8.dp))
                     }
                 }

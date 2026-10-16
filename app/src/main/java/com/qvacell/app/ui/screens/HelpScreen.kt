@@ -195,7 +195,15 @@ fun HelpScreen(
 
             HelpSection(stringResource(R.string.options_version)) {
                 Text(
-                    BuildConfig.VERSION_NAME,
+                    stringResource(
+                        R.string.help_version_details,
+                        BuildConfig.VERSION_NAME,
+                        BuildConfig.VERSION_CODE,
+                        stringResource(
+                            if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) R.string.options_unlocked_version
+                            else R.string.options_auto_update_playstore
+                        )
+                    ),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
