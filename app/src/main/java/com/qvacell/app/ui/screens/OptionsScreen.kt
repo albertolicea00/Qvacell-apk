@@ -226,6 +226,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     var versionTapCount by remember { mutableIntStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
+    var versionTapHandled by remember { mutableStateOf(false) }
 
     val configuracionesCodes = remember {
         repository.loadCatalog().categories
@@ -242,11 +243,15 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     fun onVersionTap() {
         val now = System.currentTimeMillis()
-        if (now - lastTapTime > 3000) versionTapCount = 0
+        if (now - lastTapTime > 3000) {
+            versionTapCount = 0
+            versionTapHandled = false
+        }
         lastTapTime = now
+        if (versionTapHandled) return
         versionTapCount++
         if (versionTapCount >= 5) {
-            versionTapCount = 0
+            versionTapHandled = true
             val newState = !dbSearchUnlocked
             scope.launch { settings.setDebugDatabaseSearchEnabled(newState) }
             val message = context.getString(if (newState) R.string.options_db_unlocked else R.string.options_db_hidden)
