@@ -2,6 +2,7 @@ package com.qvacell.app.ui.components
 
 import android.telephony.SubscriptionInfo
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,8 +10,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -25,6 +28,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -37,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
@@ -127,6 +132,18 @@ fun SimAppearanceEditor(
                     onClick = { isCorporate = false },
                     label = { Text(stringResource(R.string.sim_standard_line)) },
                     shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = !isCorporate,
+                        borderColor = MaterialTheme.colorScheme.outlineVariant,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
+                        borderWidth = 1.dp,
+                        selectedBorderWidth = 2.dp
+                    ),
                     modifier = Modifier.weight(1f)
                 )
                 FilterChip(
@@ -134,6 +151,18 @@ fun SimAppearanceEditor(
                     onClick = { isCorporate = true },
                     label = { Text(stringResource(R.string.sim_corporate_line)) },
                     shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 28.dp, bottomEnd = 28.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = isCorporate,
+                        borderColor = MaterialTheme.colorScheme.outlineVariant,
+                        selectedBorderColor = MaterialTheme.colorScheme.primary,
+                        borderWidth = 1.dp,
+                        selectedBorderWidth = 2.dp
+                    ),
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -262,7 +291,7 @@ fun SimCardGlyph(
             bottomStart = width * 0.08f
         ),
         color = color,
-        shadowElevation = if (width > 50.dp) 4.dp else 0.dp
+        shadowElevation = if (width > 40.dp) 4.dp else 0.dp
     ) {
         Box(contentAlignment = Alignment.Center) {
             val image = simIcon(icon)
@@ -270,14 +299,14 @@ fun SimCardGlyph(
                 Text(
                     "${slotIndex + 1}",
                     color = foreground,
-                    style = if (width > 50.dp) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge
+                    style = if (width > 40.dp) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge
                 )
             } else {
                 Icon(
                     image,
                     contentDescription = null,
                     tint = foreground,
-                    modifier = Modifier.size(if (width > 50.dp) 28.dp else width * 0.48f)
+                    modifier = Modifier.size(if (width > 40.dp) 30.dp else width * 0.56f)
                 )
             }
         }
@@ -293,21 +322,46 @@ private fun SimCardPreview(
     isCorporate: Boolean,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+    val gridLineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+    Box(
+        modifier = modifier.fillMaxWidth()
+            .height(130.dp)
     ) {
-                SimCardGlyph(slotIndex, icon, color, width = 42.dp, height = 52.dp)
-        Text(
-            stringResource(if (isCorporate) R.string.sim_corporate_line else R.string.sim_personal_line),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            stringResource(R.string.sim_named_slot, name, slotIndex + 1),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val step = 20.dp.toPx()
+            var x = 0f
+            while (x <= size.width) {
+                drawLine(gridLineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
+                x += step
+            }
+            var y = 0f
+            while (y <= size.height) {
+                drawLine(gridLineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+                y += step
+            }
+        }
+        Column(
+            modifier = Modifier
+                .width(96.dp)
+                .height(120.dp)
+                .align(Alignment.Center)
+                .padding(4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            SimCardGlyph(slotIndex, icon, color, width = 46.dp, height = 56.dp)
+            Text(
+                stringResource(if (isCorporate) R.string.sim_corporate_line else R.string.sim_personal_line),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
+            Text(
+                stringResource(R.string.sim_named_slot, name, slotIndex + 1),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1
+            )
+        }
     }
 }

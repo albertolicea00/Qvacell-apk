@@ -499,8 +499,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                                         slotIndex = sim.simSlotIndex,
                                         icon = appearance?.icon ?: "number",
                                         color = SimUtils.simColor(sim.simSlotIndex, appearance),
-                                        width = 30.dp,
-                                        height = 36.dp
+                                        width = 34.dp,
+                                        height = 40.dp
                                     )
                                 },
                                 onClick = { editingSim = sim }
