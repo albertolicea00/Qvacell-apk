@@ -106,6 +106,7 @@ import com.qvacell.app.ui.components.DialogActionRow
 import com.qvacell.app.ui.components.UpdateAvailableDialog
 import com.qvacell.app.ui.components.SimAppearanceEditor
 import com.qvacell.app.ui.components.SimBadge
+import com.qvacell.app.ui.components.SimCardGlyph
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 import com.qvacell.app.ui.navigation.bottomTabs
 import com.qvacell.app.ui.resolveAndroidIcon
@@ -486,20 +487,21 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         activeSims.isNotEmpty() -> activeSims.forEachIndexed { index, sim ->
                             if (index > 0) OptionsDivider()
                             val appearance = simAppearances[sim.subscriptionId.toString()]
+                            val simName = appearance?.name?.trim()?.takeIf { it.isNotEmpty() }
+                                ?: SimUtils.simLabel(context, sim)
                             OptionsRow(
-                                headline = SimUtils.simLabel(context, sim, appearance),
+                                headline = stringResource(R.string.sim_named_slot, simName, sim.simSlotIndex + 1),
                                 supporting = stringResource(
                                     if (appearance?.isCorporate == true) R.string.sim_corporate_line else R.string.sim_personal_line
                                 ),
-                                icon = Icons.Filled.SimCard,
-                                trailingContent = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        SimBadge(sim.simSlotIndex, appearance)
-                                        Spacer(Modifier.width(8.dp))
-                                        TextButton(onClick = { editingSim = sim }) {
-                                            Text(stringResource(R.string.sim_customize))
-                                        }
-                                    }
+                                leadingContent = {
+                                    SimCardGlyph(
+                                        slotIndex = sim.simSlotIndex,
+                                        icon = appearance?.icon ?: "number",
+                                        color = SimUtils.simColor(sim.simSlotIndex, appearance),
+                                        width = 30.dp,
+                                        height = 36.dp
+                                    )
                                 },
                                 onClick = { editingSim = sim }
                             )
@@ -1174,7 +1176,8 @@ internal fun OptionsRow(
     icon: ImageVector? = null,
     onClick: (() -> Unit)? = null,
     accentHeadline: Boolean = false,
-    trailingContent: (@Composable () -> Unit)? = null
+    trailingContent: (@Composable () -> Unit)? = null,
+    leadingContent: (@Composable () -> Unit)? = null
 ) {
     ListItem(
         headlineContent = {
@@ -1193,7 +1196,7 @@ internal fun OptionsRow(
                 )
             }
         },
-        leadingContent = icon?.let { { Icon(it, contentDescription = null, tint = MaterialTheme.colorScheme.primary) } },
+        leadingContent = leadingContent ?: icon?.let { { Icon(it, contentDescription = null, tint = MaterialTheme.colorScheme.primary) } },
         trailingContent = trailingContent,
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier

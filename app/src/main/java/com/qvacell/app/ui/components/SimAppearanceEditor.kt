@@ -11,10 +11,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Public
@@ -37,12 +40,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.qvacell.app.R
 import com.qvacell.app.data.SimAppearance
 import com.qvacell.app.service.SimUtils
+import java.util.Locale
 
 private val simColors = listOf("#FFB300", "#E91E63", "#1976D2", "#008577", "#7B1FA2", "#D84315")
 
@@ -89,13 +95,22 @@ fun SimAppearanceEditor(
     }
     var icon by remember(sim.subscriptionId, appearance) { mutableStateOf(appearance.icon) }
     var isCorporate by remember(sim.subscriptionId, appearance) { mutableStateOf(appearance.isCorporate) }
+    var showCustomColorPicker by remember(sim.subscriptionId, appearance) { mutableStateOf(colorHex !in simColors) }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp),
+            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text(stringResource(R.string.sim_customize_title, sim.simSlotIndex + 1), style = MaterialTheme.typography.titleLarge)
+            SimCardPreview(
+                slotIndex = sim.simSlotIndex,
+                name = name.trim().ifBlank { SimUtils.simLabel(sim) },
+                icon = icon,
+                color = Color(android.graphics.Color.parseColor(colorHex)),
+                isCorporate = isCorporate,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it.take(30) },
@@ -112,13 +127,47 @@ fun SimAppearanceEditor(
                 simColors.forEach { choice ->
                     val choiceColor = Color(android.graphics.Color.parseColor(choice))
                     Surface(
-                        onClick = { colorHex = choice },
+                        onClick = {
+                            colorHex = choice
+                            showCustomColorPicker = false
+                        },
                         shape = CircleShape,
                         color = choiceColor,
                         border = if (colorHex == choice) BorderStroke(3.dp, MaterialTheme.colorScheme.onSurface) else null,
                         modifier = Modifier.size(40.dp)
                     ) {}
                 }
+                val customColor = Color(android.graphics.Color.parseColor(colorHex))
+                Surface(
+                    onClick = { showCustomColorPicker = true },
+                    shape = CircleShape,
+                    color = if (showCustomColorPicker) customColor else MaterialTheme.colorScheme.surfaceContainerHighest,
+                    border = if (showCustomColorPicker) BorderStroke(3.dp, MaterialTheme.colorScheme.onSurface) else BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            Icons.Filled.Add,
+                            contentDescription = stringResource(R.string.action_custom),
+                            tint = if (showCustomColorPicker && customColor.luminance() <= 0.4f) Color.White else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+            }
+            if (showCustomColorPicker) {
+                Text(
+                    "#%06X".format(Locale.ROOT, 0xFFFFFF and Color(android.graphics.Color.parseColor(colorHex)).toArgb()),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                ColorWheelPicker(
+                    color = Color(android.graphics.Color.parseColor(colorHex)),
+                    onColorChange = { selected ->
+                        colorHex = "#%06X".format(Locale.ROOT, 0xFFFFFF and selected.toArgb())
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
             Text(stringResource(R.string.sim_custom_icon), style = MaterialTheme.typography.titleSmall)
             Row(
@@ -171,5 +220,74 @@ fun SimAppearanceEditor(
             }
             Spacer(Modifier.size(12.dp))
         }
+    }
+}
+
+@Composable
+fun SimCardGlyph(
+    slotIndex: Int,
+    icon: String,
+    color: Color,
+    width: androidx.compose.ui.unit.Dp,
+    height: androidx.compose.ui.unit.Dp,
+    modifier: Modifier = Modifier
+) {
+    val foreground = if (color.luminance() > 0.4f) Color.Black else Color.White
+    Surface(
+        modifier = modifier.size(width = width, height = height),
+        shape = CutCornerShape(
+            topStart = width * 0.08f,
+            topEnd = width * 0.26f,
+            bottomEnd = width * 0.08f,
+            bottomStart = width * 0.08f
+        ),
+        color = color,
+        shadowElevation = if (width > 50.dp) 4.dp else 0.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            val image = simIcon(icon)
+            if (image == null) {
+                Text(
+                    "${slotIndex + 1}",
+                    color = foreground,
+                    style = if (width > 50.dp) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.labelLarge
+                )
+            } else {
+                Icon(
+                    image,
+                    contentDescription = null,
+                    tint = foreground,
+                    modifier = Modifier.size(if (width > 50.dp) 28.dp else width * 0.48f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SimCardPreview(
+    slotIndex: Int,
+    name: String,
+    icon: String,
+    color: Color,
+    isCorporate: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        SimCardGlyph(slotIndex, icon, color, width = 92.dp, height = 112.dp)
+        Text(
+            stringResource(if (isCorporate) R.string.sim_corporate_line else R.string.sim_personal_line),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            stringResource(R.string.sim_named_slot, name, slotIndex + 1),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

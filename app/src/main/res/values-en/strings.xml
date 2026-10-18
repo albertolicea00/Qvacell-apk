@@ -660,6 +660,7 @@
     <string name="sim_personal_line">Standard line</string>
     <string name="sim_line_type">Line type</string>
     <string name="sim_standard_line">Standard</string>
+    <string name="sim_named_slot">%1$s (SIM %2$d)</string>
     <string name="options_sim_section">SIM and line type</string>
     <string name="options_sim_type">SIM line type</string>
     <string name="options_sim_not_detected">No active SIM detected</string>
