@@ -28,7 +28,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,8 +42,9 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.qvacell.app.R
 import com.qvacell.app.data.SimAppearance
 import com.qvacell.app.service.SimUtils
@@ -111,14 +111,76 @@ fun SimAppearanceEditor(
                 isCorporate = isCorporate,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-            OutlinedTextField(
+            RoundedTextField(
                 value = name,
                 onValueChange = { name = it.take(30) },
-                label = { Text(stringResource(R.string.sim_custom_name)) },
-                placeholder = { Text(SimUtils.simLabel(sim)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                label = stringResource(R.string.sim_custom_name)
             )
+            Text(stringResource(R.string.sim_line_type), style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FilterChip(
+                    selected = !isCorporate,
+                    onClick = { isCorporate = false },
+                    label = { Text(stringResource(R.string.sim_standard_line)) },
+                    shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                    modifier = Modifier.weight(1f)
+                )
+                FilterChip(
+                    selected = isCorporate,
+                    onClick = { isCorporate = true },
+                    label = { Text(stringResource(R.string.sim_corporate_line)) },
+                    shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 28.dp, bottomEnd = 28.dp),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Text(stringResource(R.string.sim_custom_icon), style = MaterialTheme.typography.titleSmall)
+            Row(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                listOf(
+                    "number" to R.string.sim_icon_number,
+                    "home" to R.string.sim_icon_home,
+                    "work" to R.string.sim_icon_work,
+                    "favorite" to R.string.sim_icon_favorite,
+                    "star" to R.string.sim_icon_star,
+                    "travel" to R.string.sim_icon_travel
+                ).forEach { (choice, label) ->
+                    val selected = icon == choice
+                    val iconDescription = stringResource(label)
+                    Surface(
+                        onClick = { icon = choice },
+                        shape = CircleShape,
+                        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHighest,
+                        border = if (selected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                        modifier = Modifier.size(46.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            val image = simIcon(choice)
+                            if (image == null) {
+                                Text(
+                                    "#",
+                                    modifier = Modifier.semantics { contentDescription = iconDescription },
+                                    color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            } else {
+                                Icon(
+                                    image,
+                                    contentDescription = stringResource(label),
+                                    tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             Text(stringResource(R.string.sim_custom_color), style = MaterialTheme.typography.titleSmall)
             Row(
                 modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
@@ -167,48 +229,6 @@ fun SimAppearanceEditor(
                         colorHex = "#%06X".format(Locale.ROOT, 0xFFFFFF and selected.toArgb())
                     },
                     modifier = Modifier.fillMaxWidth()
-                )
-            }
-            Text(stringResource(R.string.sim_custom_icon), style = MaterialTheme.typography.titleSmall)
-            Row(
-                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf(
-                    "number" to R.string.sim_icon_number,
-                    "home" to R.string.sim_icon_home,
-                    "work" to R.string.sim_icon_work,
-                    "favorite" to R.string.sim_icon_favorite,
-                    "star" to R.string.sim_icon_star,
-                    "travel" to R.string.sim_icon_travel
-                ).forEach { (choice, label) ->
-                    FilterChip(
-                        selected = icon == choice,
-                        onClick = { icon = choice },
-                        label = { Text(stringResource(label)) },
-                        leadingIcon = simIcon(choice)?.let { image ->
-                            { Icon(image, contentDescription = null, modifier = Modifier.size(18.dp)) }
-                        }
-                    )
-                }
-            }
-            Text(stringResource(R.string.sim_line_type), style = MaterialTheme.typography.titleSmall)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FilterChip(
-                    selected = !isCorporate,
-                    onClick = { isCorporate = false },
-                    label = { Text(stringResource(R.string.sim_standard_line)) },
-                    modifier = Modifier.weight(1f)
-                )
-                FilterChip(
-                    selected = isCorporate,
-                    onClick = { isCorporate = true },
-                    label = { Text(stringResource(R.string.sim_corporate_line)) },
-                    modifier = Modifier.weight(1f)
                 )
             }
             Spacer(Modifier.size(2.dp))
@@ -278,7 +298,7 @@ private fun SimCardPreview(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        SimCardGlyph(slotIndex, icon, color, width = 92.dp, height = 112.dp)
+                SimCardGlyph(slotIndex, icon, color, width = 42.dp, height = 52.dp)
         Text(
             stringResource(if (isCorporate) R.string.sim_corporate_line else R.string.sim_personal_line),
             style = MaterialTheme.typography.labelMedium,
