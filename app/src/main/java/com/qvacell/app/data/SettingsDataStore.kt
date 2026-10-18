@@ -9,6 +9,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 private val Context.dataStore by preferencesDataStore(name = "qvacell_settings")
 
@@ -33,6 +35,7 @@ class SettingsDataStore(private val context: Context) {
     private val dashboardLoadingStyleKey = stringPreferencesKey("dashboard_loading_style")
     private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
+    private val simAppearancesKey = stringPreferencesKey("sim_appearances")
     private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
     private val autoUpdateCheckKey = stringPreferencesKey("auto_update_check")
     private val lastSuccessfulUpdateCheckAtKey = longPreferencesKey("last_successful_update_check_at")
@@ -97,6 +100,7 @@ class SettingsDataStore(private val context: Context) {
 
     // 0-based SIM slot index (-1 = system default). Only meaningful on multi-SIM devices.
     val selectedSimSlot = context.dataStore.data.map { it[selectedSimSlotKey] ?: -1 }
+    val simAppearances = context.dataStore.data.map { decodeSimAppearances(it[simAppearancesKey]) }
 
     val staleDaysThreshold = context.dataStore.data.map { it[staleDaysThresholdKey] ?: 14 }
 
@@ -171,6 +175,17 @@ class SettingsDataStore(private val context: Context) {
     suspend fun setSelectedSimSlot(slot: Int) {
         context.dataStore.edit { it[selectedSimSlotKey] = slot }
     }
+
+    suspend fun setSimAppearance(subscriptionId: Int, appearance: SimAppearance) {
+        context.dataStore.edit { preferences ->
+            val current = decodeSimAppearances(preferences[simAppearancesKey])
+            preferences[simAppearancesKey] = Json.encodeToString(current + (subscriptionId.toString() to appearance))
+        }
+    }
+
+    private fun decodeSimAppearances(value: String?): Map<String, SimAppearance> =
+        runCatching { Json.decodeFromString<Map<String, SimAppearance>>(value ?: "{}") }
+            .getOrDefault(emptyMap())
 
     suspend fun setStaleDaysThreshold(days: Int) {
         context.dataStore.edit { it[staleDaysThresholdKey] = days }

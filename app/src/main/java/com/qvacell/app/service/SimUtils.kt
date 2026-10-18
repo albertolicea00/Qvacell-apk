@@ -6,6 +6,8 @@ import android.content.pm.PackageManager
 import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
 import androidx.core.content.ContextCompat
+import androidx.compose.ui.graphics.Color
+import com.qvacell.app.data.SimAppearance
 
 import android.os.Build
 
@@ -42,13 +44,14 @@ object SimUtils {
         return fallback?.takeIf { it.isNotBlank() }?.trim()
     }
 
-    fun simLabel(context: Context, info: SubscriptionInfo): String {
-        val base = baseLabel(info)
+    fun simLabel(context: Context, info: SubscriptionInfo, appearance: SimAppearance? = null): String {
+        val base = simLabel(info, appearance)
         val number = getPhoneNumber(context, info)
         return if (!number.isNullOrBlank()) "$base ($number)" else base
     }
 
-    fun simLabel(info: SubscriptionInfo): String = baseLabel(info)
+    fun simLabel(info: SubscriptionInfo, appearance: SimAppearance? = null): String =
+        appearance?.name?.trim()?.takeIf { it.isNotEmpty() } ?: baseLabel(info)
 
     private fun baseLabel(info: SubscriptionInfo): String {
         val display = info.displayName?.toString()?.takeIf { it.isNotBlank() }
@@ -59,11 +62,12 @@ object SimUtils {
     /**
      * SIM colors: Amarillo para SIM 1 (slot 0) y Rosado para SIM 2 (slot 1).
      */
-    fun simColor(slotIndex: Int): androidx.compose.ui.graphics.Color {
-        return when (slotIndex) {
-            0 -> androidx.compose.ui.graphics.Color(0xFFFFB300) // Amarillo cálido / ámbar visible
-            1 -> androidx.compose.ui.graphics.Color(0xFFE91E63) // Rosado
-            else -> androidx.compose.ui.graphics.Color(0xFFFFB300)
+    fun simColor(slotIndex: Int, appearance: SimAppearance? = null): Color =
+        appearance?.colorHex?.let { hex ->
+            runCatching { Color(android.graphics.Color.parseColor(hex)) }.getOrNull()
+        } ?: when (slotIndex) {
+            0 -> Color(0xFFFFB300) // Amarillo cálido / ámbar visible
+            1 -> Color(0xFFE91E63) // Rosado
+            else -> Color(0xFFFFB300)
         }
-    }
 }

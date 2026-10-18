@@ -1,7 +1,9 @@
 package com.qvacell.app.ui.screens
 
+import android.Manifest
 import android.app.role.RoleManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.content.Intent
 import android.os.Build
 import android.widget.Toast
@@ -88,9 +90,11 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.content.ContextCompat
 import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
+import com.qvacell.app.data.SimAppearance
 import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.UpdateChecker
@@ -100,6 +104,8 @@ import com.qvacell.app.service.SimUtils
 import com.qvacell.app.ui.components.ColorWheelPicker
 import com.qvacell.app.ui.components.DialogActionRow
 import com.qvacell.app.ui.components.UpdateAvailableDialog
+import com.qvacell.app.ui.components.SimAppearanceEditor
+import com.qvacell.app.ui.components.SimBadge
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 import com.qvacell.app.ui.navigation.bottomTabs
 import com.qvacell.app.ui.resolveAndroidIcon
@@ -177,12 +183,22 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     }
 
     val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
     val autoUpdateCheck by settings.autoUpdateCheck.collectAsStateWithLifecycle(initialValue = "unlocked")
     val effectiveAutoUpdateCheck = if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && autoUpdateCheck == "playstore") {
         "unlocked"
     } else autoUpdateCheck
     val isPlayStoreInstall = remember(context) { UpdateChecker.isPlayStoreInstall(context) }
-    val activeSims = remember { SimUtils.getActiveSubscriptions(context) }
+    var activeSims by remember { mutableStateOf(SimUtils.getActiveSubscriptions(context)) }
+    var phoneStateGranted by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
+    }
+    val phoneStatePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        phoneStateGranted = granted
+        activeSims = SimUtils.getActiveSubscriptions(context)
+    }
 
     var showThemeSheet by remember { mutableStateOf(false) }
     var showDefaultTabSheet by remember { mutableStateOf(false) }
@@ -193,6 +209,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
     var showInterestLinksSheet by remember { mutableStateOf(false) }
     var showSimSheet by remember { mutableStateOf(false) }
+    var editingSim by remember { mutableStateOf<android.telephony.SubscriptionInfo?>(null) }
     var showAutoUpdateSheet by remember { mutableStateOf(false) }
 
     var updateChecking by remember { mutableStateOf(false) }
@@ -264,7 +281,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val simLabel = if (activeSims.size < 2) null
     else {
         val idx = activeSims.indexOfFirst { it.simSlotIndex == selectedSimSlot }
-        if (idx >= 0) SimUtils.simLabel(context, activeSims[idx]) else stringResource(R.string.options_sim_system_default)
+        if (idx >= 0) SimUtils.simLabel(context, activeSims[idx], simAppearances[activeSims[idx].subscriptionId.toString()])
+        else stringResource(R.string.options_sim_system_default)
     }
 
     Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text(stringResource(R.string.tab_options)) }) }) { padding ->
@@ -445,23 +463,57 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             onClick = { showAutoUpdateSheet = true }
                         )
                     }
-                    if (simLabel != null) {
-                        OptionsDivider()
+                }
+            }
+
+            item {
+                OptionsSection(header = stringResource(R.string.options_sim_section)) {
+                    if (activeSims.size >= 2) {
                         val selectedSim = activeSims.firstOrNull { it.simSlotIndex == selectedSimSlot }
                         OptionsRow(
                             headline = stringResource(R.string.options_sim_title),
-                            supporting = simLabel,
+                            supporting = simLabel ?: stringResource(R.string.options_sim_system_default),
+                            icon = Icons.Filled.SimCard,
                             trailingContent = selectedSim?.let { sim ->
-                                {
-                                    Icon(
-                                        Icons.Filled.SimCard,
-                                        contentDescription = null,
-                                        tint = SimUtils.simColor(sim.simSlotIndex),
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
+                                { SimBadge(sim.simSlotIndex, simAppearances[sim.subscriptionId.toString()]) }
                             },
                             onClick = { showSimSheet = true }
+                        )
+                        OptionsDivider()
+                    }
+
+                    when {
+                        activeSims.isNotEmpty() -> activeSims.forEachIndexed { index, sim ->
+                            if (index > 0) OptionsDivider()
+                            val appearance = simAppearances[sim.subscriptionId.toString()]
+                            OptionsRow(
+                                headline = SimUtils.simLabel(context, sim, appearance),
+                                supporting = stringResource(
+                                    if (appearance?.isCorporate == true) R.string.sim_corporate_line else R.string.sim_personal_line
+                                ),
+                                icon = Icons.Filled.SimCard,
+                                trailingContent = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        SimBadge(sim.simSlotIndex, appearance)
+                                        Spacer(Modifier.width(8.dp))
+                                        TextButton(onClick = { editingSim = sim }) {
+                                            Text(stringResource(R.string.sim_customize))
+                                        }
+                                    }
+                                },
+                                onClick = { editingSim = sim }
+                            )
+                        }
+                        !phoneStateGranted -> OptionsRow(
+                            headline = stringResource(R.string.options_sim_type),
+                            supporting = stringResource(R.string.onboarding_sim_permission),
+                            icon = Icons.Filled.SimCard,
+                            onClick = { phoneStatePermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE) }
+                        )
+                        else -> OptionsRow(
+                            headline = stringResource(R.string.options_sim_type),
+                            supporting = stringResource(R.string.options_sim_not_detected),
+                            icon = Icons.Filled.SimCard
                         )
                     }
                 }
@@ -638,10 +690,8 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         )
                     }
                 }
-                activeSims.forEachIndexed { _, sim ->
-                    val bitmap = remember(sim.subscriptionId) {
-                        try { sim.createIconBitmap(context) } catch (_: Exception) { null }
-                    }
+                activeSims.forEach { sim ->
+                    val appearance = simAppearances[sim.subscriptionId.toString()]
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -653,30 +703,48 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = selectedSimSlot == sim.simSlotIndex, onClick = null)
-                        Icon(
-                            Icons.Filled.SimCard,
-                            contentDescription = null,
-                            modifier = Modifier.padding(start = 8.dp).size(28.dp),
-                            tint = SimUtils.simColor(sim.simSlotIndex)
-                        )
-                        Column(modifier = Modifier.padding(start = 12.dp)) {
-                            Text(SimUtils.simLabel(sim), style = MaterialTheme.typography.bodyLarge)
+                        SimBadge(sim.simSlotIndex, appearance, modifier = Modifier.padding(start = 8.dp))
+                        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                            Text(SimUtils.simLabel(sim, appearance), style = MaterialTheme.typography.bodyLarge)
                             val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
                             val number = SimUtils.getPhoneNumber(context, sim)
                             val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
-                            if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim)) {
+                            if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim, appearance)) {
                                 Text(
                                     subtitle,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
+                            Text(
+                                stringResource(if (appearance?.isCorporate == true) R.string.sim_corporate_line else R.string.sim_personal_line),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
+                        TextButton(onClick = {
+                            showSimSheet = false
+                            editingSim = sim
+                        }) { Text(stringResource(R.string.sim_customize)) }
                     }
                 }
                 Spacer(Modifier.height(8.dp))
             }
         }
+    }
+
+    editingSim?.let { sim ->
+        SimAppearanceEditor(
+            sim = sim,
+            appearance = simAppearances[sim.subscriptionId.toString()] ?: SimAppearance(),
+            onSave = { appearance ->
+                scope.launch {
+                    settings.setSimAppearance(sim.subscriptionId, appearance)
+                    editingSim = null
+                }
+            },
+            onDismiss = { editingSim = null }
+        )
     }
 
     if (showThemeSheet) {
