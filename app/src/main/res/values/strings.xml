@@ -677,8 +677,10 @@
     <string name="sim_icon_favorite">Corazón</string>
     <string name="sim_icon_star">Estrella</string>
     <string name="sim_icon_travel">Viaje</string>
-    <string name="onboarding_sim_title">Personaliza tus SIM</string>
-    <string name="onboarding_sim_subtitle">Ponle nombre, color e icono a cada línea y elige la SIM predeterminada para llamadas y USSD.</string>
+    <string name="onboarding_sim_title">Configura tus SIM</string>
+    <string name="onboarding_sim_subtitle">Indica si cada línea es estándar o corporativa y elige la SIM principal para llamadas y USSD.</string>
+    <string name="onboarding_sim_primary">SIM principal</string>
+    <string name="onboarding_sim_corporate">Corporativa</string>
     <string name="onboarding_sim_permission">Permite el acceso al estado del teléfono para detectar tus SIM.</string>
     <string name="onboarding_sim_detect">Detectar SIM</string>
     <string name="code_value">Valor</string>

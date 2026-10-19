@@ -12,6 +12,39 @@ import com.qvacell.app.data.SimAppearance
 import android.os.Build
 
 object SimUtils {
+    fun resolveSelectedSlot(context: Context, savedSlot: Int): Int {
+        val sims = getActiveSubscriptions(context)
+        if (sims.any { it.simSlotIndex == savedSlot }) return savedSlot
+        val defaultId = runCatching { SubscriptionManager.getDefaultVoiceSubscriptionId() }
+            .getOrDefault(SubscriptionManager.INVALID_SUBSCRIPTION_ID)
+        return (sims.firstOrNull { it.subscriptionId == defaultId } ?: sims.firstOrNull())
+            ?.simSlotIndex ?: -1
+    }
+
+    data class DashboardLine(
+        val subscriptionId: Int?,
+        val isCorporate: Boolean,
+        val needsSelection: Boolean = false
+    ) {
+        val balanceCodeId: String get() = if (isCorporate) "corp-balance" else "main-balance"
+    }
+
+    fun resolveDashboardLine(
+        context: Context,
+        selectedSlot: Int,
+        appearances: Map<String, SimAppearance>
+    ): DashboardLine {
+        val sims = getActiveSubscriptions(context)
+        if (sims.isEmpty()) return DashboardLine(null, false)
+        val slot = resolveSelectedSlot(context, selectedSlot)
+        val sim = sims.firstOrNull { it.simSlotIndex == slot }
+            ?: return DashboardLine(null, false, needsSelection = true)
+        return DashboardLine(
+            subscriptionId = sim.subscriptionId,
+            isCorporate = appearances[sim.subscriptionId.toString()]?.isCorporate ?: false
+        )
+    }
+
     fun getActiveSubscriptions(context: Context): List<SubscriptionInfo> {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE)
             != PackageManager.PERMISSION_GRANTED

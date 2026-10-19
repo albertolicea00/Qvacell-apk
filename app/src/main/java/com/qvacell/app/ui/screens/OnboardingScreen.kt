@@ -1,6 +1,8 @@
 package com.qvacell.app.ui.screens
 
 import android.Manifest
+import android.content.pm.PackageManager
+import android.telephony.SubscriptionInfo
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -37,15 +39,19 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SimCard
+import androidx.compose.material.icons.filled.Work
 import com.qvacell.app.ui.navigation.SquareGrid2x2
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -68,16 +74,22 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.BuildConfig
 import com.qvacell.app.R
 import com.qvacell.app.data.SettingsDataStore
+import com.qvacell.app.data.SimAppearance
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.OnboardingDataPrefetch
+import com.qvacell.app.service.SimUtils
+import com.qvacell.app.ui.components.SimBadge
 import kotlinx.coroutines.launch
 
 private sealed class OnboardingPage {
     object Welcome : OnboardingPage()
     object UssdPermission : OnboardingPage()
+    object SimSetup : OnboardingPage()
     object FeatureContacts : OnboardingPage()
     object FeatureHome : OnboardingPage()
     object FeaturePurchases : OnboardingPage()
@@ -95,12 +107,24 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
 
     var currentPageIndex by remember { mutableIntStateOf(0) }
     var ussdGranted by remember { mutableStateOf(DialService.hasCallPermission(context)) }
+    var phoneStateGranted by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
+    }
+    var activeSims by remember { mutableStateOf(SimUtils.getActiveSubscriptions(context)) }
+    val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    var tourSelectedSlot by remember { mutableIntStateOf(-1) }
+    LaunchedEffect(selectedSimSlot, activeSims) {
+        tourSelectedSlot = SimUtils.resolveSelectedSlot(context, selectedSimSlot)
+    }
+    val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
+    var tourLineTypes by remember { mutableStateOf<Map<Int, Boolean>>(emptyMap()) }
     var dashboardPrefetchStarted by remember { mutableStateOf(false) }
 
-    val pages = remember {
+    val pages = remember(phoneStateGranted, activeSims) {
         buildList {
             add(OnboardingPage.Welcome)
             add(OnboardingPage.UssdPermission)
+            if (!phoneStateGranted || activeSims.isNotEmpty()) add(OnboardingPage.SimSetup)
             add(OnboardingPage.FeatureContacts)
             add(OnboardingPage.FeatureHome)
             add(OnboardingPage.FeaturePurchases)
@@ -111,10 +135,18 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
     val ussdPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> ussdGranted = granted }
+    val phoneStateLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        phoneStateGranted = granted
+        activeSims = SimUtils.getActiveSubscriptions(context)
+    }
 
-    LaunchedEffect(currentPageIndex, ussdGranted) {
+    LaunchedEffect(currentPageIndex, ussdGranted, pages) {
+        val setupIndex = pages.indexOf(OnboardingPage.SimSetup).takeIf { it >= 0 }
+            ?: pages.indexOf(OnboardingPage.UssdPermission)
         if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && ussdGranted &&
-            currentPageIndex >= 1 && !dashboardPrefetchStarted
+            currentPageIndex > setupIndex && !dashboardPrefetchStarted
         ) {
             dashboardPrefetchStarted = true
             OnboardingDataPrefetch.startBackgroundFetch(context.applicationContext)
@@ -123,7 +155,29 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
 
     fun next() {
         if (currentPageIndex < pages.lastIndex) {
-            currentPageIndex++
+            if (pages[currentPageIndex] == OnboardingPage.SimSetup) {
+                scope.launch {
+                    val slot = SimUtils.resolveSelectedSlot(context, tourSelectedSlot)
+                    if (phoneStateGranted && activeSims.isNotEmpty()) {
+                        for (sim in activeSims) {
+                            val existing = simAppearances[sim.subscriptionId.toString()]
+                            val isCorporate = tourLineTypes[sim.subscriptionId] ?: existing?.isCorporate
+                                ?: return@launch
+                            settings.setSimAppearance(
+                                sim.subscriptionId,
+                                (existing ?: SimAppearance()).copy(
+                                    isCorporate = isCorporate,
+                                    icon = if (isCorporate) "work" else "home"
+                                )
+                            )
+                        }
+                    }
+                    if (slot >= 0) settings.setSelectedSimSlot(slot)
+                    currentPageIndex++
+                }
+            } else {
+                currentPageIndex++
+            }
         } else {
             scope.launch {
                 settings.setHasCompletedOnboarding(true)
@@ -169,6 +223,30 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
                         onRequest = { ussdPermissionLauncher.launch(Manifest.permission.CALL_PHONE) },
                         onNext = ::next
                     )
+                    OnboardingPage.SimSetup -> if (!phoneStateGranted) {
+                        PageLayout(
+                            icon = Icons.Filled.SimCard,
+                            title = stringResource(R.string.onboarding_sim_title),
+                            subtitle = stringResource(R.string.onboarding_sim_subtitle),
+                            content = { Text(stringResource(R.string.onboarding_sim_permission)) },
+                            buttonLabel = stringResource(R.string.onboarding_sim_detect),
+                            onButton = { phoneStateLauncher.launch(Manifest.permission.READ_PHONE_STATE) },
+                            skipLabel = stringResource(R.string.onboarding_skip_for_now),
+                            onSkip = ::next
+                        )
+                    } else {
+                        SimSetupPage(
+                            sims = activeSims,
+                            selectedSlot = tourSelectedSlot,
+                            appearances = simAppearances,
+                            lineTypes = tourLineTypes,
+                            onSelect = { slot -> tourSelectedSlot = slot },
+                            onSelectType = { sim, isCorporate ->
+                                tourLineTypes = tourLineTypes + (sim.subscriptionId to isCorporate)
+                            },
+                            onNext = ::next
+                        )
+                    }
                     OnboardingPage.FeatureContacts -> FeaturePage(
                         icon = Icons.Filled.People,
                         title = stringResource(R.string.onboarding_contacts_title),
@@ -479,6 +557,79 @@ private fun UssdPermissionPage(granted: Boolean, onRequest: () -> Unit, onNext: 
         onButton = if (granted) onNext else onRequest,
         skipLabel = if (!granted) stringResource(R.string.onboarding_skip_for_now) else null,
         onSkip = if (!granted) onNext else null
+    )
+}
+
+@Composable
+private fun SimSetupPage(
+    sims: List<SubscriptionInfo>,
+    selectedSlot: Int,
+    appearances: Map<String, SimAppearance>,
+    lineTypes: Map<Int, Boolean>,
+    onSelect: (Int) -> Unit,
+    onSelectType: (SubscriptionInfo, Boolean) -> Unit,
+    onNext: () -> Unit
+) {
+    val context = LocalContext.current
+    val effectiveSlot = SimUtils.resolveSelectedSlot(context, selectedSlot)
+    val canContinue = effectiveSlot >= 0 && sims.all {
+        it.subscriptionId in lineTypes || it.subscriptionId.toString() in appearances
+    }
+    PageLayout(
+        icon = Icons.Filled.SimCard,
+        title = stringResource(R.string.onboarding_sim_title),
+        subtitle = stringResource(R.string.onboarding_sim_subtitle),
+        content = {
+            sims.forEach { sim ->
+                val appearance = appearances[sim.subscriptionId.toString()]
+                val isCorporate = lineTypes[sim.subscriptionId] ?: appearance?.isCorporate
+                Card(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            SimBadge(
+                                sim.simSlotIndex,
+                                if (isCorporate == null) appearance else (appearance ?: SimAppearance()).copy(
+                                    icon = if (isCorporate) "work" else "home"
+                                )
+                            )
+                            Text(
+                                SimUtils.simLabel(sim, appearance),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.weight(1f).padding(start = 12.dp)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = isCorporate == false,
+                                onClick = { onSelectType(sim, false) },
+                                label = { Text(stringResource(R.string.sim_standard_line)) },
+                                leadingIcon = { Icon(Icons.Filled.Home, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                modifier = Modifier.weight(1f)
+                            )
+                            FilterChip(
+                                selected = isCorporate == true,
+                                onClick = { onSelectType(sim, true) },
+                                label = { Text(stringResource(R.string.onboarding_sim_corporate)) },
+                                leadingIcon = { Icon(Icons.Filled.Work, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = effectiveSlot == sim.simSlotIndex,
+                                onClick = { onSelect(sim.simSlotIndex) }
+                            )
+                            Text(stringResource(R.string.onboarding_sim_primary))
+                        }
+                    }
+                }
+            }
+        },
+        onButton = onNext,
+        buttonEnabled = canContinue
     )
 }
 

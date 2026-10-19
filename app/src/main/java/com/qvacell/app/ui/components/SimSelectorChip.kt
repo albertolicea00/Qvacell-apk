@@ -22,8 +22,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,9 +33,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.qvacell.app.data.SettingsDataStore
+import com.qvacell.app.data.SimAppearance
 import com.qvacell.app.service.SimUtils
 import kotlinx.coroutines.launch
 
@@ -45,24 +49,23 @@ fun SimSelectorIcon() {
     val context = LocalContext.current
     val settings = remember { SettingsDataStore(context) }
     val selectedSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    val appearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
     val scope = rememberCoroutineScope()
 
-    var activeSims by remember { mutableStateOf<List<SubscriptionInfo>>(emptyList()) }
+    var activeSims by remember { mutableStateOf(SimUtils.getActiveSubscriptions(context)) }
     var showSheet by remember { mutableStateOf(false) }
+    var editingSim by remember { mutableStateOf<SubscriptionInfo?>(null) }
 
-    LaunchedEffect(Unit) {
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         activeSims = SimUtils.getActiveSubscriptions(context)
     }
 
     if (activeSims.size < 2) return
 
-    val isDefault = selectedSlot < 0
-    val currentIndex = if (isDefault) -1 else activeSims.indexOfFirst { it.simSlotIndex == selectedSlot }
-    val currentSim = if (currentIndex >= 0) activeSims[currentIndex] else null
+    val effectiveSlot = SimUtils.resolveSelectedSlot(context, selectedSlot)
+    val currentSim = activeSims.firstOrNull { it.simSlotIndex == effectiveSlot }
 
-    val currentNumber = remember(currentSim, activeSims) {
-        currentSim?.let { SimUtils.getPhoneNumber(context, it) }
-    }
+    val currentAppearance = currentSim?.let { appearances[it.subscriptionId.toString()] }
 
     Surface(
         onClick = { showSheet = true },
@@ -74,16 +77,17 @@ fun SimSelectorIcon() {
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                Icons.Filled.SimCard,
-                contentDescription = currentSim?.let { SimUtils.simLabel(context, it) } ?: stringResource(R.string.options_sim_default_label),
-                modifier = Modifier.size(18.dp),
-                tint = currentSim?.let { SimUtils.simColor(it.simSlotIndex) } ?: MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (currentSim != null) {
+                SimBadge(currentSim.simSlotIndex, currentAppearance, modifier = Modifier.size(22.dp))
+            } else {
+                Icon(Icons.Filled.SimCard, contentDescription = null, modifier = Modifier.size(18.dp))
+            }
             Text(
-                text = if (isDefault) stringResource(R.string.sim_auto) else (currentNumber ?: "SIM ${(currentSim?.simSlotIndex ?: 0) + 1}"),
+                text = currentSim?.let { SimUtils.simLabel(it, currentAppearance) }.orEmpty(),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(start = 6.dp)
             )
         }
@@ -101,43 +105,9 @@ fun SimSelectorIcon() {
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
-                // Opción Predeterminada
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            scope.launch { settings.setSelectedSimSlot(-1) }
-                            showSheet = false
-                        }
-                        .padding(vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(selected = isDefault, onClick = null)
-                    Icon(
-                        Icons.Filled.SimCard,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .size(28.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Column(modifier = Modifier.padding(start = 12.dp)) {
-                        Text(
-                            stringResource(R.string.options_sim_default_label),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Text(
-                            stringResource(R.string.options_sim_default_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                activeSims.forEachIndexed { index, sim ->
-                    val bitmap = remember(sim.subscriptionId) {
-                        try { sim.createIconBitmap(context) } catch (_: Exception) { null }
-                    }
-                    val selected = !isDefault && sim.simSlotIndex == selectedSlot
+                activeSims.forEach { sim ->
+                    val appearance = appearances[sim.subscriptionId.toString()]
+                    val selected = sim.simSlotIndex == effectiveSlot
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -149,23 +119,16 @@ fun SimSelectorIcon() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(selected = selected, onClick = null)
-                        Icon(
-                            Icons.Filled.SimCard,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .padding(start = 8.dp)
-                                .size(28.dp),
-                            tint = SimUtils.simColor(sim.simSlotIndex)
-                        )
-                        Column(modifier = Modifier.padding(start = 12.dp)) {
+                        SimBadge(sim.simSlotIndex, appearance, modifier = Modifier.padding(start = 8.dp))
+                        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                             Text(
-                                SimUtils.simLabel(sim),
+                                SimUtils.simLabel(sim, appearance),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
                             val number = SimUtils.getPhoneNumber(context, sim)
                             val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
-                            if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim)) {
+                            if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim, appearance)) {
                                 Text(
                                     subtitle,
                                     style = MaterialTheme.typography.bodySmall,
@@ -173,10 +136,27 @@ fun SimSelectorIcon() {
                                 )
                             }
                         }
+                        TextButton(onClick = {
+                            showSheet = false
+                            editingSim = sim
+                        }) { Text(stringResource(R.string.sim_customize)) }
                     }
                 }
                 Spacer(Modifier.height(8.dp))
             }
         }
+    }
+    editingSim?.let { sim ->
+        SimAppearanceEditor(
+            sim = sim,
+            appearance = appearances[sim.subscriptionId.toString()] ?: SimAppearance(),
+            onSave = { appearance ->
+                scope.launch {
+                    settings.setSimAppearance(sim.subscriptionId, appearance)
+                    editingSim = null
+                }
+            },
+            onDismiss = { editingSim = null }
+        )
     }
 }

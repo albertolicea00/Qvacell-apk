@@ -279,11 +279,12 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         "none" -> stringResource(R.string.options_auto_update_none)
         else -> stringResource(R.string.options_unlocked_version)
     }
+    val effectiveSimSlot = SimUtils.resolveSelectedSlot(context, selectedSimSlot)
     val simLabel = if (activeSims.size < 2) null
     else {
-        val idx = activeSims.indexOfFirst { it.simSlotIndex == selectedSimSlot }
+        val idx = activeSims.indexOfFirst { it.simSlotIndex == effectiveSimSlot }
         if (idx >= 0) SimUtils.simLabel(context, activeSims[idx], simAppearances[activeSims[idx].subscriptionId.toString()])
-        else stringResource(R.string.options_sim_system_default)
+        else null
     }
 
     Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text(stringResource(R.string.tab_options)) }) }) { padding ->
@@ -470,10 +471,10 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
             item {
                 OptionsSection(header = stringResource(R.string.options_sim_section)) {
                     if (activeSims.size >= 2) {
-                        val selectedSim = activeSims.firstOrNull { it.simSlotIndex == selectedSimSlot }
+                        val selectedSim = activeSims.firstOrNull { it.simSlotIndex == effectiveSimSlot }
                         OptionsRow(
                             headline = stringResource(R.string.options_sim_title),
-                            supporting = simLabel ?: stringResource(R.string.options_sim_system_default),
+                            supporting = simLabel ?: SimUtils.simLabel(context, activeSims.first()),
                             icon = Icons.Filled.SimCard,
                             trailingContent = selectedSim?.let { sim ->
                                 { SimBadge(sim.simSlotIndex, simAppearances[sim.subscriptionId.toString()]) }
@@ -666,32 +667,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            scope.launch { settings.setSelectedSimSlot(-1) }
-                            showSimSheet = false
-                        }
-                        .padding(vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(selected = selectedSimSlot < 0, onClick = null)
-                    Icon(
-                        Icons.Filled.SimCard,
-                        contentDescription = null,
-                        modifier = Modifier.padding(start = 8.dp).size(28.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Column(modifier = Modifier.padding(start = 12.dp)) {
-                        Text(stringResource(R.string.options_sim_default_label), style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            stringResource(R.string.options_sim_default_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
                 activeSims.forEach { sim ->
                     val appearance = simAppearances[sim.subscriptionId.toString()]
                     Row(
@@ -704,7 +679,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             .padding(vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        RadioButton(selected = selectedSimSlot == sim.simSlotIndex, onClick = null)
+                        RadioButton(selected = effectiveSimSlot == sim.simSlotIndex, onClick = null)
                         SimBadge(sim.simSlotIndex, appearance, modifier = Modifier.padding(start = 8.dp))
                         Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                             Text(SimUtils.simLabel(sim, appearance), style = MaterialTheme.typography.bodyLarge)

@@ -677,8 +677,10 @@
     <string name="sim_icon_favorite">Heart</string>
     <string name="sim_icon_star">Star</string>
     <string name="sim_icon_travel">Travel</string>
-    <string name="onboarding_sim_title">Customize your SIMs</string>
-    <string name="onboarding_sim_subtitle">Give each line a name, color and icon, then choose the default SIM for calls and USSD.</string>
+    <string name="onboarding_sim_title">Set up your SIMs</string>
+    <string name="onboarding_sim_subtitle">Choose whether each line is standard or corporate, then select the primary SIM for calls and USSD.</string>
+    <string name="onboarding_sim_primary">Primary SIM</string>
+    <string name="onboarding_sim_corporate">Corporate</string>
     <string name="onboarding_sim_permission">Allow phone state access to detect your SIMs.</string>
     <string name="onboarding_sim_detect">Detect SIMs</string>
     <string name="code_value">Value</string>

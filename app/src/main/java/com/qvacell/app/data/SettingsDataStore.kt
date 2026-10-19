@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.qvacell.app.service.SimUtils
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -98,8 +99,10 @@ class SettingsDataStore(private val context: Context) {
     // Optional hidden sections: "consultas", "transferir", "recargar", "adelanta".
     val manualHiddenSections = context.dataStore.data.map { it[manualHiddenSectionsKey] ?: emptySet() }
 
-    // 0-based SIM slot index (-1 = system default). Only meaningful on multi-SIM devices.
-    val selectedSimSlot = context.dataStore.data.map { it[selectedSimSlotKey] ?: -1 }
+    // Use the saved SIM, or choose an active SIM for existing installs without a selection.
+    val selectedSimSlot = context.dataStore.data.map {
+        SimUtils.resolveSelectedSlot(context, it[selectedSimSlotKey] ?: -1)
+    }
     val simAppearances = context.dataStore.data.map { decodeSimAppearances(it[simAppearancesKey]) }
 
     val staleDaysThreshold = context.dataStore.data.map { it[staleDaysThresholdKey] ?: 14 }
@@ -173,6 +176,7 @@ class SettingsDataStore(private val context: Context) {
     }
 
     suspend fun setSelectedSimSlot(slot: Int) {
+        require(slot >= 0) { "A SIM must be selected" }
         context.dataStore.edit { it[selectedSimSlotKey] = slot }
     }
 
