@@ -160,6 +160,9 @@ fun SimSelectorIcon() {
         SimAppearanceEditor(
             sim = sim,
             appearance = appearances[sim.subscriptionId.toString()] ?: SimAppearance(),
+            showDefaultOption = activeSims.size >= 2,
+            isDefault = sim.simSlotIndex == effectiveSlot,
+            onMakeDefault = { scope.launch { settings.setSelectedSimSlot(sim.simSlotIndex) } },
             onSave = { appearance ->
                 scope.launch {
                     settings.setSimAppearance(sim.subscriptionId, appearance)

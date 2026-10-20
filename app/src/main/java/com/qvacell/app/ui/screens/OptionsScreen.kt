@@ -426,6 +426,14 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         supporting = defaultTabLabel,
                         onClick = { showDefaultTabSheet = true }
                     )
+                    if (activeSims.size >= 2) {
+                        OptionsDivider()
+                        OptionsRow(
+                            headline = stringResource(R.string.options_sim_title),
+                            supporting = simLabel ?: SimUtils.simLabel(context, activeSims.first()),
+                            onClick = { showSimSheet = true }
+                        )
+                    }
                     OptionsDivider()
                     OptionsRow(
                         headline = stringResource(R.string.options_pref_call_contacts),
@@ -471,20 +479,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
             item {
                 OptionsSection(header = stringResource(R.string.options_sim_section)) {
-                    if (activeSims.size >= 2) {
-                        val selectedSim = activeSims.firstOrNull { it.simSlotIndex == effectiveSimSlot }
-                        OptionsRow(
-                            headline = stringResource(R.string.options_sim_title),
-                            supporting = simLabel ?: SimUtils.simLabel(context, activeSims.first()),
-                            icon = Icons.Filled.SimCard,
-                            trailingContent = selectedSim?.let { sim ->
-                                { SimBadge(sim.simSlotIndex, simAppearances[sim.subscriptionId.toString()]) }
-                            },
-                            onClick = { showSimSheet = true }
-                        )
-                        OptionsDivider()
-                    }
-
                     when {
                         activeSims.isNotEmpty() -> activeSims.forEachIndexed { index, sim ->
                             if (index > 0) OptionsDivider()
@@ -715,6 +709,9 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         SimAppearanceEditor(
             sim = sim,
             appearance = simAppearances[sim.subscriptionId.toString()] ?: SimAppearance(),
+            showDefaultOption = activeSims.size >= 2,
+            isDefault = sim.simSlotIndex == effectiveSimSlot,
+            onMakeDefault = { scope.launch { settings.setSelectedSimSlot(sim.simSlotIndex) } },
             onSave = { appearance ->
                 scope.launch {
                     settings.setSimAppearance(sim.subscriptionId, appearance)

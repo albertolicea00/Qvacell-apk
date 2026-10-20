@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +28,7 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -49,6 +51,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.R
 import com.qvacell.app.data.SimAppearance
@@ -91,6 +95,9 @@ fun SimBadge(
 fun SimAppearanceEditor(
     sim: SubscriptionInfo,
     appearance: SimAppearance,
+    showDefaultOption: Boolean,
+    isDefault: Boolean,
+    onMakeDefault: () -> Unit,
     onSave: (SimAppearance) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -165,6 +172,33 @@ fun SimAppearanceEditor(
                     ),
                     modifier = Modifier.weight(1f)
                 )
+            }
+            if (showDefaultOption) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .toggleable(
+                                value = isDefault,
+                                enabled = !isDefault,
+                                onValueChange = { onMakeDefault() }
+                            ),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(checked = isDefault, onCheckedChange = null, enabled = !isDefault)
+                        Spacer(Modifier.width(12.dp))
+                        Text(stringResource(R.string.sim_make_default))
+                    }
+                    if (isDefault) {
+                        Text(
+                            stringResource(R.string.sim_change_default_hint),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.Light,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
             Text(stringResource(R.string.sim_custom_icon), style = MaterialTheme.typography.titleSmall)
             Row(

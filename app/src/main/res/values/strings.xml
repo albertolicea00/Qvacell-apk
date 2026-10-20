@@ -660,6 +660,8 @@
     <string name="sim_corporate_line">Corporativa</string>
     <string name="sim_personal_line">Estándar</string>
     <string name="sim_line_type">Tipo de línea</string>
+    <string name="sim_make_default">Establecer esta SIM como predeterminada</string>
+    <string name="sim_change_default_hint">Para cambiarla, establece otra SIM como predeterminada desde su personalización.</string>
     <string name="sim_named_slot">%1$s (SIM %2$d)</string>
     <string name="options_sim_section">SIM y tipo de línea</string>
     <string name="options_sim_type">Tipo de línea de la SIM</string>

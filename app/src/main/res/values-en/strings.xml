@@ -660,6 +660,8 @@
     <string name="sim_corporate_line">Corporate</string>
     <string name="sim_personal_line">Standard</string>
     <string name="sim_line_type">Line type</string>
+    <string name="sim_make_default">Make this SIM the default</string>
+    <string name="sim_change_default_hint">To change it, make another SIM the default from its customization screen.</string>
     <string name="sim_named_slot">%1$s (SIM %2$d)</string>
     <string name="options_sim_section">SIM and line type</string>
     <string name="options_sim_type">SIM line type</string>
