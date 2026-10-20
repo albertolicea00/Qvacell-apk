@@ -77,6 +77,7 @@ object DashboardRefreshService {
                 var skipVoice = false
                 var skipSms = false
                 var skipData = false
+                var completedQuerySuccessfully = false
 
                 val refreshCodes = if (line.isCorporate) listOf(line.balanceCodeId)
                     else listOf(line.balanceCodeId) + REFRESH_ORDER
@@ -104,10 +105,19 @@ object DashboardRefreshService {
                             }
                         }
                         is UssdCaptureResult.Failure -> {
-                            reportFailure(context, result.reason, batch = true, line = line, code = code)
+                            reportFailure(
+                                context,
+                                result.reason,
+                                batch = true,
+                                line = line,
+                                code = code,
+                                previousQuerySucceeded = completedQuerySuccessfully
+                            )
                             break
                         }
                     }
+
+                    completedQuerySuccessfully = true
 
                     if (codeId == line.balanceCodeId) {
                         val current = dashboardRepository.getCurrentValues(line.subscriptionId)
@@ -180,7 +190,8 @@ object DashboardRefreshService {
         reason: String,
         batch: Boolean,
         line: SimUtils.DashboardLine,
-        code: UssdCode
+        code: UssdCode,
+        previousQuerySucceeded: Boolean = false
     ) {
         if (reason == "service_lost" || !hasDashboardService(context)) {
             _refreshFailure.value = context.getString(R.string.dashboard_refresh_service_lost)
@@ -198,7 +209,7 @@ object DashboardRefreshService {
         )
         val stopped = if (batch) context.getString(R.string.dashboard_refresh_stopped) else null
         val advice = context.getString(
-            if (stillOnLte(context)) R.string.dashboard_refresh_advice_4g
+            if (!previousQuerySucceeded && stillOnLte(context)) R.string.dashboard_refresh_advice_4g
             else R.string.dashboard_refresh_advice_signal
         )
         _refreshFailure.value = listOfNotNull(cause, stopped, advice).joinToString(" ")
