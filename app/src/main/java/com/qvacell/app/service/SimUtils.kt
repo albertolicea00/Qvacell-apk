@@ -13,7 +13,15 @@ import android.os.Build
 
 object SimUtils {
     fun resolveSelectedSlot(context: Context, savedSlot: Int): Int {
+        return resolveSelectedSlot(context, savedSlot, SubscriptionManager.INVALID_SUBSCRIPTION_ID)
+    }
+
+    fun resolveSelectedSlot(context: Context, savedSlot: Int, savedSubscriptionId: Int): Int {
         val sims = getActiveSubscriptions(context)
+        if (savedSubscriptionId != SubscriptionManager.INVALID_SUBSCRIPTION_ID) {
+            sims.firstOrNull { it.subscriptionId == savedSubscriptionId }
+                ?.let { return it.simSlotIndex }
+        }
         if (sims.any { it.simSlotIndex == savedSlot }) return savedSlot
         val defaultId = runCatching { SubscriptionManager.getDefaultVoiceSubscriptionId() }
             .getOrDefault(SubscriptionManager.INVALID_SUBSCRIPTION_ID)

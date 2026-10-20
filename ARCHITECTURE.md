@@ -478,7 +478,9 @@ The navbar click handler navigates directly with `popUpTo(validStartRoute)` — 
 
 Devices with two or more active SIM subscriptions (`SubscriptionManager.getActiveSubscriptionInfoList()`) show a SIM selector chip in the top app bar of all four main tabs (Home, Compras, Contactos, Ayuda) via `SimSelectorIcon()` inserted into `SearchableTopAppBar`'s `extraActions` slot. The interaction is configurable in Options › SIM y tipo de línea: open the current selection sheet, tap to cycle through active SIMs, or tap the badge to open a dropdown list. The list includes each SIM's configured name and personal/corporate line type.
 
-**Global preference** — `SettingsDataStore.selectedSimSlot` stores the default SIM. It is configurable from Options › SIM y tipo de línea when multiple SIMs are active.
+**Global preference** — `SettingsDataStore` persists the selected slot and the Android subscription ID for the chosen SIM. The subscription ID keeps the same SIM selected if the system reorders active slots; the slot remains a fallback for legacy preferences or subscription ID changes. The selector waits until slot and SIM appearance preferences are read together before rendering, preventing an uncustomized carrier label from flashing at launch. It is configurable from Options › SIM y tipo de línea when multiple SIMs are active.
+
+**Dashboard isolation and loading** — Dynamic dashboard snapshots are scoped to the selected subscription (`sim:<subscriptionId>:`). When the selected SIM changes, the Compose collector is recreated and animated skeleton cards remain visible until that SIM's first database emission arrives. A missing subscription never falls back to unscoped/global snapshot values, so one SIM's values cannot appear under another SIM while data loads.
 
 **Per-widget override** — `WidgetPrefs.saveSimSlot()/getSimSlot()` per widget ID. Widget configuration screen shows the SIM picker only when 2+ SIMs are active. `DialTrampolineActivity` reads the per-widget SIM slot and passes it to `DialService`.
 

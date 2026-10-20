@@ -52,8 +52,7 @@ import kotlinx.coroutines.launch
 fun SimSelectorIcon() {
     val context = LocalContext.current
     val settings = remember { SettingsDataStore(context) }
-    val selectedSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
-    val appearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val selectorPreferences by settings.simSelectorPreferences.collectAsStateWithLifecycle(initialValue = null)
     val simSwitchAction by settings.simSwitchAction.collectAsStateWithLifecycle(initialValue = "sheet")
     val scope = rememberCoroutineScope()
 
@@ -66,8 +65,10 @@ fun SimSelectorIcon() {
         activeSims = SimUtils.getActiveSubscriptions(context)
     }
 
-    if (activeSims.size < 2) return
+    if (activeSims.size < 2 || selectorPreferences == null) return
 
+    val selectedSlot = selectorPreferences!!.selectedSlot
+    val appearances = selectorPreferences!!.appearances
     val effectiveSlot = SimUtils.resolveSelectedSlot(context, selectedSlot)
     val currentSim = activeSims.firstOrNull { it.simSlotIndex == effectiveSlot }
     val onSelectorClick: () -> Unit = {

@@ -3,11 +3,17 @@ package com.qvacell.app.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,6 +21,8 @@ import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,12 +34,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -79,27 +89,40 @@ fun DynamicDashboardContent(
     val uriHandler = LocalUriHandler.current
     val catalogRepository = remember { repository }
     val settings = remember { SettingsDataStore(context) }
-    val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
-    val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
-    val line = remember(selectedSimSlot, simAppearances) {
-        SimUtils.resolveDashboardLine(context, selectedSimSlot, simAppearances)
+    val simPreferences by settings.simSelectorPreferences.collectAsStateWithLifecycle(initialValue = null)
+    if (simPreferences == null) {
+        DashboardSwitchLoadingSkeleton(isCorporate = null)
+        return
+    }
+    val line = remember(simPreferences) {
+        SimUtils.resolveDashboardLine(context, simPreferences!!.selectedSlot, simPreferences!!.appearances)
     }
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
     val currentCodeId by DashboardRefreshService.currentCodeId.collectAsState()
-    val valuesFlow = remember(dashboardRepository, line.subscriptionId) {
-        dashboardRepository.observeCurrentValues(line.subscriptionId)
-    }
-    val valuesState = valuesFlow.collectAsState<
-        Map<String, DashboardValueSnapshot>,
-        Map<String, DashboardValueSnapshot>?
-    >(initial = null)
-    val values = valuesState.value?.let { current ->
-        when {
-            line.needsSelection -> emptyMap()
-            line.subscriptionId == null -> current
-            else -> current.filterValues { it.sourceSignalId.startsWith("sim:${line.subscriptionId}:") }
+    // Reset the collector state when the selected subscription changes. collectAsState keeps its
+    // last value while switching flows, so without this key the previous SIM can flash briefly.
+    val values = key(line.subscriptionId, line.needsSelection) {
+        val valuesFlow = remember(dashboardRepository, line.subscriptionId) {
+            if (line.subscriptionId == null) {
+                kotlinx.coroutines.flow.flowOf<Map<String, DashboardValueSnapshot>>(emptyMap())
+            } else {
+                dashboardRepository.observeCurrentValues(line.subscriptionId)
+            }
         }
-    } ?: return
+        val valuesState = valuesFlow.collectAsState<
+            Map<String, DashboardValueSnapshot>,
+            Map<String, DashboardValueSnapshot>?
+        >(initial = null)
+        valuesState.value?.let { current ->
+            if (line.needsSelection || line.subscriptionId == null) emptyMap()
+            else current.filterValues { it.sourceSignalId.startsWith("sim:${line.subscriptionId}:") }
+        }
+    }
+
+    if (values == null) {
+        DashboardSwitchLoadingSkeleton(isCorporate = line.isCorporate)
+        return
+    }
 
     var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
 
@@ -339,6 +362,170 @@ fun DynamicDashboardContent(
             }
         )
     }
+}
+
+private enum class DashboardSkeletonCard { Balance, UsageRow, Data, Bonus, Friends }
+
+@Composable
+private fun DashboardSwitchLoadingSkeleton(isCorporate: Boolean?) {
+    val cards = when (isCorporate) {
+        true -> listOf(DashboardSkeletonCard.Balance)
+        false -> listOf(
+            DashboardSkeletonCard.Balance,
+            DashboardSkeletonCard.UsageRow,
+            DashboardSkeletonCard.Data,
+            DashboardSkeletonCard.Bonus,
+            DashboardSkeletonCard.Friends
+        )
+        null -> listOf(DashboardSkeletonCard.Balance, DashboardSkeletonCard.UsageRow, DashboardSkeletonCard.Data)
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        cards.forEach { card ->
+            when (card) {
+                DashboardSkeletonCard.Balance -> BalanceSkeletonCard(isCorporate == true)
+                DashboardSkeletonCard.UsageRow -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    UsageSkeletonCard(Modifier.weight(1f))
+                    UsageSkeletonCard(Modifier.weight(1f))
+                }
+                DashboardSkeletonCard.Data -> DataSkeletonCard()
+                DashboardSkeletonCard.Bonus -> BonusSkeletonCard()
+                DashboardSkeletonCard.Friends -> SkeletonCard {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            SkeletonShape(Modifier.size(14.dp), CircleShape)
+                            Spacer(Modifier.width(6.dp))
+                            SkeletonShape(Modifier.width(104.dp).height(12.dp))
+                        }
+                        SkeletonShape(Modifier.width(62.dp).height(18.dp), RoundedCornerShape(50))
+                    }
+                }
+            }
+        }
+        if (isCorporate == true) SkeletonShape(Modifier.fillMaxWidth().height(48.dp), RoundedCornerShape(50))
+    }
+}
+
+@Composable
+private fun BalanceSkeletonCard(isCorporate: Boolean) {
+    SkeletonCard {
+        if (isCorporate) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SkeletonShape(Modifier.size(18.dp), CircleShape)
+                Spacer(Modifier.width(8.dp))
+                SkeletonShape(Modifier.width(142.dp).height(14.dp))
+            }
+            SkeletonShape(Modifier.width(76.dp).height(9.dp))
+            repeat(3) { index ->
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    SkeletonShape(Modifier.width(74.dp).height(11.dp))
+                    SkeletonShape(Modifier.width(58.dp).height(25.dp))
+                }
+                if (index < 2) {
+                    Row(modifier = Modifier.padding(start = 22.dp), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        SkeletonShape(Modifier.width(78.dp).height(8.dp))
+                        SkeletonShape(Modifier.width(38.dp).height(9.dp))
+                    }
+                    SkeletonShape(Modifier.fillMaxWidth().height(1.dp), RoundedCornerShape(1.dp))
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SkeletonShape(Modifier.size(13.dp), CircleShape)
+                Spacer(Modifier.width(7.dp))
+                SkeletonShape(Modifier.width(54.dp).height(10.dp))
+                Spacer(Modifier.width(8.dp))
+                SkeletonShape(Modifier.width(32.dp).height(13.dp))
+            }
+        } else {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SkeletonShape(Modifier.width(106.dp).height(13.dp))
+                    SkeletonShape(Modifier.width(122.dp).height(9.dp))
+                    SkeletonShape(Modifier.width(82.dp).height(9.dp))
+                    SkeletonShape(Modifier.width(68.dp).height(8.dp))
+                }
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SkeletonShape(Modifier.width(88.dp).height(38.dp))
+                    SkeletonShape(Modifier.width(34.dp).height(9.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun UsageSkeletonCard(modifier: Modifier) {
+    SkeletonCard(modifier) {
+        SkeletonShape(Modifier.width(64.dp).height(12.dp))
+        SkeletonShape(Modifier.width(92.dp).height(28.dp))
+        SkeletonShape(Modifier.width(70.dp).height(9.dp))
+        SkeletonShape(Modifier.width(52.dp).height(8.dp))
+    }
+}
+
+@Composable
+private fun DataSkeletonCard() {
+    SkeletonCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SkeletonShape(Modifier.size(14.dp), CircleShape)
+            Spacer(Modifier.width(6.dp))
+            SkeletonShape(Modifier.width(58.dp).height(12.dp))
+        }
+        SkeletonShape(Modifier.fillMaxWidth(0.64f).height(9.dp))
+        repeat(3) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    SkeletonShape(Modifier.width(76.dp).height(9.dp))
+                    SkeletonShape(Modifier.width(98.dp).height(8.dp))
+                }
+                SkeletonShape(Modifier.width(52.dp).height(22.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun BonusSkeletonCard() {
+    SkeletonCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            SkeletonShape(Modifier.size(14.dp), CircleShape)
+            Spacer(Modifier.width(6.dp))
+            SkeletonShape(Modifier.width(92.dp).height(12.dp))
+        }
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                SkeletonShape(Modifier.width(74.dp).height(9.dp))
+                SkeletonShape(Modifier.width(96.dp).height(8.dp))
+            }
+            SkeletonShape(Modifier.width(66.dp).height(32.dp))
+        }
+        SkeletonShape(Modifier.width(126.dp).height(10.dp))
+    }
+}
+
+@Composable
+private fun SkeletonCard(
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
+    ) {
+        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp), content = content)
+    }
+}
+
+@Composable
+private fun SkeletonShape(modifier: Modifier, shape: androidx.compose.ui.graphics.Shape = RoundedCornerShape(6.dp)) {
+    Box(modifier.clip(shape).background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.09f)))
 }
 
 private const val CORPORATE_PORTAL_URL = "https://www.portalcorporativo.etecsa.cu/"

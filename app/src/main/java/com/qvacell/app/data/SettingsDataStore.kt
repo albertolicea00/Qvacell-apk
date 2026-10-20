@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.qvacell.app.service.SimUtils
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -36,6 +37,7 @@ class SettingsDataStore(private val context: Context) {
     private val dashboardLoadingStyleKey = stringPreferencesKey("dashboard_loading_style")
     private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
+    private val selectedSimSubscriptionIdKey = intPreferencesKey("selected_sim_subscription_id")
     private val simAppearancesKey = stringPreferencesKey("sim_appearances")
     private val simSwitchActionKey = stringPreferencesKey("sim_switch_action")
     private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
@@ -101,8 +103,24 @@ class SettingsDataStore(private val context: Context) {
     val manualHiddenSections = context.dataStore.data.map { it[manualHiddenSectionsKey] ?: emptySet() }
 
     // Use the saved SIM, or choose an active SIM for existing installs without a selection.
+    data class SimSelectorPreferences(val selectedSlot: Int, val appearances: Map<String, SimAppearance>)
+
+    val simSelectorPreferences: Flow<SimSelectorPreferences?> = context.dataStore.data.map { preferences ->
+        SimSelectorPreferences(
+            selectedSlot = SimUtils.resolveSelectedSlot(
+                context,
+                preferences[selectedSimSlotKey] ?: -1,
+                preferences[selectedSimSubscriptionIdKey] ?: -1
+            ),
+            appearances = decodeSimAppearances(preferences[simAppearancesKey])
+        )
+    }
     val selectedSimSlot = context.dataStore.data.map {
-        SimUtils.resolveSelectedSlot(context, it[selectedSimSlotKey] ?: -1)
+        SimUtils.resolveSelectedSlot(
+            context,
+            it[selectedSimSlotKey] ?: -1,
+            it[selectedSimSubscriptionIdKey] ?: -1
+        )
     }
     val simAppearances = context.dataStore.data.map { decodeSimAppearances(it[simAppearancesKey]) }
     val simSwitchAction = context.dataStore.data.map { it[simSwitchActionKey] ?: "sheet" }
@@ -179,7 +197,13 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun setSelectedSimSlot(slot: Int) {
         require(slot >= 0) { "A SIM must be selected" }
-        context.dataStore.edit { it[selectedSimSlotKey] = slot }
+        val subscriptionId = SimUtils.getActiveSubscriptions(context)
+            .firstOrNull { it.simSlotIndex == slot }
+            ?.subscriptionId
+        context.dataStore.edit { preferences ->
+            preferences[selectedSimSlotKey] = slot
+            if (subscriptionId != null) preferences[selectedSimSubscriptionIdKey] = subscriptionId
+        }
     }
 
     suspend fun setSimSwitchAction(action: String) {
