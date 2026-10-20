@@ -628,7 +628,7 @@ private fun SimSetupPage(
                                 selected = isCorporate == false,
                                 onClick = { onSelectType(sim, false) },
                                 label = { Text(stringResource(R.string.sim_standard_line)) },
-                                shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                                shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 0.dp, bottomEnd = 0.dp),
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -648,7 +648,7 @@ private fun SimSetupPage(
                                 selected = isCorporate == true,
                                 onClick = { onSelectType(sim, true) },
                                 label = { Text(stringResource(R.string.sim_corporate_line)) },
-                                shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 28.dp, bottomEnd = 28.dp),
+                                shape = RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = 28.dp, bottomEnd = 28.dp),
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
