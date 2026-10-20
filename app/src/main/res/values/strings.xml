@@ -94,7 +94,7 @@
     <string name="dashboard_refresh_ussd_timeout">La consulta USSD no respondió.</string>
     <string name="dashboard_refresh_ussd_failed">Falló la consulta USSD.</string>
     <string name="dashboard_refresh_stopped">Se detuvo la actualización.</string>
-    <string name="dashboard_refresh_advice_4g">El teléfono sigue en 4G; si tienes 4G forzada, cambia la red a automática y vuelve a intentar.</string>
+    <string name="dashboard_refresh_advice_4g">La consulta USSD pudo fallar por cobertura o por el modo de red. Comprueba la señal; si tienes 4G forzada, prueba con la red en modo automático.</string>
     <string name="dashboard_refresh_advice_signal">Comprueba la señal y vuelve a intentar.</string>
     <string name="dashboard_refresh_possible_corporate">No pudimos consultar tu saldo. Esta SIM parece ser corporativa.</string>
     <string name="dashboard_refresh_possible_personal">No pudimos consultar tu saldo. Esta SIM parece ser personal.</string>

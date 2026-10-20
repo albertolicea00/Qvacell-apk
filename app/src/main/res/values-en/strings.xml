@@ -94,7 +94,7 @@
     <string name="dashboard_refresh_ussd_timeout">The USSD query did not respond.</string>
     <string name="dashboard_refresh_ussd_failed">The USSD query failed.</string>
     <string name="dashboard_refresh_stopped">Refresh stopped.</string>
-    <string name="dashboard_refresh_advice_4g">The phone is still on 4G. If 4G is forced, switch to automatic network mode and try again.</string>
+    <string name="dashboard_refresh_advice_4g">The USSD inquiry may have failed because of coverage or network mode. Check your signal; if 4G is forced, try automatic network mode.</string>
     <string name="dashboard_refresh_advice_signal">Check your signal and try again.</string>
     <string name="dashboard_refresh_possible_corporate">We could not check your balance. This SIM appears to be corporate.</string>
     <string name="dashboard_refresh_possible_personal">We could not check your balance. This SIM appears to be personal.</string>
