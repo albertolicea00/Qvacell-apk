@@ -627,7 +627,7 @@ private fun SimSetupPage(
                             FilterChip(
                                 selected = isCorporate == false,
                                 onClick = { onSelectType(sim, false) },
-                                label = { Text(stringResource(R.string.sim_standard_line)) },
+                                label = { Text(stringResource(R.string.sim_personal_line)) },
                                 shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 0.dp, bottomEnd = 0.dp),
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,

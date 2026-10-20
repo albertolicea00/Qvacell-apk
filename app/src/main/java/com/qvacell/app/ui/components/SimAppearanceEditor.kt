@@ -130,7 +130,7 @@ fun SimAppearanceEditor(
                 FilterChip(
                     selected = !isCorporate,
                     onClick = { isCorporate = false },
-                    label = { Text(stringResource(R.string.sim_standard_line)) },
+                    label = { Text(stringResource(R.string.sim_personal_line)) },
                     shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 4.dp, bottomEnd = 4.dp),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
