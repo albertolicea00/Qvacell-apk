@@ -77,6 +77,7 @@ import com.qvacell.app.data.ThemeMode
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.UssdCode
 import com.qvacell.app.service.SimUtils
+import com.qvacell.app.ui.components.SimBadge
 import com.qvacell.app.ui.resolveAndroidIcon
 import com.qvacell.app.ui.screens.ColorPickerSheet
 import com.qvacell.app.ui.screens.getWidgetShape
@@ -136,6 +137,7 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                 }
 
                 val activeSims = remember { SimUtils.getActiveSubscriptions(this@QuickActionsWidgetConfigure) }
+                val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
 
                 var selectedCodeId by remember { mutableStateOf(initialCodeId) }
                 var selectedSimSlot by remember { mutableIntStateOf(initialSimSlot) }
@@ -540,7 +542,8 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                                 }
                                             }
 
-                                            activeSims.forEachIndexed { _, sim ->
+                                            activeSims.forEach { sim ->
+                                                val appearance = simAppearances[sim.subscriptionId.toString()]
                                                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                                                 Row(
                                                     modifier = Modifier
@@ -550,18 +553,13 @@ class QuickActionsWidgetConfigure : ComponentActivity() {
                                                     verticalAlignment = Alignment.CenterVertically
                                                 ) {
                                                     RadioButton(selected = selectedSimSlot == sim.simSlotIndex, onClick = null)
-                                                    Icon(
-                                                        Icons.Filled.SimCard,
-                                                        contentDescription = null,
-                                                        modifier = Modifier.padding(start = 12.dp).size(28.dp),
-                                                        tint = SimUtils.simColor(sim.simSlotIndex)
-                                                    )
+                                                    SimBadge(sim.simSlotIndex, appearance, modifier = Modifier.padding(start = 12.dp))
                                                     Column(modifier = Modifier.padding(start = 12.dp)) {
-                                                        Text(SimUtils.simLabel(sim), style = MaterialTheme.typography.bodyLarge)
+                                                        Text(SimUtils.simLabel(sim, appearance), style = MaterialTheme.typography.bodyLarge)
                                                         val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
                                                         val number = SimUtils.getPhoneNumber(this@QuickActionsWidgetConfigure, sim)
                                                         val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
-                                                        if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim)) {
+                                                        if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim, appearance)) {
                                                             Text(
                                                                 subtitle,
                                                                 style = MaterialTheme.typography.bodySmall,

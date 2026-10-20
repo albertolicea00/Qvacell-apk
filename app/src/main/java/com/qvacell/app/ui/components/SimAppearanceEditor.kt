@@ -67,24 +67,24 @@ private fun simIcon(icon: String): ImageVector? = when (icon) {
 }
 
 @Composable
-fun SimBadge(slotIndex: Int, appearance: SimAppearance?, modifier: Modifier = Modifier) {
+fun SimBadge(
+    slotIndex: Int,
+    appearance: SimAppearance?,
+    modifier: Modifier = Modifier,
+    width: androidx.compose.ui.unit.Dp = 28.dp,
+    height: androidx.compose.ui.unit.Dp = 34.dp,
+    iconScale: Float = 0.56f
+) {
     val color = SimUtils.simColor(slotIndex, appearance)
-    val foreground = if (color.luminance() > 0.4f) Color.Black else Color.White
-    Box(
-        modifier = modifier.size(32.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Surface(shape = RoundedCornerShape(9.dp), color = color, modifier = Modifier.size(32.dp)) {
-            Box(contentAlignment = Alignment.Center) {
-                val icon = simIcon(appearance?.icon ?: "number")
-                if (icon == null) {
-                    Text("${slotIndex + 1}", color = foreground, style = MaterialTheme.typography.labelLarge)
-                } else {
-                    Icon(icon, contentDescription = null, tint = foreground, modifier = Modifier.size(20.dp))
-                }
-            }
-        }
-    }
+    SimCardGlyph(
+        slotIndex = slotIndex,
+        icon = appearance?.icon ?: "number",
+        color = color,
+        width = width,
+        height = height,
+        iconScale = iconScale,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -279,7 +279,8 @@ fun SimCardGlyph(
     color: Color,
     width: androidx.compose.ui.unit.Dp,
     height: androidx.compose.ui.unit.Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconScale: Float = 0.56f
 ) {
     val foreground = if (color.luminance() > 0.4f) Color.Black else Color.White
     Surface(
@@ -306,7 +307,7 @@ fun SimCardGlyph(
                     image,
                     contentDescription = null,
                     tint = foreground,
-                    modifier = Modifier.size(if (width > 40.dp) 30.dp else width * 0.56f)
+                    modifier = Modifier.size(if (width > 40.dp) 30.dp else width * iconScale)
                 )
             }
         }

@@ -78,7 +78,13 @@ fun SimSelectorIcon() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (currentSim != null) {
-                SimBadge(currentSim.simSlotIndex, currentAppearance, modifier = Modifier.size(22.dp))
+                SimBadge(
+                    currentSim.simSlotIndex,
+                    currentAppearance,
+                    width = 17.dp,
+                    height = 21.dp,
+                    iconScale = 0.58f
+                )
             } else {
                 Icon(Icons.Filled.SimCard, contentDescription = null, modifier = Modifier.size(18.dp))
             }
@@ -125,10 +131,14 @@ fun SimSelectorIcon() {
                                 SimUtils.simLabel(sim, appearance),
                                 style = MaterialTheme.typography.bodyLarge
                             )
+                            val lineType = stringResource(
+                                if (appearance?.isCorporate == true) R.string.sim_corporate_line
+                                else R.string.sim_personal_line
+                            )
                             val carrier = sim.carrierName?.toString()?.takeIf { it.isNotBlank() }
                             val number = SimUtils.getPhoneNumber(context, sim)
-                            val subtitle = listOfNotNull(carrier, number).joinToString(" · ")
-                            if (subtitle.isNotBlank() && subtitle != SimUtils.simLabel(sim, appearance)) {
+                            val subtitle = listOfNotNull(lineType, carrier, number).joinToString(" · ")
+                            if (subtitle.isNotBlank()) {
                                 Text(
                                     subtitle,
                                     style = MaterialTheme.typography.bodySmall,
