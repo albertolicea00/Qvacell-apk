@@ -216,7 +216,7 @@ object DashboardRefreshService {
             failedCode = code.resolvedCode()
         )
         _refreshFailure.value = context.getString(
-            if (line.isCorporate) R.string.dashboard_refresh_possible_standard
+            if (line.isCorporate) R.string.dashboard_refresh_possible_personal
             else R.string.dashboard_refresh_possible_corporate
         )
         return true

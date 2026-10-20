@@ -474,7 +474,7 @@ The navbar click handler navigates directly with `popUpTo(validStartRoute)` — 
 
 ## 16. Dual-SIM Selector
 
-Devices with two or more active SIM subscriptions (`SubscriptionManager.getActiveSubscriptionInfoList()`) show a SIM selector chip in the top app bar of all four main tabs (Home, Compras, Contactos, Ayuda) via `SimSelectorIcon()` inserted into `SearchableTopAppBar`'s `extraActions` slot. The interaction is configurable in Options › SIM y tipo de línea: open the current selection sheet, tap to cycle through active SIMs, or tap the badge to open a dropdown list. The list includes each SIM's configured name and standard/corporate line type.
+Devices with two or more active SIM subscriptions (`SubscriptionManager.getActiveSubscriptionInfoList()`) show a SIM selector chip in the top app bar of all four main tabs (Home, Compras, Contactos, Ayuda) via `SimSelectorIcon()` inserted into `SearchableTopAppBar`'s `extraActions` slot. The interaction is configurable in Options › SIM y tipo de línea: open the current selection sheet, tap to cycle through active SIMs, or tap the badge to open a dropdown list. The list includes each SIM's configured name and personal/corporate line type.
 
 **Global preference** — `SettingsDataStore.selectedSimSlot` stores the default SIM. It is configurable from Options › SIM y tipo de línea when multiple SIMs are active.
 

@@ -97,12 +97,12 @@
     <string name="dashboard_refresh_advice_4g">El teléfono sigue en 4G; si tienes 4G forzada, cambia la red a automática y vuelve a intentar.</string>
     <string name="dashboard_refresh_advice_signal">Comprueba la señal y vuelve a intentar.</string>
     <string name="dashboard_refresh_possible_corporate">No pudimos consultar tu saldo. Esta SIM parece ser corporativa.</string>
-    <string name="dashboard_refresh_possible_standard">No pudimos consultar tu saldo. Esta SIM parece ser estándar.</string>
+    <string name="dashboard_refresh_possible_personal">No pudimos consultar tu saldo. Esta SIM parece ser personal.</string>
     <string name="dashboard_line_type_action_corporate">Cambiar a Corporativa</string>
-    <string name="dashboard_line_type_action_standard">Cambiar a Estándar</string>
+    <string name="dashboard_line_type_action_personal">Cambiar a Personal</string>
     <string name="dashboard_line_type_confirm_title">¿Cambiar el tipo de línea?</string>
     <string name="dashboard_line_type_confirm_corporate">No obtuvimos respuesta al marcar %1$s. Si esta SIM es corporativa, ¿quieres cambiar su configuración a Corporativa ahora? Puedes ajustarlo después en Opciones &gt; SIM y tipo de línea.</string>
-    <string name="dashboard_line_type_confirm_standard">No obtuvimos respuesta al marcar %1$s. Si esta SIM es estándar, ¿quieres cambiar su configuración a Estándar ahora? Puedes ajustarlo después en Opciones &gt; SIM y tipo de línea.</string>
+    <string name="dashboard_line_type_confirm_personal">No obtuvimos respuesta al marcar %1$s. Si esta SIM es personal, ¿quieres cambiar su configuración a Personal ahora? Puedes ajustarlo después en Opciones &gt; SIM y tipo de línea.</string>
     <string name="dashboard_friends_plan_card">PLAN AMIGO</string>
     <string name="dashboard_recharge_limit">Límite de Recarga Nacional</string>
     <string name="dashboard_recharge_limit_card">Límite Mensual (%1$s)</string>
@@ -685,7 +685,7 @@
     <string name="sim_custom_color">Color</string>
     <string name="sim_custom_icon">Icono</string>
     <string name="sim_corporate_line">Corporativa</string>
-    <string name="sim_personal_line">Estándar</string>
+    <string name="sim_personal_line">Personal</string>
     <string name="sim_line_type">Tipo de línea</string>
     <string name="sim_make_default">Establecer esta SIM como predeterminada</string>
     <string name="sim_change_default_hint">Para cambiarla, establece otra SIM como predeterminada desde su personalización.</string>
@@ -707,7 +707,7 @@
     <string name="sim_icon_star">Estrella</string>
     <string name="sim_icon_travel">Viaje</string>
     <string name="onboarding_sim_title">Configura tus SIM</string>
-    <string name="onboarding_sim_subtitle">Indica si cada línea es estándar o corporativa y elige la SIM principal para llamadas y USSD.</string>
+    <string name="onboarding_sim_subtitle">Indica si cada línea es personal o corporativa y elige la SIM principal para llamadas y USSD.</string>
     <string name="onboarding_sim_make_primary">Toca aquí para hacerla principal</string>
     <string name="onboarding_sim_permission">Permite el acceso al estado del teléfono para detectar tus SIM.</string>
     <string name="onboarding_sim_detect">Detectar SIM</string>

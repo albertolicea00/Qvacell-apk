@@ -287,7 +287,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                             val lineTypeAction = visibleLineTypeSuggestion?.let { suggestion ->
                                 stringResource(
                                     if (suggestion.isCorporate) R.string.dashboard_line_type_action_corporate
-                                    else R.string.dashboard_line_type_action_standard
+                                    else R.string.dashboard_line_type_action_personal
                                 )
                             }
                             val warningText = buildAnnotatedString {
@@ -585,7 +585,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             text = {
                 Text(stringResource(
                     if (suggestion.isCorporate) R.string.dashboard_line_type_confirm_corporate
-                    else R.string.dashboard_line_type_confirm_standard,
+                    else R.string.dashboard_line_type_confirm_personal,
                     suggestion.failedCode
                 ))
             },
