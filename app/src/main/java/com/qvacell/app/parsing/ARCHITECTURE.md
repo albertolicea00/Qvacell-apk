@@ -380,6 +380,26 @@ User has no active SMS plan.
 
 ---
 
+## Corporate Balance (`corp-balance`)
+
+USSD: `*111#`
+
+Parser: `CorporateBalanceParser.kt`
+Tests: `CorporateBalanceParserTest.kt`
+
+Observed samples provided for a corporate line:
+
+```
+Example Corp Line
+Line 1: Datos: 1164 MB. Roaming:
+Line 2: Datos: 20223 MB. Roaming:
+Line 3: Voz: 335 MIN. Saldo consumido 0.00 CUP. SMS 60. Saldo consumido 0.00 CUP. Datos: 0 MB. Roaming:
+```
+
+The response can contain just the data/roaming section or the complete voice, SMS, and data snapshot. `SMS` may have a colon or no colon. The parser maps values to the shared `DATA_DATOS_MB`, `VOICE_MINUTES_REMAINING`, and `SMS_COUNT_REMAINING` fields, and maps the two section-local consumed amounts to `CORPORATE_VOICE_CONSUMED_CUP` and `CORPORATE_SMS_CONSUMED_CUP`. Blank `Roaming:` is emitted as an empty string so it clears an older roaming label. This response has no main account balance, so `MAIN_BALANCE` is deliberately not emitted.
+
+Data amounts are kept in MB; `GB` is accepted and converted using 1024 MB per GB. The current examples only establish the printed format above; further carrier/device variants should be added as fixtures before changing matching rules.
+
 ## SMS Parsers
 
 ### `etecsa-balance-alert`

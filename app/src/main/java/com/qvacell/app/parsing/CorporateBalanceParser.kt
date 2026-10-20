@@ -7,7 +7,7 @@ class CorporateBalanceParser : UssdResponseParser {
     override val ussdCodeId = "corp-balance"
 
     private val voice = Regex("""\bVoz:\s*([\d.,]+)\s*MIN\b""", RegexOption.IGNORE_CASE)
-    private val sms = Regex("""\bSMS:\s*(\d+)\b""", RegexOption.IGNORE_CASE)
+    private val sms = Regex("""\bSMS\s*:?\s*(\d+)\b""", RegexOption.IGNORE_CASE)
     private val data = Regex("""\bDatos:\s*([\d.,]+)\s*(MB|GB)\b""", RegexOption.IGNORE_CASE)
     private val consumed = Regex("""\bSaldo\s+consumido\s*([\d.,]+)\s*CUP\b""", RegexOption.IGNORE_CASE)
     private val roaming = Regex("""\bRoaming:\s*([^\r\n]*)""", RegexOption.IGNORE_CASE)

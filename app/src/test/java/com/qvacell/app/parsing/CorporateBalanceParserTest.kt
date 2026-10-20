@@ -10,8 +10,8 @@ class CorporateBalanceParserTest {
     private val parser = CorporateBalanceParser()
 
     @Test
-    fun `parses the supplied corporate response without inventing a main balance or roaming value`() {
-        val response = "Voz: 335 MIN. Saldo consumido 0.00 CUP. SMS: 60 Saldo consumido 0.00 CUP. Datos: 0MB. Roaming:"
+    fun `parses the supplied corporate voice sms and data response without inventing a main balance`() {
+        val response = "Voz: 335 MIN. Saldo consumido 0.00 CUP. SMS 60. Saldo consumido 0.00 CUP. Datos: 0 MB. Roaming:"
         val result = parser.parse(response)
         assertTrue(result is ParseResult.Success)
         val fields = (result as ParseResult.Success).value.associateBy { it.fieldType }
@@ -24,6 +24,22 @@ class CorporateBalanceParserTest {
         assertEquals(0.0, fields[FieldTypes.DATA_DATOS_MB]?.numericValue)
         assertEquals("", fields[FieldTypes.CORPORATE_ROAMING]?.textValue)
         assertFalse(fields.containsKey(FieldTypes.MAIN_BALANCE))
+    }
+
+    @Test
+    fun `parses data-only corporate lines and blank roaming from the supplied examples`() {
+        val firstResponse = "Example Corp Line\nLinea 1: Datos: 1164 MB. Roaming:"
+        val secondResponse = "Example Corp Line\nLinea 2: Datos: 20223 MB. Roaming:"
+
+        listOf(firstResponse to 1164.0, secondResponse to 20223.0).forEach { (response, expectedMb) ->
+            val result = parser.parse(response)
+            assertTrue(result is ParseResult.Success)
+            val fields = (result as ParseResult.Success).value.associateBy { it.fieldType }
+
+            assertEquals(expectedMb, fields[FieldTypes.DATA_DATOS_MB]?.numericValue)
+            assertEquals("", fields[FieldTypes.CORPORATE_ROAMING]?.textValue)
+            assertFalse(fields.containsKey(FieldTypes.MAIN_BALANCE))
+        }
     }
 
     @Test
