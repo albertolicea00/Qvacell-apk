@@ -39,6 +39,9 @@ interface DashboardValueSnapshotDao {
     )
     fun observeAllLatestPerField(): Flow<List<DashboardValueSnapshot>>
 
+    @Query("SELECT * FROM dashboard_value_snapshots WHERE sourceSignalId LIKE :sourcePrefix || '%'")
+    fun observeForSubscription(sourcePrefix: String): Flow<List<DashboardValueSnapshot>>
+
     @Query(
         """
         SELECT s.* FROM dashboard_value_snapshots s
@@ -51,4 +54,7 @@ interface DashboardValueSnapshotDao {
         """
     )
     suspend fun getLatestPerField(): List<DashboardValueSnapshot>
+
+    @Query("SELECT * FROM dashboard_value_snapshots WHERE sourceSignalId LIKE :sourcePrefix || '%'")
+    suspend fun getForSubscription(sourcePrefix: String): List<DashboardValueSnapshot>
 }

@@ -26,13 +26,20 @@ sealed interface UssdCaptureResult {
 object UssdCaptureService {
     private const val TIMEOUT_MILLIS = 15_000L
 
-    fun requestUssd(context: Context, code: UssdCode, onResult: (UssdCaptureResult) -> Unit) {
+    fun requestUssd(
+        context: Context,
+        code: UssdCode,
+        subscriptionId: Int? = null,
+        onResult: (UssdCaptureResult) -> Unit
+    ) {
         if (!DialService.hasCallPermission(context)) {
             onResult(UssdCaptureResult.Failure("permission_denied"))
             return
         }
 
-        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val baseTelephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val telephonyManager = subscriptionId?.let { baseTelephonyManager.createForSubscriptionId(it) }
+            ?: baseTelephonyManager
         val deferred = CompletableDeferred<UssdCaptureResult>()
 
         try {
@@ -59,6 +66,12 @@ object UssdCaptureService {
             )
         } catch (e: SecurityException) {
             onResult(UssdCaptureResult.Failure("security_exception"))
+            return
+        } catch (e: IllegalArgumentException) {
+            onResult(UssdCaptureResult.Failure("invalid_subscription"))
+            return
+        } catch (e: UnsupportedOperationException) {
+            onResult(UssdCaptureResult.Failure("unsupported"))
             return
         }
 
