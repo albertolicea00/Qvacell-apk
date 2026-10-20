@@ -174,6 +174,13 @@
     <string name="options_theme_light">Claro</string>
     <string name="options_theme_dark">Oscuro</string>
     <string name="options_default_tab">Pestaña predeterminada</string>
+    <string name="options_sim_switch_action">Acción al cambiar SIM</string>
+    <string name="options_sim_switch_sheet">Abrir selector</string>
+    <string name="options_sim_switch_cycle">Cambiar al tocar</string>
+    <string name="options_sim_switch_menu">Menú de tres puntos</string>
+    <string name="options_sim_switch_sheet_desc">Abre una ventana para elegir la SIM.</string>
+    <string name="options_sim_switch_cycle_desc">Toca la SIM para pasar a la siguiente.</string>
+    <string name="options_sim_switch_menu_desc">Abre una lista desde el menú de tres puntos.</string>
     <string name="options_accent_color">Color de acento</string>
     <string name="options_quick_purchase">Compras sin Confirmación</string>
     <string name="options_quick_purchase_desc">Marcar compras de saldo/planes sin pedir confirmación adicional</string>

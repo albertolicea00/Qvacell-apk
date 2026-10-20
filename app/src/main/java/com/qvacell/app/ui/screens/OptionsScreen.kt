@@ -186,6 +186,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
     val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
     val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val simSwitchAction by settings.simSwitchAction.collectAsStateWithLifecycle(initialValue = "sheet")
     val autoUpdateCheck by settings.autoUpdateCheck.collectAsStateWithLifecycle(initialValue = "unlocked")
     val effectiveAutoUpdateCheck = if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && autoUpdateCheck == "playstore") {
         "unlocked"
@@ -211,6 +212,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
     var showInterestLinksSheet by remember { mutableStateOf(false) }
     var showSimSheet by remember { mutableStateOf(false) }
+    var showSimSwitchActionSheet by remember { mutableStateOf(false) }
     var editingSim by remember { mutableStateOf<android.telephony.SubscriptionInfo?>(null) }
     var showAutoUpdateSheet by remember { mutableStateOf(false) }
 
@@ -265,6 +267,11 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ThemeMode.DARK -> stringResource(R.string.options_theme_dark)
     }
     val defaultTabLabel = bottomTabs.firstOrNull { it.route == defaultTab }?.labelRes?.let { stringResource(it) } ?: stringResource(R.string.tab_home)
+    val simSwitchActionLabel = when (simSwitchAction) {
+        "cycle" -> stringResource(R.string.options_sim_switch_cycle)
+        "menu" -> stringResource(R.string.options_sim_switch_menu)
+        else -> stringResource(R.string.options_sim_switch_sheet)
+    }
     val quickActionsStyleLabel = when (quickActionsStyle) {
         "outline" -> stringResource(R.string.options_quick_actions_outline)
         "list" -> stringResource(R.string.options_quick_actions_list)
@@ -426,14 +433,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         supporting = defaultTabLabel,
                         onClick = { showDefaultTabSheet = true }
                     )
-                    if (activeSims.size >= 2) {
-                        OptionsDivider()
-                        OptionsRow(
-                            headline = stringResource(R.string.options_sim_title),
-                            supporting = simLabel ?: SimUtils.simLabel(context, activeSims.first()),
-                            onClick = { showSimSheet = true }
-                        )
-                    }
                     OptionsDivider()
                     OptionsRow(
                         headline = stringResource(R.string.options_pref_call_contacts),
@@ -479,6 +478,20 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
             item {
                 OptionsSection(header = stringResource(R.string.options_sim_section)) {
+                    if (activeSims.size >= 2) {
+                        OptionsRow(
+                            headline = stringResource(R.string.options_sim_title),
+                            supporting = simLabel ?: SimUtils.simLabel(context, activeSims.first()),
+                            onClick = { showSimSheet = true }
+                        )
+                        OptionsDivider()
+                        OptionsRow(
+                            headline = stringResource(R.string.options_sim_switch_action),
+                            supporting = simSwitchActionLabel,
+                            onClick = { showSimSwitchActionSheet = true }
+                        )
+                        OptionsDivider()
+                    }
                     when {
                         activeSims.isNotEmpty() -> activeSims.forEachIndexed { index, sim ->
                             if (index > 0) OptionsDivider()
@@ -698,6 +711,45 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                             showSimSheet = false
                             editingSim = sim
                         }) { Text(stringResource(R.string.sim_customize)) }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+
+    if (showSimSwitchActionSheet && activeSims.size >= 2) {
+        ModalBottomSheet(onDismissRequest = { showSimSwitchActionSheet = false }) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    stringResource(R.string.options_sim_switch_action),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                listOf(
+                    Triple("sheet", R.string.options_sim_switch_sheet, R.string.options_sim_switch_sheet_desc),
+                    Triple("cycle", R.string.options_sim_switch_cycle, R.string.options_sim_switch_cycle_desc),
+                    Triple("menu", R.string.options_sim_switch_menu, R.string.options_sim_switch_menu_desc)
+                ).forEach { (action, titleRes, descRes) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                scope.launch { settings.setSimSwitchAction(action) }
+                                showSimSwitchActionSheet = false
+                            }
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = simSwitchAction == action, onClick = null)
+                        Column(modifier = Modifier.padding(start = 8.dp)) {
+                            Text(stringResource(titleRes), style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                stringResource(descRes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
                 Spacer(Modifier.height(8.dp))

@@ -6,6 +6,7 @@ import android.telephony.SubscriptionInfo
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SimCard
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,10 +54,12 @@ fun SimSelectorIcon() {
     val settings = remember { SettingsDataStore(context) }
     val selectedSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
     val appearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val simSwitchAction by settings.simSwitchAction.collectAsStateWithLifecycle(initialValue = "sheet")
     val scope = rememberCoroutineScope()
 
     var activeSims by remember { mutableStateOf(SimUtils.getActiveSubscriptions(context)) }
     var showSheet by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
     var editingSim by remember { mutableStateOf<SubscriptionInfo?>(null) }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
@@ -64,38 +70,82 @@ fun SimSelectorIcon() {
 
     val effectiveSlot = SimUtils.resolveSelectedSlot(context, selectedSlot)
     val currentSim = activeSims.firstOrNull { it.simSlotIndex == effectiveSlot }
+    val onSelectorClick: () -> Unit = {
+        when (simSwitchAction) {
+            "cycle" -> {
+                val currentIndex = activeSims.indexOfFirst { it.simSlotIndex == effectiveSlot }
+                val nextIndex = if (currentIndex < 0) 0 else (currentIndex + 1) % activeSims.size
+                scope.launch { settings.setSelectedSimSlot(activeSims[nextIndex].simSlotIndex) }
+            }
+            "menu" -> showMenu = true
+            else -> showSheet = true
+        }
+    }
 
     val currentAppearance = currentSim?.let { appearances[it.subscriptionId.toString()] }
 
-    Surface(
-        onClick = { showSheet = true },
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.padding(end = 4.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+    Box {
+        Surface(
+            onClick = onSelectorClick,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.padding(end = 4.dp)
         ) {
-            if (currentSim != null) {
-                SimBadge(
-                    currentSim.simSlotIndex,
-                    currentAppearance,
-                    width = 17.dp,
-                    height = 21.dp,
-                    iconScale = 0.58f
+            Row(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (currentSim != null) {
+                    SimBadge(
+                        currentSim.simSlotIndex,
+                        currentAppearance,
+                        width = 17.dp,
+                        height = 21.dp,
+                        iconScale = 0.58f
+                    )
+                } else {
+                    Icon(Icons.Filled.SimCard, contentDescription = null, modifier = Modifier.size(18.dp))
+                }
+                Text(
+                    text = currentSim?.let { SimUtils.simLabel(it, currentAppearance) }.orEmpty(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(start = 6.dp)
                 )
-            } else {
-                Icon(Icons.Filled.SimCard, contentDescription = null, modifier = Modifier.size(18.dp))
             }
-            Text(
-                text = currentSim?.let { SimUtils.simLabel(it, currentAppearance) }.orEmpty(),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 6.dp)
-            )
+        }
+
+        if (simSwitchAction == "menu") {
+            DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                activeSims.forEach { sim ->
+                    val appearance = appearances[sim.subscriptionId.toString()]
+                    DropdownMenuItem(
+                        text = {
+                            Column {
+                                Text(SimUtils.simLabel(sim, appearance))
+                                Text(
+                                    stringResource(
+                                        if (appearance?.isCorporate == true) R.string.sim_corporate_line
+                                        else R.string.sim_personal_line
+                                    ),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
+                        leadingIcon = { SimBadge(sim.simSlotIndex, appearance) },
+                        trailingIcon = if (sim.simSlotIndex == effectiveSlot) ({
+                            Icon(Icons.Filled.Check, contentDescription = null)
+                        }) else null,
+                        onClick = {
+                            scope.launch { settings.setSelectedSimSlot(sim.simSlotIndex) }
+                            showMenu = false
+                        }
+                    )
+                }
+            }
         }
     }
 

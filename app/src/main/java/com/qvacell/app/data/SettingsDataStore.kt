@@ -37,6 +37,7 @@ class SettingsDataStore(private val context: Context) {
     private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
     private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
     private val simAppearancesKey = stringPreferencesKey("sim_appearances")
+    private val simSwitchActionKey = stringPreferencesKey("sim_switch_action")
     private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
     private val autoUpdateCheckKey = stringPreferencesKey("auto_update_check")
     private val lastSuccessfulUpdateCheckAtKey = longPreferencesKey("last_successful_update_check_at")
@@ -104,6 +105,7 @@ class SettingsDataStore(private val context: Context) {
         SimUtils.resolveSelectedSlot(context, it[selectedSimSlotKey] ?: -1)
     }
     val simAppearances = context.dataStore.data.map { decodeSimAppearances(it[simAppearancesKey]) }
+    val simSwitchAction = context.dataStore.data.map { it[simSwitchActionKey] ?: "sheet" }
 
     val staleDaysThreshold = context.dataStore.data.map { it[staleDaysThresholdKey] ?: 14 }
 
@@ -178,6 +180,11 @@ class SettingsDataStore(private val context: Context) {
     suspend fun setSelectedSimSlot(slot: Int) {
         require(slot >= 0) { "A SIM must be selected" }
         context.dataStore.edit { it[selectedSimSlotKey] = slot }
+    }
+
+    suspend fun setSimSwitchAction(action: String) {
+        require(action in setOf("sheet", "cycle", "menu")) { "Unknown SIM switch action" }
+        context.dataStore.edit { it[simSwitchActionKey] = action }
     }
 
     suspend fun setSimAppearance(subscriptionId: Int, appearance: SimAppearance) {

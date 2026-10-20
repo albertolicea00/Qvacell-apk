@@ -174,6 +174,13 @@
     <string name="options_theme_light">Light</string>
     <string name="options_theme_dark">Dark</string>
     <string name="options_default_tab">Default Tab</string>
+    <string name="options_sim_switch_action">SIM switching action</string>
+    <string name="options_sim_switch_sheet">Open selector</string>
+    <string name="options_sim_switch_cycle">Switch on tap</string>
+    <string name="options_sim_switch_menu">Three-dot menu</string>
+    <string name="options_sim_switch_sheet_desc">Opens a sheet to choose a SIM.</string>
+    <string name="options_sim_switch_cycle_desc">Tap the SIM to move to the next one.</string>
+    <string name="options_sim_switch_menu_desc">Opens a list from the three-dot menu.</string>
     <string name="options_accent_color">Accent Color</string>
     <string name="options_quick_purchase">Purchases without Confirmation</string>
     <string name="options_quick_purchase_desc">Dial balance/package purchases skipping extra confirmation prompt</string>
