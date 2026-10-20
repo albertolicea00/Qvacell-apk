@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Sms
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,8 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qvacell.app.data.CatalogRepository
@@ -73,6 +76,7 @@ fun DynamicDashboardContent(
     cardTapMode: String
 ) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     val catalogRepository = remember { repository }
     val settings = remember { SettingsDataStore(context) }
     val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
@@ -232,6 +236,15 @@ fun DynamicDashboardContent(
                     )
                 }
             }
+            if (line.isCorporate) {
+                Button(
+                    onClick = { uriHandler.openUri(CORPORATE_PORTAL_URL) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(24.dp)
+                ) {
+                    Text(stringResource(R.string.dashboard_open_corporate_portal))
+                }
+            }
             if (!line.isCorporate) {
                 val mainBalanceFetched = values[FieldTypes.MAIN_BALANCE]?.capturedAt != null
                 VoiceSmsRow(
@@ -327,6 +340,8 @@ fun DynamicDashboardContent(
         )
     }
 }
+
+private const val CORPORATE_PORTAL_URL = "https://www.portalcorporativo.etecsa.cu/"
 
 private val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es"))
 
