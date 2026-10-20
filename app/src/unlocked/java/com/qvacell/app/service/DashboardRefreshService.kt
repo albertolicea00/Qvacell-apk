@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.text.Normalizer
-import java.util.Locale
 import kotlin.coroutines.resume
 
 object DashboardRefreshService {
@@ -92,7 +90,7 @@ object DashboardRefreshService {
                     val result = requestUssdSuspend(context, code, line.subscriptionId)
                     when (result) {
                         is UssdCaptureResult.Success -> {
-                            if (codeId == line.balanceCodeId && isMmiErrorResponse(result.response)) {
+                            if (codeId == line.balanceCodeId && MmiErrorClassifier.isMmiErrorResponse(result.response)) {
                                 if (!suggestLineTypeChange(context, line, code)) {
                                     _refreshFailure.value = context.getString(R.string.dashboard_refresh_parse_failed_batch)
                                 }
@@ -154,7 +152,7 @@ object DashboardRefreshService {
                 }
                 when (val result = requestUssdSuspend(context, code, line.subscriptionId)) {
                     is UssdCaptureResult.Success -> {
-                        if (code.id == line.balanceCodeId && isMmiErrorResponse(result.response)) {
+                        if (code.id == line.balanceCodeId && MmiErrorClassifier.isMmiErrorResponse(result.response)) {
                             if (!suggestLineTypeChange(context, line, code)) {
                                 _refreshFailure.value = context.getString(R.string.dashboard_refresh_parse_failed)
                             }
@@ -222,14 +220,6 @@ object DashboardRefreshService {
             else R.string.dashboard_refresh_possible_corporate
         )
         return true
-    }
-
-    private fun isMmiErrorResponse(response: String): Boolean {
-        val normalized = Normalizer.normalize(response, Normalizer.Form.NFD)
-            .replace(Regex("\\p{M}+"), "")
-            .lowercase(Locale.ROOT)
-        return "mmi" in normalized && listOf("conexion", "connection", "incorrect", "invalid")
-            .any { it in normalized }
     }
 
     private suspend fun requestUssdSuspend(
