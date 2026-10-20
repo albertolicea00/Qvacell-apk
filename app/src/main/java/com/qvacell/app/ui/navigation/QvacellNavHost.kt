@@ -1,5 +1,12 @@
 package com.qvacell.app.ui.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -213,7 +220,13 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
 
     Scaffold(
         bottomBar = {
-            if (currentRoute == Routes.ONBOARDING) return@Scaffold
+            AnimatedVisibility(
+                visible = currentRoute != null && currentRoute != Routes.ONBOARDING,
+                enter = expandVertically(animationSpec = tween(320), expandFrom = Alignment.Bottom) +
+                    fadeIn(animationSpec = tween(320)),
+                exit = shrinkVertically(animationSpec = tween(220), shrinkTowards = Alignment.Bottom) +
+                    fadeOut(animationSpec = tween(220))
+            ) {
             // Custom bar instead of Material3 NavigationBar: that component has a fixed 80dp
             // height with no public override, and its selected-item indicator draws a filled
             // pill behind the icon — both unwanted here. This gives full control over height
@@ -318,6 +331,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                     }
                 }
             }
+            }
         }
         }
     ) { padding ->
@@ -338,7 +352,15 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             composable(BottomTab.Contacts.route) {
                 ContactsListScreen()
             }
-            composable(BottomTab.Home.route) {
+            composable(
+                BottomTab.Home.route,
+                enterTransition = {
+                    if (initialState.destination.route == Routes.ONBOARDING) {
+                        fadeIn(animationSpec = tween(420, delayMillis = 70)) +
+                            slideInVertically(initialOffsetY = { it / 12 }, animationSpec = tween(420))
+                    } else null
+                }
+            ) {
                 HomeQuickActionsScreen(
                     onNavigateToReminders = { navController.navigate(Routes.REMINDERS) },
                     onNavigateToFriendsPlan = { navController.navigate(Routes.FRIENDS_PLAN_MANAGE) },
@@ -375,7 +397,14 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             composable(BottomTab.Options.route) {
                 OptionsScreen(onNavigate = navigateFromOptions)
             }
-            composable(Routes.ONBOARDING) {
+            composable(
+                Routes.ONBOARDING,
+                exitTransition = {
+                    if (targetState.destination.route == BottomTab.Home.route) {
+                        fadeOut(animationSpec = tween(260))
+                    } else null
+                }
+            ) {
                 val isReplay = navController.previousBackStackEntry != null
                 OnboardingScreen(
                     onComplete = {
