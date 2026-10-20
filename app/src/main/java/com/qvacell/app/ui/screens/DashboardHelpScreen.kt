@@ -60,12 +60,42 @@ fun DashboardHelpScreen(
                     text = stringResource(R.string.dashboard_help_data_desc)
                 )
                 DashboardHelpInfoRow(
+                    title = stringResource(R.string.dashboard_help_line_title),
+                    text = stringResource(R.string.dashboard_help_line_desc)
+                )
+                DashboardHelpInfoRow(
                     title = stringResource(R.string.dashboard_help_refresh_title),
                     text = stringResource(R.string.dashboard_help_refresh_desc)
                 )
                 DashboardHelpInfoRow(
                     title = stringResource(R.string.dashboard_help_cards_title),
                     text = stringResource(R.string.dashboard_help_cards_desc)
+                )
+                DashboardHelpInfoRow(
+                    title = stringResource(R.string.dashboard_help_status_title),
+                    text = stringResource(R.string.dashboard_help_status_desc)
+                )
+            }
+
+            DashboardHelpSection(stringResource(R.string.dashboard_help_capture_title)) {
+                DashboardHelpInfoRow(
+                    title = stringResource(R.string.dashboard_help_ussd_capture_title),
+                    text = stringResource(R.string.dashboard_help_ussd_capture_desc)
+                )
+                DashboardHelpInfoRow(
+                    title = stringResource(R.string.dashboard_help_sms_capture_title),
+                    text = stringResource(R.string.dashboard_help_sms_capture_desc)
+                )
+            }
+
+            DashboardHelpSection(stringResource(R.string.dashboard_help_storage_title)) {
+                DashboardHelpInfoRow(
+                    title = stringResource(R.string.dashboard_help_storage_local_title),
+                    text = stringResource(R.string.dashboard_help_storage_desc)
+                )
+                DashboardHelpInfoRow(
+                    title = stringResource(R.string.dashboard_help_delete_title),
+                    text = stringResource(R.string.dashboard_help_delete_desc)
                 )
             }
 

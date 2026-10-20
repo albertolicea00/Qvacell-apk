@@ -1,6 +1,7 @@
 package com.qvacell.app.service
 
 import android.content.Context
+import androidx.room.withTransaction
 import com.qvacell.app.data.QvacellDatabase
 import com.qvacell.app.model.DashboardValueSnapshot
 import com.qvacell.app.model.SourceAnchor
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.map
  */
 class DashboardDataRepository(
     context: Context,
-    database: QvacellDatabase = QvacellDatabase.get(context)
+    private val database: QvacellDatabase = QvacellDatabase.get(context)
 ) {
     private val valueDao = database.dashboardValueSnapshotDao()
     private val anchorDao = database.sourceAnchorDao()
@@ -42,6 +43,14 @@ class DashboardDataRepository(
     fun observeAnchors(): Flow<List<SourceAnchor>> = anchorDao.observeAll()
 
     suspend fun latestConfirmedAnchorTimestamp(): Long? = anchorDao.latestSuccessfulParseAt()
+
+    /** Remove captured values, estimates, and retained raw-response anchors for all SIMs. */
+    suspend fun clearCollectedData() {
+        database.withTransaction {
+            valueDao.deleteAll()
+            anchorDao.deleteAll()
+        }
+    }
 
     suspend fun recordUssdParse(
         codeId: String,

@@ -95,6 +95,23 @@ class DashboardDataRepositoryTest {
     }
 
     @Test
+    fun `clearCollectedData removes values estimates and raw response anchors`() = runTest {
+        assertEquals(true, repository.recordUssdParse("main-balance", "Saldo: 23.50 CUP", subscriptionId = 41))
+        repository.recordEstimate(
+            listOf(ParsedDashboardValue(fieldType = "calls_made_estimate", numericValue = 3.0)),
+            estimatedAt = 2000L
+        )
+        assertEquals(2, repository.getCurrentValues().size)
+
+        repository.clearCollectedData()
+
+        assertEquals(0, repository.getCurrentValues().size)
+        repository.observeAnchors().test {
+            assertEquals(emptyList<SourceAnchor>(), awaitItem())
+        }
+    }
+
+    @Test
     fun `unrecognized corporate response does not count as parsed`() = runTest {
         assertEquals(false, repository.recordUssdParse("corp-balance", "respuesta pendiente", subscriptionId = 41))
         assertEquals(null, repository.getCurrentValues(41)["main_balance"])

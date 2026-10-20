@@ -19,12 +19,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -63,6 +65,8 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
     var showCardTapModeSheet by remember { mutableStateOf(false) }
     var showLoadingStyleSheet by remember { mutableStateOf(false) }
     var historyImporting by remember { mutableStateOf(false) }
+    var showClearDashboardDataDialog by remember { mutableStateOf(false) }
+    var showFinalClearDashboardDataDialog by remember { mutableStateOf(false) }
 
     val cardTapModeLabel = when (cardTapMode) {
         "long_confirm" -> stringResource(R.string.dashboard_setting_long_confirm)
@@ -213,6 +217,14 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                 )
             }
 
+            OptionsSection(header = stringResource(R.string.dashboard_setting_data_management)) {
+                OptionsRow(
+                    headline = stringResource(R.string.dashboard_setting_clear_data),
+                    supporting = stringResource(R.string.dashboard_setting_clear_data_desc),
+                    onClick = { showClearDashboardDataDialog = true }
+                )
+            }
+
             OptionsSection(header = "") {
                 OptionsRow(
                     headline = stringResource(R.string.dashboard_menu_help),
@@ -295,6 +307,61 @@ fun DashboardSettingsScreen(onBack: () -> Unit, onNavigateToHelp: () -> Unit = {
                 Spacer(Modifier.height(8.dp))
             }
         }
+    }
+
+    if (showClearDashboardDataDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearDashboardDataDialog = false },
+            title = { Text(stringResource(R.string.dashboard_setting_clear_data_confirm_title)) },
+            text = { Text(stringResource(R.string.dashboard_setting_clear_data_confirm_desc)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showClearDashboardDataDialog = false
+                    showFinalClearDashboardDataDialog = true
+                }) {
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearDashboardDataDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
+    }
+
+    if (showFinalClearDashboardDataDialog) {
+        AlertDialog(
+            onDismissRequest = { showFinalClearDashboardDataDialog = false },
+            title = { Text(stringResource(R.string.dashboard_setting_clear_data_final_title)) },
+            text = {
+                Text(
+                    text = stringResource(R.string.dashboard_setting_clear_data_confirm_warning),
+                    color = MaterialTheme.colorScheme.error
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showFinalClearDashboardDataDialog = false
+                    scope.launch {
+                        runCatching { dashboardRepository.clearCollectedData() }
+                            .onSuccess {
+                                Toast.makeText(context, R.string.dashboard_setting_clear_data_done, Toast.LENGTH_SHORT).show()
+                            }
+                            .onFailure {
+                                Toast.makeText(context, R.string.dashboard_setting_clear_data_failed, Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                }) {
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFinalClearDashboardDataDialog = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
     }
 
 }

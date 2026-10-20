@@ -200,7 +200,7 @@ private fun CorporateMetricSection(
 @Composable
 private fun CorporateConsumptionRow(label: String, value: String, verticalOffset: androidx.compose.ui.unit.Dp = (-3).dp) {
     Row(
-        modifier = Modifier.padding(start = 22.dp).offset(y = verticalOffset),
+        modifier = Modifier.offset(y = verticalOffset),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

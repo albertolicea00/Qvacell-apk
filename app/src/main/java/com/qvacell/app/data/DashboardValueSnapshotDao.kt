@@ -12,6 +12,9 @@ interface DashboardValueSnapshotDao {
     @Insert
     suspend fun insert(snapshot: DashboardValueSnapshot): Long
 
+    @Query("DELETE FROM dashboard_value_snapshots")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM dashboard_value_snapshots WHERE fieldType = :fieldType ORDER BY capturedAt ASC")
     fun observeHistory(fieldType: String): Flow<List<DashboardValueSnapshot>>
 
