@@ -105,6 +105,15 @@ class DataPlanParserTest {
         assertEquals(19.0, v.field(FieldTypes.DATA_DATOS_DAYS)!!.numericValue!!, 0.01)
     }
 
+    @Test
+    fun `parses supplied valid data balance in KB and normalizes to MB`() {
+        val v = values("Tarifa: No activa. Datos: 580.79 KB validos 8 dias.")
+        assertEquals(1.0, v.field(FieldTypes.DATA_DATOS_ACTIVE)!!.numericValue!!, 0.01)
+        assertEquals(580.79 / 1024, v.field(FieldTypes.DATA_DATOS_MB)!!.numericValue!!, 0.0001)
+        assertEquals("MB", v.field(FieldTypes.DATA_DATOS_MB)!!.unit)
+        assertEquals(8.0, v.field(FieldTypes.DATA_DATOS_DAYS)!!.numericValue!!, 0.01)
+    }
+
     // ── Sample 9: tarifa activa ──
 
     @Test

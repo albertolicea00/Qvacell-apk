@@ -244,12 +244,13 @@ Only these two fields emitted. No section fields.
 Datos: 4.49 GB no activos.
 Datos: 4.03 GB validos 21 dias.
 Datos: 57.35 MB validos 19 dias.
+Datos: 580.79 KB validos 8 dias.
 ```
 
 | FieldType | Value | Unit |
 |---|---|---|
 | `data_datos_active` | 1.0 (validos) or 0.0 (no activos) | — |
-| `data_datos_mb` | amount in MB (GB auto-converted) | MB |
+| `data_datos_mb` | amount in MB (GB converted ×1024; KB converted ÷1024) | MB |
 | `data_datos_days` | days remaining (only when active) | — |
 
 #### Diaria section
@@ -287,7 +288,7 @@ Informational only — no fields emitted. Presence doesn't affect other sections
 
 #### Parser notes
 
-- GB→MB auto-conversion for Datos section.
+- GB→MB and KB→MB auto-conversion for Datos section (`1 GB = 1024 MB`; `1024 KB = 1 MB`).
 - Amounts: comma or dot decimal separator via shared `parseAmount()`.
 - `Tarifa:` required — if missing → `Unrecognized`.
 - 10 real ETECSA samples documented, all covered by tests.
@@ -306,6 +307,7 @@ Tests: `VoiceBalanceParserTest.kt` (8 cases)
 ```
 Usted dispone de 119:51:13 MIN NAC validos por 19 dias
 Usted dispone de 00:45:00 MIN NAC validos por 21 dias
+Usted dispone de 23:21:34 MIN NAC validos por 8 dias
 ```
 
 User has active voice plan. Duration in HH:MM:SS format, days until expiry.

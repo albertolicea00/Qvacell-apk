@@ -84,6 +84,18 @@ class BonusUsdPlansParserTest {
         assertEquals(epochOf(2026, 10, 27), cuExpiry.dateValue)
     }
 
+    @Test
+    fun `parses the supplied personal-line nocturno and datos cu response`() {
+        val raw = "Datos: ilimitados: Nocturno vence 24-10-26. Datos.cu 253 MB vence 27-10-26"
+        val result = parser.parse(raw)
+        assertTrue("expected Success, got $result", result is ParseResult.Success)
+        val values = (result as ParseResult.Success).value
+
+        assertEquals(253.0, values.first { it.fieldType == FieldTypes.BONUS_DATOS_CU_MB }.numericValue!!, 0.01)
+        assertEquals(epochOf(2026, 10, 24), values.first { it.fieldType == FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY }.dateValue)
+        assertEquals(epochOf(2026, 10, 27), values.first { it.fieldType == FieldTypes.BONUS_DATOS_CU_EXPIRY }.dateValue)
+    }
+
     // ── Edge cases ──
 
     @Test

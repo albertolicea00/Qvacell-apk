@@ -31,6 +31,18 @@ class VoiceBalanceParserTest {
         assertEquals(19.0, days.numericValue!!, 0.01)
     }
 
+    @Test
+    fun `parses supplied personal-line national minutes response`() {
+        val result = parser.parse("Usted dispone de 23:21:34 MIN NAC validos por 8 dias")
+        assertTrue("expected Success, got $result", result is ParseResult.Success)
+        val values = (result as ParseResult.Success).value
+        val minutes = values.first { it.fieldType == FieldTypes.VOICE_MINUTES_REMAINING }
+
+        assertEquals(23 * 60 + 21 + 34 / 60.0, minutes.numericValue!!, 0.001)
+        assertEquals("23:21:34", minutes.textValue)
+        assertEquals(8.0, values.first { it.fieldType == FieldTypes.VOICE_DAYS_REMAINING }.numericValue!!, 0.01)
+    }
+
     // ── Variant 2: small balance ──
 
     @Test

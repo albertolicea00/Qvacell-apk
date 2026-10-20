@@ -8,7 +8,7 @@ class DataPlanParser : UssdResponseParser {
     private val tarifa = Regex("""Tarifa:\s*(Activa|No activa)""", RegexOption.IGNORE_CASE)
 
     private val datos = Regex(
-        """Datos:\s*([\d,.]+)\s*(MB|GB)\s*(validos\s*(\d+)\s*dias|no activos)""", RegexOption.IGNORE_CASE
+        """Datos:\s*([\d,.]+)\s*(KB|MB|GB)\s*(validos\s*(\d+)\s*dias|no activos)""", RegexOption.IGNORE_CASE
     )
 
     private val diaria = Regex(
@@ -55,7 +55,11 @@ class DataPlanParser : UssdResponseParser {
         datos.find(rawResponseText)?.let { m ->
             val amount = NationalRechargeLimitParser.parseAmount(m.groupValues[1])
             val unit = m.groupValues[2]
-            val mb = if (unit.equals("GB", ignoreCase = true)) amount * 1024 else amount
+            val mb = when {
+                unit.equals("GB", ignoreCase = true) -> amount * 1024
+                unit.equals("KB", ignoreCase = true) -> amount / 1024
+                else -> amount
+            }
             val isActive = m.groupValues[3].startsWith("validos", ignoreCase = true)
             val days = if (isActive) m.groupValues[4].toIntOrNull() else null
 
