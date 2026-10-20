@@ -542,6 +542,7 @@
     <string name="options_color_pink">Pink</string>
     <string name="options_link_nauta_home">Nauta Home login</string>
     <string name="options_link_nauta_portal">Nauta portal</string>
+    <string name="options_link_corporate_portal">Corporate portal</string>
     <string name="options_link_etecsa_store">ETECSA online store</string>
     <string name="options_link_yellow_pages">Cuba Yellow Pages</string>
     <string name="options_link_nauta_mail">Nauta webmail</string>
@@ -679,8 +680,7 @@
     <string name="sim_icon_travel">Travel</string>
     <string name="onboarding_sim_title">Set up your SIMs</string>
     <string name="onboarding_sim_subtitle">Choose whether each line is standard or corporate, then select the primary SIM for calls and USSD.</string>
-    <string name="onboarding_sim_primary">Primary SIM</string>
-    <string name="onboarding_sim_corporate">Corporate</string>
+    <string name="onboarding_sim_make_primary">Tap here to make this the primary SIM</string>
     <string name="onboarding_sim_permission">Allow phone state access to detect your SIMs.</string>
     <string name="onboarding_sim_detect">Detect SIMs</string>
     <string name="code_value">Value</string>

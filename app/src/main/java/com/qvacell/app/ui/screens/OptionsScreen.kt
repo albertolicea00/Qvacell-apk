@@ -124,6 +124,7 @@ private val ACCENT_COLOR_OPTIONS = listOf(
 private val INTEREST_LINKS = listOf(
     R.string.options_link_nauta_home to "https://secure.etecsa.net:8443/",
     R.string.options_link_nauta_portal to "https://www.nauta.cu/",
+    R.string.options_link_corporate_portal to "https://www.portalcorporativo.etecsa.cu/",
     R.string.options_link_etecsa_store to "https://tienda.etecsa.cu/",
     R.string.options_link_yellow_pages to "https://pamarillas.cu/",
     R.string.options_link_nauta_mail to "https://webmail.nauta.cu/",

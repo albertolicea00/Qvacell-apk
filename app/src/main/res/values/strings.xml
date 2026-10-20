@@ -542,6 +542,7 @@
     <string name="options_color_pink">Rosa</string>
     <string name="options_link_nauta_home">Login Nauta Hogar</string>
     <string name="options_link_nauta_portal">Portal Nauta</string>
+    <string name="options_link_corporate_portal">Portal Corporativo</string>
     <string name="options_link_etecsa_store">Tienda Web ETECSA</string>
     <string name="options_link_yellow_pages">Páginas Amarillas de Cuba</string>
     <string name="options_link_nauta_mail">Webmail Correo Nauta</string>
@@ -679,8 +680,7 @@
     <string name="sim_icon_travel">Viaje</string>
     <string name="onboarding_sim_title">Configura tus SIM</string>
     <string name="onboarding_sim_subtitle">Indica si cada línea es estándar o corporativa y elige la SIM principal para llamadas y USSD.</string>
-    <string name="onboarding_sim_primary">SIM principal</string>
-    <string name="onboarding_sim_corporate">Corporativa</string>
+    <string name="onboarding_sim_make_primary">Toca aquí para hacerla principal</string>
     <string name="onboarding_sim_permission">Permite el acceso al estado del teléfono para detectar tus SIM.</string>
     <string name="onboarding_sim_detect">Detectar SIM</string>
     <string name="code_value">Valor</string>
