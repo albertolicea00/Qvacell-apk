@@ -12,6 +12,8 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,10 +50,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -83,7 +85,6 @@ import com.qvacell.app.data.SimAppearance
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.OnboardingDataPrefetch
 import com.qvacell.app.service.SimUtils
-import com.qvacell.app.ui.components.SimBadge
 import kotlinx.coroutines.launch
 
 private sealed class OnboardingPage {
@@ -583,46 +584,94 @@ private fun SimSetupPage(
             sims.forEach { sim ->
                 val appearance = appearances[sim.subscriptionId.toString()]
                 val isCorporate = lineTypes[sim.subscriptionId] ?: appearance?.isCorporate
-                Card(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                val isPrimary = effectiveSlot == sim.simSlotIndex
+                val phoneNumber = SimUtils.getPhoneNumber(context, sim)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .clickable { onSelect(sim.simSlotIndex) },
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        if (isPrimary) 2.dp else 1.dp,
+                        if (isPrimary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                    ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isPrimary) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surface
+                    )
+                ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                            SimBadge(
-                                sim.simSlotIndex,
-                                if (isCorporate == null) appearance else (appearance ?: SimAppearance()).copy(
-                                    icon = if (isCorporate) "work" else "home"
+                            Icon(
+                                Icons.Filled.SimCard,
+                                contentDescription = null,
+                                tint = SimUtils.simColor(sim.simSlotIndex, appearance),
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                Text(
+                                    SimUtils.simLabel(sim, appearance),
+                                    style = MaterialTheme.typography.titleMedium
                                 )
-                            )
-                            Text(
-                                SimUtils.simLabel(sim, appearance),
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.weight(1f).padding(start = 12.dp)
-                            )
+                                phoneNumber?.let {
+                                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(0.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             FilterChip(
                                 selected = isCorporate == false,
                                 onClick = { onSelectType(sim, false) },
                                 label = { Text(stringResource(R.string.sim_standard_line)) },
+                                shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 4.dp, bottomEnd = 4.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = isCorporate == false,
+                                    borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                    borderWidth = 1.dp,
+                                    selectedBorderWidth = 2.dp
+                                ),
                                 leadingIcon = { Icon(Icons.Filled.Home, contentDescription = null, modifier = Modifier.size(18.dp)) },
                                 modifier = Modifier.weight(1f)
                             )
                             FilterChip(
                                 selected = isCorporate == true,
                                 onClick = { onSelectType(sim, true) },
-                                label = { Text(stringResource(R.string.onboarding_sim_corporate)) },
+                                label = { Text(stringResource(R.string.sim_corporate_line)) },
+                                shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = 28.dp, bottomEnd = 28.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = isCorporate == true,
+                                    borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                    borderWidth = 1.dp,
+                                    selectedBorderWidth = 2.dp
+                                ),
                                 leadingIcon = { Icon(Icons.Filled.Work, contentDescription = null, modifier = Modifier.size(18.dp)) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = effectiveSlot == sim.simSlotIndex,
-                                onClick = { onSelect(sim.simSlotIndex) }
+                        if (!isPrimary) {
+                            Text(
+                                stringResource(R.string.onboarding_sim_make_primary),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 8.dp, start = 8.dp)
                             )
-                            Text(stringResource(R.string.onboarding_sim_primary))
                         }
                     }
                 }
