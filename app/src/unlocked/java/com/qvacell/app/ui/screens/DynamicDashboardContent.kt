@@ -35,10 +35,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.qvacell.app.data.CatalogRepository
+import com.qvacell.app.R
 import com.qvacell.app.data.FieldTypes
 import com.qvacell.app.model.DashboardValueSnapshot
 import com.qvacell.app.service.DashboardDataRepository
 import com.qvacell.app.service.DashboardRefreshService
+import com.qvacell.app.service.SimUtils
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -51,7 +53,7 @@ import com.qvacell.app.data.SettingsDataStore
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.ui.components.ConsultCardsRow
-import com.qvacell.app.ui.components.CorporateBalanceConsultCard
+import com.qvacell.app.ui.components.CorporateBalanceCard
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
 import com.qvacell.app.ui.components.NationalBonusCard
@@ -60,6 +62,7 @@ import com.qvacell.app.ui.components.VoiceSmsRow
 import com.qvacell.app.ui.components.LoadingCardBorder
 import com.qvacell.app.ui.components.LocalLoadingAnimationStyle
 import com.qvacell.app.ui.components.LocalDashboardCardTapMode
+import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,18 +74,31 @@ fun DynamicDashboardContent(
 ) {
     val context = LocalContext.current
     val catalogRepository = remember { repository }
+    val settings = remember { SettingsDataStore(context) }
+    val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val line = remember(selectedSimSlot, simAppearances) {
+        SimUtils.resolveDashboardLine(context, selectedSimSlot, simAppearances)
+    }
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
     val currentCodeId by DashboardRefreshService.currentCodeId.collectAsState()
-    val valuesFlow = remember(dashboardRepository) { dashboardRepository.observeCurrentValues() }
+    val valuesFlow = remember(dashboardRepository, line.subscriptionId) {
+        dashboardRepository.observeCurrentValues(line.subscriptionId)
+    }
     val valuesState = valuesFlow.collectAsState<
         Map<String, DashboardValueSnapshot>,
         Map<String, DashboardValueSnapshot>?
     >(initial = null)
-    val values = valuesState.value ?: return
+    val values = valuesState.value?.let { current ->
+        when {
+            line.needsSelection -> emptyMap()
+            line.subscriptionId == null -> current
+            else -> current.filterValues { it.sourceSignalId.startsWith("sim:${line.subscriptionId}:") }
+        }
+    } ?: return
 
     var pendingAction by remember { mutableStateOf<Triple<String, String, () -> Unit>?>(null) }
 
-    val settings = remember { SettingsDataStore(context) }
     val staleDays by settings.staleDaysThreshold.collectAsStateWithLifecycle(initialValue = 14)
     val loadingStyle by settings.dashboardLoadingStyle.collectAsStateWithLifecycle(initialValue = "sweep")
 
@@ -95,7 +111,7 @@ fun DynamicDashboardContent(
     }
 
     fun requestQuery(codeId: String) {
-        if (!hasSignal) return
+        if (!hasSignal || line.needsSelection) return
         val code = catalogRepository.findCodeById(codeId) ?: return
         val needsConfirm = cardTapMode == "tap_confirm" || cardTapMode == "long_confirm"
         if (needsConfirm) {
@@ -165,105 +181,124 @@ fun DynamicDashboardContent(
                     .padding(top = 16.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            LoadingCardBorder(isLoading = currentCodeId == "national-recharge-limit") {
-            RechargeLimitCard(
-                reached = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REACHED]?.numericValue == 1.0,
-                limitAmount = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REMAINING]?.let {
-                    formatAmount(it.numericValue) + " " + (it.unit ?: "CUP")
-                } ?: values[FieldTypes.NATIONAL_RECHARGE_LIMIT_AMOUNT]?.let {
-                    formatAmount(it.numericValue) + " " + (it.unit ?: "CUP")
-                } ?: "--",
-                availableFrom = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_AVAILABLE_FROM]?.dateValue
-                    ?.let { formatDate(it) } ?: "--",
-                lastUpdatedAt = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REACHED]?.capturedAt
-                    ?: values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REMAINING]?.capturedAt,
-                onQuery = { requestQuery("national-recharge-limit") }
-            )
+            if (line.needsSelection) {
+                Text(stringResource(R.string.dashboard_choose_sim), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            LoadingCardBorder(isLoading = currentCodeId == "corp-balance") {
-                CorporateBalanceConsultCard(onQuery = { requestQuery("corp-balance") })
+            if (!line.isCorporate) {
+                LoadingCardBorder(isLoading = currentCodeId == "national-recharge-limit") {
+                    RechargeLimitCard(
+                        reached = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REACHED]?.numericValue == 1.0,
+                        limitAmount = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REMAINING]?.let {
+                            formatAmount(it.numericValue) + " " + (it.unit ?: "CUP")
+                        } ?: values[FieldTypes.NATIONAL_RECHARGE_LIMIT_AMOUNT]?.let {
+                            formatAmount(it.numericValue) + " " + (it.unit ?: "CUP")
+                        } ?: "--",
+                        availableFrom = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_AVAILABLE_FROM]?.dateValue
+                            ?.let { formatDate(it) } ?: "--",
+                        lastUpdatedAt = values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REACHED]?.capturedAt
+                            ?: values[FieldTypes.NATIONAL_RECHARGE_LIMIT_REMAINING]?.capturedAt,
+                        onQuery = { requestQuery("national-recharge-limit") }
+                    )
+                }
             }
-            LoadingCardBorder(isLoading = currentCodeId == "main-balance") {
-            MainBalanceCard(
-                balance = values[FieldTypes.MAIN_BALANCE]?.let { formatAmount(it.numericValue) } ?: "--",
-                currency = values[FieldTypes.MAIN_BALANCE]?.unit ?: "",
-                lineActiveUntil = values[FieldTypes.LINE_ACTIVE_UNTIL]?.dateValue
-                    ?.let { formatDate(it) } ?: "--",
-                accountDueDate = values[FieldTypes.ACCOUNT_DUE_DATE]?.dateValue
-                    ?.let { formatDate(it) } ?: "--",
-                hasFetched = values[FieldTypes.MAIN_BALANCE]?.capturedAt != null,
-                lastUpdatedAt = values[FieldTypes.MAIN_BALANCE]?.capturedAt,
-                onQuery = { requestQuery("main-balance") }
-            )
+            LoadingCardBorder(isLoading = currentCodeId == line.balanceCodeId) {
+                if (line.isCorporate) {
+                    CorporateBalanceCard(
+                        voice = values[FieldTypes.VOICE_MINUTES_REMAINING]?.textValue ?: "--",
+                        voiceConsumed = formatCorporateCup(values[FieldTypes.CORPORATE_VOICE_CONSUMED_CUP]?.numericValue),
+                        sms = values[FieldTypes.SMS_COUNT_REMAINING]?.numericValue?.let { formatAmount(it) } ?: "--",
+                        smsConsumed = formatCorporateCup(values[FieldTypes.CORPORATE_SMS_CONSUMED_CUP]?.numericValue),
+                        data = values[FieldTypes.DATA_DATOS_MB]?.numericValue?.let { "${formatAmount(it)} MB" } ?: "--",
+                        roaming = values[FieldTypes.CORPORATE_ROAMING]?.textValue?.takeIf { it.isNotBlank() } ?: "--",
+                        lastUpdatedAt = values[FieldTypes.CORPORATE_VOICE_CONSUMED_CUP]?.capturedAt
+                            ?: listOfNotNull(
+                            values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt,
+                            values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt,
+                            values[FieldTypes.DATA_DATOS_MB]?.capturedAt
+                        ).maxOrNull(),
+                        onQuery = { requestQuery(line.balanceCodeId) }
+                    )
+                } else {
+                    MainBalanceCard(
+                        balance = values[FieldTypes.MAIN_BALANCE]?.let { formatAmount(it.numericValue) } ?: "--",
+                        currency = values[FieldTypes.MAIN_BALANCE]?.unit ?: "",
+                        lineActiveUntil = values[FieldTypes.LINE_ACTIVE_UNTIL]?.dateValue
+                            ?.let { formatDate(it) } ?: "--",
+                        accountDueDate = values[FieldTypes.ACCOUNT_DUE_DATE]?.dateValue
+                            ?.let { formatDate(it) } ?: "--",
+                        hasFetched = values[FieldTypes.MAIN_BALANCE]?.capturedAt != null,
+                        lastUpdatedAt = values[FieldTypes.MAIN_BALANCE]?.capturedAt,
+                        onQuery = { requestQuery(line.balanceCodeId) }
+                    )
+                }
             }
-            val mainBalanceFetched = values[FieldTypes.MAIN_BALANCE]?.capturedAt != null
-            VoiceSmsRow(
-                voiceDaysRemaining = values[FieldTypes.VOICE_DAYS_REMAINING]?.numericValue
-                    ?.let { "${it.toInt()}d" } ?: "--",
-                voiceDuration = values[FieldTypes.VOICE_MINUTES_REMAINING]?.textValue ?: "--",
-                smsDaysRemaining = values[FieldTypes.SMS_DAYS_REMAINING]?.numericValue
-                    ?.let { "${it.toInt()}d" } ?: "--",
-                smsCount = values[FieldTypes.SMS_COUNT_REMAINING]?.numericValue
-                    ?.let { DecimalFormat("#,###").format(it.toInt()) } ?: "--",
-                voiceHasFetched = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt != null || mainBalanceFetched,
-                smsHasFetched = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt != null || mainBalanceFetched,
-                voiceLastUpdatedAt = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt
-                    ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
-                smsLastUpdatedAt = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt
-                    ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
-                voiceIsLoading = currentCodeId == "voice-balance",
-                smsIsLoading = currentCodeId == "sms-balance",
-                onVoiceQuery = { requestQuery("voice-balance") },
-                onSmsQuery = { requestQuery("sms-balance") }
-            )
-            LoadingCardBorder(isLoading = currentCodeId == "data-plan") {
-            DataUsageCard(
-                daysRemaining = values[FieldTypes.DATA_DATOS_DAYS]?.numericValue
-                    ?.let { "${it.toInt()} días restantes" } ?: "--",
-                packageGb = values[FieldTypes.DATA_DATOS_MB]?.numericValue
-                    ?.let { DecimalFormat("0.00").format(it / 1024.0) } ?: "--",
-                tariffStatus = if (values[FieldTypes.DATA_TARIFF_ACTIVE]?.numericValue == 1.0) "Activa" else "No Activa",
-                diariaMb = values[FieldTypes.DATA_DIARIA_MB]?.numericValue
-                    ?.let { formatAmount(it) } ?: "--",
-                diariaExpiry = if (values[FieldTypes.DATA_DIARIA_ACTIVE]?.numericValue == 1.0)
-                    formatSpanishDate(LocalDate.now().plusDays(1)) else "--",
-                datosExpiry = values[FieldTypes.DATA_DATOS_DAYS]?.numericValue
-                    ?.let { formatSpanishDate(LocalDate.now().plusDays(it.toLong())) } ?: "--",
-                todusMb = values[FieldTypes.DATA_TODUS_MB]?.numericValue
-                    ?.let { formatAmount(it) } ?: "--",
-                todusExpiry = values[FieldTypes.DATA_TODUS_DAYS]?.numericValue
-                    ?.let { formatSpanishDate(LocalDate.now().plusDays(it.toLong())) } ?: "--",
-                hasFetched = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt != null || mainBalanceFetched,
-                lastUpdatedAt = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt
-                    ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
-                onQuery = { requestQuery("data-plan") }
-            )
+            if (!line.isCorporate) {
+                val mainBalanceFetched = values[FieldTypes.MAIN_BALANCE]?.capturedAt != null
+                VoiceSmsRow(
+                    voiceDaysRemaining = values[FieldTypes.VOICE_DAYS_REMAINING]?.numericValue
+                        ?.let { "${it.toInt()}d" } ?: "--",
+                    voiceDuration = values[FieldTypes.VOICE_MINUTES_REMAINING]?.textValue ?: "--",
+                    smsDaysRemaining = values[FieldTypes.SMS_DAYS_REMAINING]?.numericValue
+                        ?.let { "${it.toInt()}d" } ?: "--",
+                    smsCount = values[FieldTypes.SMS_COUNT_REMAINING]?.numericValue
+                        ?.let { DecimalFormat("#,###").format(it.toInt()) } ?: "--",
+                    voiceHasFetched = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt != null || mainBalanceFetched,
+                    smsHasFetched = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt != null || mainBalanceFetched,
+                    voiceLastUpdatedAt = values[FieldTypes.VOICE_MINUTES_REMAINING]?.capturedAt
+                        ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
+                    smsLastUpdatedAt = values[FieldTypes.SMS_COUNT_REMAINING]?.capturedAt
+                        ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
+                    voiceIsLoading = currentCodeId == "voice-balance",
+                    smsIsLoading = currentCodeId == "sms-balance",
+                    onVoiceQuery = { requestQuery("voice-balance") },
+                    onSmsQuery = { requestQuery("sms-balance") }
+                )
+                LoadingCardBorder(isLoading = currentCodeId == "data-plan") {
+                DataUsageCard(
+                    daysRemaining = values[FieldTypes.DATA_DATOS_DAYS]?.numericValue
+                        ?.let { "${it.toInt()} días restantes" } ?: "--",
+                    packageGb = values[FieldTypes.DATA_DATOS_MB]?.numericValue
+                        ?.let { DecimalFormat("0.00").format(it / 1024.0) } ?: "--",
+                    tariffStatus = if (values[FieldTypes.DATA_TARIFF_ACTIVE]?.numericValue == 1.0) "Activa" else "No Activa",
+                    diariaMb = values[FieldTypes.DATA_DIARIA_MB]?.numericValue
+                        ?.let { formatAmount(it) } ?: "--",
+                    diariaExpiry = if (values[FieldTypes.DATA_DIARIA_ACTIVE]?.numericValue == 1.0)
+                        formatSpanishDate(LocalDate.now().plusDays(1)) else "--",
+                    datosExpiry = values[FieldTypes.DATA_DATOS_DAYS]?.numericValue
+                        ?.let { formatSpanishDate(LocalDate.now().plusDays(it.toLong())) } ?: "--",
+                    todusMb = values[FieldTypes.DATA_TODUS_MB]?.numericValue
+                        ?.let { formatAmount(it) } ?: "--",
+                    todusExpiry = values[FieldTypes.DATA_TODUS_DAYS]?.numericValue
+                        ?.let { formatSpanishDate(LocalDate.now().plusDays(it.toLong())) } ?: "--",
+                    hasFetched = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt != null || mainBalanceFetched,
+                    lastUpdatedAt = values[FieldTypes.DATA_TARIFF_ACTIVE]?.capturedAt
+                        ?: values[FieldTypes.MAIN_BALANCE]?.capturedAt,
+                    onQuery = { requestQuery("data-plan") }
+                )
+                }
+                LoadingCardBorder(isLoading = currentCodeId == "bonus-usd-plans") {
+                NationalBonusCard(
+                    amount = values[FieldTypes.BONUS_DATOS_CU_MB]?.let {
+                        formatAmount(it.numericValue) + " " + (it.unit ?: "MB")
+                    } ?: "--",
+                    expiry = values[FieldTypes.BONUS_DATOS_CU_EXPIRY]?.dateValue
+                        ?.let { "Vence ${formatDate(it)}" } ?: "--",
+                    nocturnoStatus = if (values[FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY]?.dateValue != null) "Activo" else "No Disponible",
+                    nocturnoExpiry = values[FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY]?.dateValue
+                        ?.let { formatDate(it) } ?: "--",
+                    hasFetched = (values[FieldTypes.BONUS_ACTIVE]?.capturedAt
+                        ?: values[FieldTypes.BONUS_DATOS_CU_MB]?.capturedAt) != null,
+                    lastUpdatedAt = values[FieldTypes.BONUS_ACTIVE]?.capturedAt
+                        ?: values[FieldTypes.BONUS_DATOS_CU_MB]?.capturedAt,
+                    onQuery = { requestQuery("bonus-usd-plans") }
+                )
+                }
+                ConsultCardsRow(
+                    planAmigoIsLoading = currentCodeId == "friends-plan",
+                    // TODO: friends-plan (*222*264#) — parser not implemented, needs real ETECSA response samples
+                    onPlanAmigoQuery = { requestQuery("friends-plan") }
+                )
             }
-            LoadingCardBorder(isLoading = currentCodeId == "bonus-usd-plans") {
-            NationalBonusCard(
-                amount = values[FieldTypes.BONUS_DATOS_CU_MB]?.let {
-                    formatAmount(it.numericValue) + " " + (it.unit ?: "MB")
-                } ?: "--",
-                expiry = values[FieldTypes.BONUS_DATOS_CU_EXPIRY]?.dateValue
-                    ?.let { "Vence ${formatDate(it)}" } ?: "--",
-                nocturnoStatus = if (values[FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY]?.dateValue != null) "Activo" else "No Disponible",
-                nocturnoExpiry = values[FieldTypes.BONUS_DATOS_NOCTURNO_EXPIRY]?.dateValue
-                    ?.let { formatDate(it) } ?: "--",
-                hasFetched = (values[FieldTypes.BONUS_ACTIVE]?.capturedAt
-                    ?: values[FieldTypes.BONUS_DATOS_CU_MB]?.capturedAt) != null,
-                lastUpdatedAt = values[FieldTypes.BONUS_ACTIVE]?.capturedAt
-                    ?: values[FieldTypes.BONUS_DATOS_CU_MB]?.capturedAt,
-                onQuery = { requestQuery("bonus-usd-plans") }
-            )
-            }
-            ConsultCardsRow(
-                tfaIsLoading = currentCodeId == "tfa",
-                planAmigoIsLoading = currentCodeId == "friends-plan",
-                // TODO: tfa (*118#) — parser not implemented, needs real ETECSA response samples
-                onTfaQuery = { requestQuery("tfa") },
-                // TODO: friends-plan (*222*264#) — parser not implemented, needs real ETECSA response samples
-                onPlanAmigoQuery = { requestQuery("friends-plan") }
-            )
         }
         }
     }
@@ -305,3 +340,6 @@ private fun formatAmount(value: Double?): String {
         DecimalFormat("#,##0.00").format(value)
     }
 }
+
+private fun formatCorporateCup(value: Double?): String =
+    value?.let { "${DecimalFormat("#,##0.00").format(it)} CUP" } ?: "--"

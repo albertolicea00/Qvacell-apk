@@ -3,9 +3,11 @@ package com.qvacell.app.service
 import android.content.Context
 import android.provider.Telephony
 import com.qvacell.app.model.UssdCode
+import com.qvacell.app.data.SettingsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 /**
@@ -16,8 +18,7 @@ import kotlinx.coroutines.withContext
  */
 object DashboardCapture {
 
-    /** Preserves today's exact tap-to-dial UX unless the experimental toggle is on AND
-     *  CALL_PHONE is granted — any capture failure/timeout falls back to [DialService.dial]. */
+    /** Captures a manual query when enabled; a failed capture never sends the code again. */
     fun captureOrDial(
         context: Context,
         code: UssdCode,
@@ -25,16 +26,28 @@ object DashboardCapture {
         captureEnabled: Boolean
     ) {
         if (captureEnabled && DialService.hasCallPermission(context)) {
+            if (DashboardRefreshService.currentCodeId.value != null || DashboardRefreshService.isRefreshing.value) return
             DashboardRefreshService.setCurrentCode(code.id)
-            UssdCaptureService.requestUssd(context, code) { result ->
-                when (result) {
-                    is UssdCaptureResult.Success -> CoroutineScope(Dispatchers.IO).launch {
-                        repository.recordUssdParse(code.id, result.response)
-                        DashboardRefreshService.setCurrentCode(null)
-                    }
-                    is UssdCaptureResult.Failure -> {
-                        DialService.dialDirect(context, code.resolvedCode())
-                        DashboardRefreshService.setCurrentCode(null)
+            CoroutineScope(Dispatchers.IO).launch {
+                val settings = SettingsDataStore(context)
+                val line = SimUtils.resolveDashboardLine(
+                    context, settings.selectedSimSlot.first(), settings.simAppearances.first()
+                )
+                if (line.needsSelection ||
+                    (code.id in setOf("main-balance", "corp-balance") && code.id != line.balanceCodeId)
+                ) {
+                    DashboardRefreshService.setCurrentCode(null)
+                    return@launch
+                }
+                UssdCaptureService.requestUssd(context, code, line.subscriptionId) { result ->
+                    when (result) {
+                        is UssdCaptureResult.Success -> CoroutineScope(Dispatchers.IO).launch {
+                            repository.recordUssdParse(code.id, result.response, subscriptionId = line.subscriptionId)
+                            DashboardRefreshService.setCurrentCode(null)
+                        }
+                        is UssdCaptureResult.Failure -> {
+                            DashboardRefreshService.setCurrentCode(null)
+                        }
                     }
                 }
             }

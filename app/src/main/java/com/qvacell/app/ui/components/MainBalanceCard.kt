@@ -28,9 +28,11 @@ import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.annotation.StringRes
 
 @Composable
 fun MainBalanceCard(
+    @StringRes titleRes: Int = R.string.dashboard_balance,
     balance: String,
     currency: String,
     lineActiveUntil: String,
@@ -66,7 +68,7 @@ fun MainBalanceCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            stringResource(R.string.dashboard_balance),
+                            stringResource(titleRes),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 6.dp)

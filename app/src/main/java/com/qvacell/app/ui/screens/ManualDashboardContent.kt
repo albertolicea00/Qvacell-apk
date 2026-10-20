@@ -102,8 +102,7 @@ fun ManualDashboardContent(
     val context = LocalContext.current
     val dialDirect = rememberDirectDialAction()
     val pinStore = remember { TransferPinStore(context) }
-
-    val resolvedTiles = remember {
+    val resolvedTiles = remember(repository) {
         QUICK_TILES.mapNotNull { tile ->
             repository.findCodeById(tile.codeId)?.let { tile to it }
         }

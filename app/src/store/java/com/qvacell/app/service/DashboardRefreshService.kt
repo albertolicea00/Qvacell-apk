@@ -15,6 +15,14 @@ object DashboardRefreshService {
     private val _refreshFailure = MutableStateFlow<String?>(null)
     val refreshFailure: StateFlow<String?> = _refreshFailure
 
+    private val _lineTypeSuggestion = MutableStateFlow<LineTypeSuggestion?>(null)
+    val lineTypeSuggestion: StateFlow<LineTypeSuggestion?> = _lineTypeSuggestion
+
+    fun clearLineTypeSuggestion() {
+        _lineTypeSuggestion.value = null
+        _refreshFailure.value = null
+    }
+
     fun setCurrentCode(codeId: String?) {
         _currentCodeId.value = codeId
     }

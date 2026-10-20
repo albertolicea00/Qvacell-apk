@@ -19,9 +19,10 @@ class StubUssdResponseParser(override val ussdCodeId: String) : UssdResponsePars
 }
 
 object UssdParsers {
-    /** The six dashboard-relevant codes.json ids — keep in sync with app/src/main/assets/codes.json. */
+    /** Dashboard codes with implemented parsers. */
     val KNOWN_CODE_IDS = listOf(
         "main-balance",
+        "corp-balance",
         "bonus-usd-plans",
         "data-plan",
         "voice-balance",
@@ -37,6 +38,7 @@ object UssdParsers {
         put("bonus-usd-plans", BonusUsdPlansParser())
         put("data-plan", DataPlanParser())
         put("main-balance", MainBalanceParser())
+        put("corp-balance", CorporateBalanceParser())
     }
 
     fun forCode(codeId: String): UssdResponseParser = registry[codeId] ?: StubUssdResponseParser(codeId)

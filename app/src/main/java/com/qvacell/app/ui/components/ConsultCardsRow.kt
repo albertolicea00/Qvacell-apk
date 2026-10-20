@@ -1,7 +1,6 @@
 package com.qvacell.app.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,9 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowOutward
-import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -29,28 +26,34 @@ import androidx.compose.ui.unit.sp
 import com.qvacell.app.R
 
 @Composable
-fun CorporateBalanceConsultCard(onQuery: () -> Unit) {
-    ConsultCard(stringResource(R.string.dashboard_corporate_balance), Icons.Filled.CreditCard, Modifier.fillMaxWidth(), onQuery)
+fun NotApplicableBalanceCard(title: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(title, style = MaterialTheme.typography.labelSmall)
+            Text(stringResource(R.string.dashboard_not_applicable), style = MaterialTheme.typography.labelSmall)
+        }
+    }
 }
 
 @Composable
 fun ConsultCardsRow(
-    tfaIsLoading: Boolean = false,
     planAmigoIsLoading: Boolean = false,
-    onTfaQuery: () -> Unit = {},
     onPlanAmigoQuery: () -> Unit = {}
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        LoadingCardBorder(isLoading = tfaIsLoading) {
-            ConsultCard("TFA", Icons.Filled.PhoneAndroid, Modifier.fillMaxWidth(), onTfaQuery)
-        }
-        LoadingCardBorder(isLoading = planAmigoIsLoading) { ConsultCard(
-            title = stringResource(R.string.dashboard_friends_plan_card),
-            icon = Icons.Filled.People,
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onPlanAmigoQuery
-        ) }
-    }
+    LoadingCardBorder(isLoading = planAmigoIsLoading) { ConsultCard(
+        title = stringResource(R.string.dashboard_friends_plan_card),
+        icon = Icons.Filled.People,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onPlanAmigoQuery
+    ) }
 }
 
 @Composable

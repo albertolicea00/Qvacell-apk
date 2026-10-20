@@ -187,6 +187,17 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
+    suspend fun setSimLineType(subscriptionId: Int, isCorporate: Boolean) {
+        context.dataStore.edit { preferences ->
+            val current = decodeSimAppearances(preferences[simAppearancesKey])
+            val key = subscriptionId.toString()
+            val appearance = current[key] ?: SimAppearance()
+            preferences[simAppearancesKey] = Json.encodeToString(
+                current + (key to appearance.copy(isCorporate = isCorporate))
+            )
+        }
+    }
+
     private fun decodeSimAppearances(value: String?): Map<String, SimAppearance> =
         runCatching { Json.decodeFromString<Map<String, SimAppearance>>(value ?: "{}") }
             .getOrDefault(emptyMap())

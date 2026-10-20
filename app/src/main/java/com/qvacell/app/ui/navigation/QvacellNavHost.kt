@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -32,18 +33,21 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -54,12 +58,18 @@ import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.hasCellularService
 import com.qvacell.app.service.DashboardRefreshService
+import com.qvacell.app.service.LineTypeSuggestion
+import com.qvacell.app.service.SimUtils
 import com.qvacell.app.service.AppTelemetry
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.R
 import com.qvacell.app.BuildConfig
@@ -75,6 +85,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import com.qvacell.app.ui.screens.CategoryListScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
 import com.qvacell.app.ui.screens.DashboardHelpScreen
@@ -174,6 +185,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
 
     val context = LocalContext.current
     val settings = remember { SettingsDataStore(context) }
+    val scope = rememberCoroutineScope()
     var foregroundOpenCount by remember { mutableIntStateOf(0) }
     var automaticUpdateInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     var automaticUpdateMode by remember { mutableStateOf("unlocked") }
@@ -199,9 +211,18 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     }
     val showNetworkStatus by settings.showNetworkStatus.collectAsStateWithLifecycle(initialValue = false)
     val refreshFailure by DashboardRefreshService.refreshFailure.collectAsStateWithLifecycle(initialValue = null)
+    val lineTypeSuggestion by DashboardRefreshService.lineTypeSuggestion.collectAsStateWithLifecycle(initialValue = null)
+    val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
+    var confirmingLineType by remember { mutableStateOf<LineTypeSuggestion?>(null) }
     var isDynamicDashboard by remember { mutableStateOf(false) }
     var hasSignal by remember { mutableStateOf(true) }
     val showDynamicWarning = currentRoute == BottomTab.Home.route && isDynamicDashboard
+    LaunchedEffect(lineTypeSuggestion, simAppearances) {
+        val suggestion = lineTypeSuggestion ?: return@LaunchedEffect
+        if (simAppearances[suggestion.subscriptionId.toString()]?.isCorporate == suggestion.isCorporate) {
+            DashboardRefreshService.clearLineTypeSuggestion()
+        }
+    }
     LaunchedEffect(currentRoute) {
         if (currentRoute != null && currentRoute != BottomTab.Home.route) {
             AppTelemetry.screen(context, currentRoute)
@@ -250,11 +271,33 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(Icons.Filled.Warning, contentDescription = null, tint = warningColor, modifier = Modifier.size(16.dp))
-                            Text(
-                                refreshFailure ?: stringResource(R.string.network_no_service_pause),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = warningColor,
-                                modifier = Modifier.padding(start = 8.dp)
+                            val warningMessage = refreshFailure ?: stringResource(R.string.network_no_service_pause)
+                            val lineTypeAction = lineTypeSuggestion?.let { suggestion ->
+                                stringResource(
+                                    if (suggestion.isCorporate) R.string.dashboard_line_type_action_corporate
+                                    else R.string.dashboard_line_type_action_standard
+                                )
+                            }
+                            val warningText = buildAnnotatedString {
+                                append(warningMessage)
+                                if (lineTypeAction != null) {
+                                    append(" ")
+                                    pushStringAnnotation(tag = "change_line_type", annotation = "change")
+                                    withStyle(SpanStyle(color = warningColor, textDecoration = TextDecoration.Underline)) {
+                                        append(lineTypeAction)
+                                    }
+                                    pop()
+                                }
+                            }
+                            ClickableText(
+                                text = warningText,
+                                style = MaterialTheme.typography.labelMedium.copy(color = warningColor),
+                                modifier = Modifier.padding(start = 8.dp),
+                                onClick = { offset ->
+                                    if (warningText.getStringAnnotations("change_line_type", offset, offset).isNotEmpty()) {
+                                        confirmingLineType = lineTypeSuggestion
+                                    }
+                                }
                             )
                         }
                     }
@@ -522,6 +565,38 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 )
             }
         }
+    }
+    confirmingLineType?.let { suggestion ->
+        AlertDialog(
+            onDismissRequest = { confirmingLineType = null },
+            title = { Text(stringResource(R.string.dashboard_line_type_confirm_title)) },
+            text = {
+                Text(stringResource(
+                    if (suggestion.isCorporate) R.string.dashboard_line_type_confirm_corporate
+                    else R.string.dashboard_line_type_confirm_standard,
+                    suggestion.failedCode
+                ))
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmingLineType = null
+                    scope.launch {
+                        val selectedSlot = settings.selectedSimSlot.first()
+                        val selectedSim = SimUtils.getActiveSubscriptions(context)
+                            .firstOrNull { it.simSlotIndex == selectedSlot }
+                        if (selectedSim?.subscriptionId == suggestion.subscriptionId) {
+                            settings.setSimLineType(suggestion.subscriptionId, suggestion.isCorporate)
+                        }
+                        DashboardRefreshService.clearLineTypeSuggestion()
+                    }
+                }) { Text(stringResource(R.string.action_accept)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmingLineType = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        )
     }
     automaticUpdateInfo?.let { info ->
         UpdateAvailableDialog(
