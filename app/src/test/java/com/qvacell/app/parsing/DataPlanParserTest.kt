@@ -114,6 +114,14 @@ class DataPlanParserTest {
         assertEquals(8.0, v.field(FieldTypes.DATA_DATOS_DAYS)!!.numericValue!!, 0.01)
     }
 
+    @Test
+    fun `tolerates case accents spacing punctuation and comma decimals`() {
+        val v = values("tarifa . NO ACTIVA. datos : 580,79 KB válidos 8 días.")
+        assertEquals(0.0, v.field(FieldTypes.DATA_TARIFF_ACTIVE)!!.numericValue!!, 0.01)
+        assertEquals(580.79 / 1024, v.field(FieldTypes.DATA_DATOS_MB)!!.numericValue!!, 0.0001)
+        assertEquals(8.0, v.field(FieldTypes.DATA_DATOS_DAYS)!!.numericValue!!, 0.01)
+    }
+
     // ── Sample 9: tarifa activa ──
 
     @Test

@@ -43,6 +43,17 @@ class VoiceBalanceParserTest {
         assertEquals(8.0, values.first { it.fieldType == FieldTypes.VOICE_DAYS_REMAINING }.numericValue!!, 0.01)
     }
 
+    @Test
+    fun `tolerates accents case and spaces around duration separators`() {
+        val result = parser.parse("usted DISPONE de 23 : 21 : 34 min nac válidos por 8 días")
+        assertTrue("expected Success, got $result", result is ParseResult.Success)
+        val values = (result as ParseResult.Success).value
+
+        assertEquals(23 * 60 + 21 + 34 / 60.0,
+            values.first { it.fieldType == FieldTypes.VOICE_MINUTES_REMAINING }.numericValue!!, 0.001)
+        assertEquals(8.0, values.first { it.fieldType == FieldTypes.VOICE_DAYS_REMAINING }.numericValue!!, 0.01)
+    }
+
     // ── Variant 2: small balance ──
 
     @Test

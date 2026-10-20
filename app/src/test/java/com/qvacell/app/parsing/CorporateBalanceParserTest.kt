@@ -57,4 +57,17 @@ class CorporateBalanceParserTest {
         assertEquals(1024.0, fields[FieldTypes.DATA_DATOS_MB]?.numericValue)
         assertEquals("Activo", fields[FieldTypes.CORPORATE_ROAMING]?.textValue)
     }
+
+    @Test
+    fun `tolerates case accents spacing and punctuation in corporate fields`() {
+        val raw = "VOZ . 335 MIN. saldo : consumido 0,00 cup. SMS . 60. Saldo consumido 0,00 CUP. DATOS : 0 MB. ROAMING :"
+        val result = parser.parse(raw)
+        assertTrue("expected Success, got $result", result is ParseResult.Success)
+        val fields = (result as ParseResult.Success).value.associateBy { it.fieldType }
+
+        assertEquals(335.0, fields[FieldTypes.VOICE_MINUTES_REMAINING]?.numericValue)
+        assertEquals(60.0, fields[FieldTypes.SMS_COUNT_REMAINING]?.numericValue)
+        assertEquals(0.0, fields[FieldTypes.CORPORATE_VOICE_CONSUMED_CUP]?.numericValue)
+        assertEquals("", fields[FieldTypes.CORPORATE_ROAMING]?.textValue)
+    }
 }

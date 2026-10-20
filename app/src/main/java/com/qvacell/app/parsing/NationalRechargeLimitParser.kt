@@ -9,19 +9,20 @@ class NationalRechargeLimitParser : UssdResponseParser {
     override val ussdCodeId: String = "national-recharge-limit"
 
     private val canRechargeAmountInPeriod = Regex(
-        """Ud puede recargar un monto de ([\d,.]+)\s*CUP en un plazo de (\d+) dias""", RegexOption.IGNORE_CASE
+        """(?:Ud|Usted)\.?\s+puede\s+recargar\s+un\s+monto\s+de\s*([\d,.]+)\s*CUP\s+en\s+un\s+plazo\s+de\s*(\d+)\s*dias""", RegexOption.IGNORE_CASE
     )
 
     private val canRechargeAmountUntilDate = Regex(
-        """Ud puede recargar un monto de ([\d,.]+)\s*CUP hasta el (\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
+        """(?:Ud|Usted)\.?\s+puede\s+recargar\s+un\s+monto\s+de\s*([\d,.]+)\s*CUP\s+hasta\s+el\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
     )
 
     private val limitReached = Regex(
-        """Ud ha alcanzado el monto de recarga permitido de ([\d,.]+)\s*CUP\.\s*Puede recargar posterior al dia (\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
+        """(?:Ud|Usted)\.?\s+ha\s+alcanzado\s+el\s+monto\s+de\s+recarga\s+permitido\s+de\s*([\d,.]+)\s*CUP\s*[.:]?\s*Puede\s+recargar\s+posterior\s+al\s+dia\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
     )
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
-        canRechargeAmountInPeriod.find(rawResponseText)?.let { m ->
+        val response = UssdTextNormalizer.normalize(rawResponseText)
+        canRechargeAmountInPeriod.find(response)?.let { m ->
             val amount = parseAmount(m.groupValues[1])
             val periodDays = m.groupValues[2].toIntOrNull() ?: return ParseResult.Unrecognized(rawResponseText)
             return ParseResult.Success(
@@ -43,7 +44,7 @@ class NationalRechargeLimitParser : UssdResponseParser {
             )
         }
 
-        canRechargeAmountUntilDate.find(rawResponseText)?.let { m ->
+        canRechargeAmountUntilDate.find(response)?.let { m ->
             val remaining = parseAmount(m.groupValues[1])
             val dateEpoch = parseDateDmy(m.groupValues[2])
                 ?: return ParseResult.Unrecognized(rawResponseText)
@@ -66,7 +67,7 @@ class NationalRechargeLimitParser : UssdResponseParser {
             )
         }
 
-        limitReached.find(rawResponseText)?.let { m ->
+        limitReached.find(response)?.let { m ->
             val amount = parseAmount(m.groupValues[1])
             val dateEpoch = parseDateDmy(m.groupValues[2])
                 ?: return ParseResult.Unrecognized(rawResponseText)

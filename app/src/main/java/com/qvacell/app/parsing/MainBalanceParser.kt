@@ -5,15 +5,16 @@ import com.qvacell.app.data.FieldTypes
 class MainBalanceParser : UssdResponseParser {
     override val ussdCodeId: String = "main-balance"
 
-    private val saldo = Regex("""Saldo:\s*([\d,.]+)\s*CUP""", RegexOption.IGNORE_CASE)
-    private val datos = Regex("""Datos:\s*([\d,.]+)\s*(MB|GB)""", RegexOption.IGNORE_CASE)
-    private val voz = Regex("""Voz:\s*(\d{1,3}):(\d{2}):(\d{2})""", RegexOption.IGNORE_CASE)
-    private val sms = Regex("""SMS:\s*(\d+)""", RegexOption.IGNORE_CASE)
-    private val lineaActiva = Regex("""Linea activa hasta\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE)
-    private val vence = Regex("""vence\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE)
+    private val saldo = Regex("""Saldo\s*[.:]?\s*([\d,.]+)\s*CUP""", RegexOption.IGNORE_CASE)
+    private val datos = Regex("""Datos\s*[.:]?\s*([\d,.]+)\s*(MB|GB)""", RegexOption.IGNORE_CASE)
+    private val voz = Regex("""Voz\s*[.:]?\s*(\d{1,3})\s*:\s*(\d{2})\s*:\s*(\d{2})""", RegexOption.IGNORE_CASE)
+    private val sms = Regex("""SMS\s*[.:]?\s*(\d+)""", RegexOption.IGNORE_CASE)
+    private val lineaActiva = Regex("""Linea\s+activa\s+hasta\s*[.:]?\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE)
+    private val vence = Regex("""vence\s*[.:]?\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE)
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
-        val saldoMatch = saldo.find(rawResponseText)
+        val response = UssdTextNormalizer.normalize(rawResponseText)
+        val saldoMatch = saldo.find(response)
             ?: return ParseResult.Unrecognized(rawResponseText)
 
         val values = mutableListOf<ParsedDashboardValue>()
@@ -26,14 +27,14 @@ class MainBalanceParser : UssdResponseParser {
             )
         )
 
-        datos.find(rawResponseText)?.let { m ->
+        datos.find(response)?.let { m ->
             val amount = NationalRechargeLimitParser.parseAmount(m.groupValues[1])
             val unit = m.groupValues[2]
             val mb = if (unit.equals("GB", ignoreCase = true)) amount * 1024 else amount
             values.add(ParsedDashboardValue(fieldType = FieldTypes.DATA_DATOS_MB, numericValue = mb, unit = "MB"))
         }
 
-        voz.find(rawResponseText)?.let { m ->
+        voz.find(response)?.let { m ->
             val hours = m.groupValues[1].toInt()
             val minutes = m.groupValues[2].toInt()
             val seconds = m.groupValues[3].toInt()
@@ -48,18 +49,18 @@ class MainBalanceParser : UssdResponseParser {
             )
         }
 
-        sms.find(rawResponseText)?.let { m ->
+        sms.find(response)?.let { m ->
             val count = m.groupValues[1].toInt()
             values.add(ParsedDashboardValue(fieldType = FieldTypes.SMS_COUNT_REMAINING, numericValue = count.toDouble(), unit = "SMS"))
         }
 
-        lineaActiva.find(rawResponseText)?.let { m ->
+        lineaActiva.find(response)?.let { m ->
             NationalRechargeLimitParser.parseDateDmy(m.groupValues[1])?.let { epoch ->
                 values.add(ParsedDashboardValue(fieldType = FieldTypes.LINE_ACTIVE_UNTIL, dateValue = epoch))
             }
         }
 
-        vence.find(rawResponseText)?.let { m ->
+        vence.find(response)?.let { m ->
             NationalRechargeLimitParser.parseDateDmy(m.groupValues[1])?.let { epoch ->
                 values.add(ParsedDashboardValue(fieldType = FieldTypes.ACCOUNT_DUE_DATE, dateValue = epoch))
             }

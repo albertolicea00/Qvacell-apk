@@ -374,7 +374,7 @@ Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX
 
 Full parsing rules, verbatim ETECSA response samples, regex patterns, and field mappings live in [`app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md`](app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md). That document covers both USSD and SMS parsers. This section only tracks implementation status.
 
-**Implemented** (7 of 9 USSD codes): `main-balance` (3 variants, cross-card, 12 tests), `national-recharge-limit` (3 variants, 11 tests), `voice-balance` (3 variants, 9 tests), `sms-balance` (3 variants, 8 tests), `bonus-usd-plans` (3 variants + multi-bonus, 13 tests), `data-plan` (10 variants + multi-section, including KB balances, 16 tests), and `corp-balance` (partial data-only and full corporate snapshots, 4 tests). Total: 73 parser tests.
+**Implemented** (7 of 9 USSD codes): `main-balance` (13 tests), `national-recharge-limit` (12 tests), `voice-balance` (10 tests), `sms-balance` (9 tests), `bonus-usd-plans` (14 tests), `data-plan` (17 tests, including KB balances), and `corp-balance` (5 tests, partial data-only and full corporate snapshots). Total: 80 parser tests.
 **Awaiting ETECSA samples**: `tfa` (`*118#`, [#10](https://github.com/albertolicea00/Qvacell-apk/issues/10)), `friends-plan` (`*222*264#`, [#11](https://github.com/albertolicea00/Qvacell-apk/issues/11)) — no response text captured yet, UI wired to manual dial only.
 **Stubbed**: all SMS parsers.
 
@@ -464,6 +464,7 @@ The navbar click handler navigates directly with `popUpTo(validStartRoute)` — 
 **Awaiting ETECSA samples**:
 - 2 consultation-card USSD codes (`tfa` `*118#`, `friends-plan` `*222*264#`) — no response text captured yet, cannot write parsers without real samples. `corp-balance` now has partial real-sample parsing documented in §15.8 and the parsing architecture.
 - Personal-line real response samples now cover nocturnal/Datos.cu bonuses, Datos balances in KB, and national voice minutes; parser fixtures and conversion rules are documented in `parsing/ARCHITECTURE.md`.
+- Parsers normalize accents and Unicode spaces and tolerate optional punctuation at labels, with fixtures for case, punctuation, whitespace, and decimal-separator variations.
 - Every `SmsBodyParser` implementation — same reason.
 - `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — unit tests cover the current short-code/keyword rule, but do not validate it against real sender IDs or message formats. Keep the heuristic explicitly provisional until representative ETECSA samples are available.
 

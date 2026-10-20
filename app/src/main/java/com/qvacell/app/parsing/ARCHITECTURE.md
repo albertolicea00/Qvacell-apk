@@ -38,7 +38,7 @@ This document covers only the parsing rules themselves.
 
 Code id: `national-recharge-limit`
 Parser: `NationalRechargeLimitParser.kt`
-Tests: `NationalRechargeLimitParserTest.kt` (11 cases)
+Tests: `NationalRechargeLimitParserTest.kt` (12 cases)
 
 ETECSA returns one of three response variants:
 
@@ -97,7 +97,7 @@ Monthly limit fully consumed. Recharge blocked until stated date.
 Code id: `main-balance`
 USSD: `*222#`
 Parser: `MainBalanceParser.kt`
-Tests: `MainBalanceParserTest.kt` (12 cases)
+Tests: `MainBalanceParserTest.kt` (13 cases)
 
 **Cross-card parser** — one USSD response populates fields across multiple dashboard cards. No special event system needed: `recordUssdParse` stores all `ParsedDashboardValue` entries, and `observeCurrentValues()` emits all fields regardless of source code id.
 
@@ -144,7 +144,7 @@ Fields emitted by this parser are the same `FieldTypes` keys used by the dedicat
 Code id: `bonus-usd-plans`
 USSD: `*222*266#`
 Parser: `BonusUsdPlansParser.kt`
-Tests: `BonusUsdPlansParserTest.kt` (13 cases)
+Tests: `BonusUsdPlansParserTest.kt` (14 cases)
 
 Multi-bonus response — one USSD reply can contain several bonus entries. Parser extracts each independently via `findAll`.
 
@@ -202,7 +202,7 @@ Nocturno-only (without Datos.cu) also valid — emits `bonus_active` + `bonus_da
 Code id: `data-plan`
 USSD: `*222*328#`
 Parser: `DataPlanParser.kt`
-Tests: `DataPlanParserTest.kt` (16 cases)
+Tests: `DataPlanParserTest.kt` (17 cases)
 
 Multi-section response. Always starts with `Tarifa:`, then zero or more independent sections. Parser extracts each via independent regex.
 
@@ -289,6 +289,7 @@ Informational only — no fields emitted. Presence doesn't affect other sections
 #### Parser notes
 
 - GB→MB and KB→MB auto-conversion for Datos section (`1 GB = 1024 MB`; `1024 KB = 1 MB`).
+- Case-insensitive labels; `UssdTextNormalizer` removes accents and normalizes Unicode spacing while preserving line breaks, decimal punctuation, and dates. Label separators accept optional `:` or `.`; numeric/unit/date matching remains constrained.
 - Amounts: comma or dot decimal separator via shared `parseAmount()`.
 - `Tarifa:` required — if missing → `Unrecognized`.
 - 10 real ETECSA samples documented, all covered by tests.
@@ -300,7 +301,7 @@ Informational only — no fields emitted. Presence doesn't affect other sections
 Code id: `voice-balance`
 USSD: `*222*869#`
 Parser: `VoiceBalanceParser.kt`
-Tests: `VoiceBalanceParserTest.kt` (8 cases)
+Tests: `VoiceBalanceParserTest.kt` (10 cases)
 
 #### Variant 1 & 2 — Has minutes remaining
 
@@ -346,7 +347,7 @@ User has no active voice plan.
 Code id: `sms-balance`
 USSD: `*222*767#`
 Parser: `SmsBalanceParser.kt`
-Tests: `SmsBalanceParserTest.kt` (8 cases)
+Tests: `SmsBalanceParserTest.kt` (9 cases)
 
 #### Variant 1 & 2 — Has SMS remaining
 
@@ -387,7 +388,7 @@ User has no active SMS plan.
 USSD: `*111#`
 
 Parser: `CorporateBalanceParser.kt`
-Tests: `CorporateBalanceParserTest.kt`
+Tests: `CorporateBalanceParserTest.kt` (5 cases)
 
 Observed samples provided for a corporate line:
 
@@ -403,6 +404,8 @@ The response can contain just the data/roaming section or the complete voice, SM
 Data amounts are kept in MB; `GB` is accepted and converted using 1024 MB per GB. The current examples only establish the printed format above; further carrier/device variants should be added as fixtures before changing matching rules.
 
 ## SMS Parsers
+
+Parser formatting policy: labels are case-insensitive; the shared normalizer removes diacritics and converts unusual Unicode spaces while retaining line breaks, decimal punctuation, and dates. Parsers accept optional periods/colons around labels where that punctuation is presentation-only, and tolerate spaces around duration colons. Amount syntax, units, and date shapes stay constrained to avoid turning unrelated responses into valid dashboard values.
 
 ### `etecsa-balance-alert`
 

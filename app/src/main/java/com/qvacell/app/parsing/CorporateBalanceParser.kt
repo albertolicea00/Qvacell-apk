@@ -6,16 +6,17 @@ import com.qvacell.app.data.FieldTypes
 class CorporateBalanceParser : UssdResponseParser {
     override val ussdCodeId = "corp-balance"
 
-    private val voice = Regex("""\bVoz:\s*([\d.,]+)\s*MIN\b""", RegexOption.IGNORE_CASE)
-    private val sms = Regex("""\bSMS\s*:?\s*(\d+)\b""", RegexOption.IGNORE_CASE)
-    private val data = Regex("""\bDatos:\s*([\d.,]+)\s*(MB|GB)\b""", RegexOption.IGNORE_CASE)
-    private val consumed = Regex("""\bSaldo\s+consumido\s*([\d.,]+)\s*CUP\b""", RegexOption.IGNORE_CASE)
-    private val roaming = Regex("""\bRoaming:\s*([^\r\n]*)""", RegexOption.IGNORE_CASE)
+    private val voice = Regex("""\bVoz\s*[.:]?\s*([\d.,]+)\s*MIN\b""", RegexOption.IGNORE_CASE)
+    private val sms = Regex("""\bSMS\s*[.:]?\s*(\d+)\b""", RegexOption.IGNORE_CASE)
+    private val data = Regex("""\bDatos\s*[.:]?\s*([\d.,]+)\s*(MB|GB)\b""", RegexOption.IGNORE_CASE)
+    private val consumed = Regex("""\bSaldo\s*[.:]?\s*consumido\s*[.:]?\s*([\d.,]+)\s*CUP\b""", RegexOption.IGNORE_CASE)
+    private val roaming = Regex("""\bRoaming\s*[.:]?\s*([^\r\n]*)""", RegexOption.IGNORE_CASE)
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
-        val voiceMatch = voice.find(rawResponseText)
-        val smsMatch = sms.find(rawResponseText)
-        val dataMatch = data.find(rawResponseText)
+        val response = UssdTextNormalizer.normalize(rawResponseText)
+        val voiceMatch = voice.find(response)
+        val smsMatch = sms.find(response)
+        val dataMatch = data.find(response)
         if (voiceMatch == null && smsMatch == null && dataMatch == null) {
             return ParseResult.Unrecognized(rawResponseText)
         }
@@ -36,7 +37,7 @@ class CorporateBalanceParser : UssdResponseParser {
 
         fun consumedBetween(start: Int, end: Int): Double? {
             if (start < 0 || start >= end) return null
-            return consumed.find(rawResponseText.substring(start, end))
+            return consumed.find(response.substring(start, end))
                 ?.let { NationalRechargeLimitParser.parseAmount(it.groupValues[1]) }
         }
         consumedBetween(voiceMatch?.range?.last?.plus(1) ?: -1, smsMatch?.range?.first ?: rawResponseText.length)?.let {
@@ -45,7 +46,7 @@ class CorporateBalanceParser : UssdResponseParser {
         consumedBetween(smsMatch?.range?.last?.plus(1) ?: -1, dataMatch?.range?.first ?: rawResponseText.length)?.let {
             values += ParsedDashboardValue(FieldTypes.CORPORATE_SMS_CONSUMED_CUP, it, unit = "CUP")
         }
-        roaming.find(rawResponseText)?.groupValues?.get(1)?.trim()?.let {
+        roaming.find(response)?.groupValues?.get(1)?.trim()?.let {
             values += ParsedDashboardValue(FieldTypes.CORPORATE_ROAMING, textValue = it)
         }
         return ParseResult.Success(values)

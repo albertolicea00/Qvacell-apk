@@ -42,6 +42,15 @@ class SmsBalanceParserTest {
         assertEquals(57.0, count.numericValue!!, 0.01)
     }
 
+    @Test
+    fun `tolerates accent case punctuation and repeated whitespace`() {
+        val result = parser.parse("USTED   DISPONE DE 57 sms : válidos por 8 días")
+        assertTrue("expected Success, got $result", result is ParseResult.Success)
+        val values = (result as ParseResult.Success).value
+        assertEquals(57.0, values.first { it.fieldType == FieldTypes.SMS_COUNT_REMAINING }.numericValue!!, 0.01)
+        assertEquals(8.0, values.first { it.fieldType == FieldTypes.SMS_DAYS_REMAINING }.numericValue!!, 0.01)
+    }
+
     // ── Variant 3: no plan ──
 
     @Test

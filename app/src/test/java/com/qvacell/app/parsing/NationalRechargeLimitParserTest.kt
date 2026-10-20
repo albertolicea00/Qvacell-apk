@@ -107,6 +107,15 @@ class NationalRechargeLimitParserTest {
     }
 
     @Test
+    fun `tolerates Ud punctuation case accents and spacing`() {
+        val result = parser.parse("UD. PUEDE recargar un monto de 360,00 CUP en un plazo de 30 días")
+        assertTrue("expected Success, got $result", result is ParseResult.Success)
+        val values = (result as ParseResult.Success).value
+        assertEquals(360.0, values.first { it.fieldType == FieldTypes.NATIONAL_RECHARGE_LIMIT_AMOUNT }.numericValue!!, 0.01)
+        assertEquals(30.0, values.first { it.fieldType == FieldTypes.NATIONAL_RECHARGE_LIMIT_PERIOD_DAYS }.numericValue!!, 0.01)
+    }
+
+    @Test
     fun `variant 3 - amount with space before CUP`() {
         val raw = "Ud ha alcanzado el monto de recarga permitido de 360,00 CUP. Puede recargar posterior al dia 24-10-26"
         val result = parser.parse(raw)

@@ -6,7 +6,7 @@ class SmsBalanceParser : UssdResponseParser {
     override val ussdCodeId: String = "sms-balance"
 
     private val hasSms = Regex(
-        """Usted dispone de (\d+) SMS validos por (\d+) dias""", RegexOption.IGNORE_CASE
+        """Usted\s+dispone\s+de\s+(\d+)\s*SMS\s*[.:]?\s*validos\s+por\s+(\d+)\s*dias""", RegexOption.IGNORE_CASE
     )
 
     private val noPlan = Regex(
@@ -14,7 +14,8 @@ class SmsBalanceParser : UssdResponseParser {
     )
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
-        hasSms.find(rawResponseText)?.let { m ->
+        val response = UssdTextNormalizer.normalize(rawResponseText)
+        hasSms.find(response)?.let { m ->
             val count = m.groupValues[1].toIntOrNull() ?: return ParseResult.Unrecognized(rawResponseText)
             val days = m.groupValues[2].toIntOrNull() ?: return ParseResult.Unrecognized(rawResponseText)
 
@@ -37,7 +38,7 @@ class SmsBalanceParser : UssdResponseParser {
             )
         }
 
-        noPlan.find(rawResponseText)?.let {
+        noPlan.find(response)?.let {
             return ParseResult.Success(
                 listOf(
                     ParsedDashboardValue(

@@ -6,7 +6,7 @@ class VoiceBalanceParser : UssdResponseParser {
     override val ussdCodeId: String = "voice-balance"
 
     private val hasMinutes = Regex(
-        """Usted dispone de (\d{1,3}):(\d{2}):(\d{2}) MIN NAC validos por (\d+) dias""", RegexOption.IGNORE_CASE
+        """Usted\s+dispone\s+de\s+(\d{1,3})\s*:\s*(\d{2})\s*:\s*(\d{2})\s*MIN\s*NAC\s+validos\s+por\s+(\d+)\s*dias""", RegexOption.IGNORE_CASE
     )
 
     private val noPlan = Regex(
@@ -14,7 +14,8 @@ class VoiceBalanceParser : UssdResponseParser {
     )
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
-        hasMinutes.find(rawResponseText)?.let { m ->
+        val response = UssdTextNormalizer.normalize(rawResponseText)
+        hasMinutes.find(response)?.let { m ->
             val hours = m.groupValues[1].toIntOrNull() ?: return ParseResult.Unrecognized(rawResponseText)
             val minutes = m.groupValues[2].toIntOrNull() ?: return ParseResult.Unrecognized(rawResponseText)
             val seconds = m.groupValues[3].toIntOrNull() ?: return ParseResult.Unrecognized(rawResponseText)
@@ -42,7 +43,7 @@ class VoiceBalanceParser : UssdResponseParser {
             )
         }
 
-        noPlan.find(rawResponseText)?.let {
+        noPlan.find(response)?.let {
             return ParseResult.Success(
                 listOf(
                     ParsedDashboardValue(

@@ -5,24 +5,25 @@ import com.qvacell.app.data.FieldTypes
 class DataPlanParser : UssdResponseParser {
     override val ussdCodeId: String = "data-plan"
 
-    private val tarifa = Regex("""Tarifa:\s*(Activa|No activa)""", RegexOption.IGNORE_CASE)
+    private val tarifa = Regex("""Tarifa\s*[.:]?\s*(Activa|No activa)""", RegexOption.IGNORE_CASE)
 
     private val datos = Regex(
-        """Datos:\s*([\d,.]+)\s*(KB|MB|GB)\s*(validos\s*(\d+)\s*dias|no activos)""", RegexOption.IGNORE_CASE
+        """Datos\s*[.:]?\s*([\d,.]+)\s*(KB|MB|GB)\s*(validos\s*(\d+)\s*dias|no activos)""", RegexOption.IGNORE_CASE
     )
 
     private val diaria = Regex(
-        """Diaria:\s*([\d,.]+)\s*MB\s*(validos\s*24\s*horas|no activos)""", RegexOption.IGNORE_CASE
+        """Diaria\s*[.:]?\s*([\d,.]+)\s*MB\s*(validos\s*24\s*horas|no activos)""", RegexOption.IGNORE_CASE
     )
 
     private val todus = Regex(
-        """toDus:\s*([\d,.]+)\s*MB\s*validos\s*(\d+)\s*dias""", RegexOption.IGNORE_CASE
+        """toDus\s*[.:]?\s*([\d,.]+)\s*MB\s*validos\s*(\d+)\s*dias""", RegexOption.IGNORE_CASE
     )
 
     private val noPlan = Regex("""Ud debe adquirir una oferta""", RegexOption.IGNORE_CASE)
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
-        val tarifaMatch = tarifa.find(rawResponseText)
+        val response = UssdTextNormalizer.normalize(rawResponseText)
+        val tarifaMatch = tarifa.find(response)
             ?: return ParseResult.Unrecognized(rawResponseText)
 
         val values = mutableListOf<ParsedDashboardValue>()
@@ -35,7 +36,7 @@ class DataPlanParser : UssdResponseParser {
             )
         )
 
-        if (noPlan.containsMatchIn(rawResponseText)) {
+        if (noPlan.containsMatchIn(response)) {
             values.add(
                 ParsedDashboardValue(
                     fieldType = FieldTypes.DATA_PLAN_ACTIVE,
@@ -52,7 +53,7 @@ class DataPlanParser : UssdResponseParser {
             )
         )
 
-        datos.find(rawResponseText)?.let { m ->
+        datos.find(response)?.let { m ->
             val amount = NationalRechargeLimitParser.parseAmount(m.groupValues[1])
             val unit = m.groupValues[2]
             val mb = when {
@@ -70,7 +71,7 @@ class DataPlanParser : UssdResponseParser {
             }
         }
 
-        diaria.find(rawResponseText)?.let { m ->
+        diaria.find(response)?.let { m ->
             val amount = NationalRechargeLimitParser.parseAmount(m.groupValues[1])
             val isActive = m.groupValues[2].startsWith("validos", ignoreCase = true)
 
@@ -78,7 +79,7 @@ class DataPlanParser : UssdResponseParser {
             values.add(ParsedDashboardValue(fieldType = FieldTypes.DATA_DIARIA_MB, numericValue = amount, unit = "MB"))
         }
 
-        todus.find(rawResponseText)?.let { m ->
+        todus.find(response)?.let { m ->
             val amount = NationalRechargeLimitParser.parseAmount(m.groupValues[1])
             val days = m.groupValues[2].toIntOrNull()
 

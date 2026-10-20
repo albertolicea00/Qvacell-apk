@@ -65,6 +65,17 @@ class MainBalanceParserTest {
         assertEquals(epochOf(2028, 2, 16), v.field(FieldTypes.ACCOUNT_DUE_DATE)!!.dateValue)
     }
 
+    @Test
+    fun `tolerates case punctuation and spaces around labels and time separators`() {
+        val v = values("SALDO . 15,01 cup. datos : 57,35 mb. voz . 23 : 21 : 34. sms . 60 linea activa hasta 20-08-27 vence 16-02-28")
+
+        assertEquals(15.01, v.field(FieldTypes.MAIN_BALANCE)!!.numericValue!!, 0.01)
+        assertEquals(57.35, v.field(FieldTypes.DATA_DATOS_MB)!!.numericValue!!, 0.01)
+        assertEquals(23 * 60 + 21 + 34 / 60.0, v.field(FieldTypes.VOICE_MINUTES_REMAINING)!!.numericValue!!, 0.001)
+        assertEquals(60.0, v.field(FieldTypes.SMS_COUNT_REMAINING)!!.numericValue!!, 0.01)
+        assertEquals(epochOf(2027, 8, 20), v.field(FieldTypes.LINE_ACTIVE_UNTIL)!!.dateValue)
+    }
+
     // ── Sample 3: balance only, no plans ──
 
     @Test

@@ -10,15 +10,16 @@ class BonusUsdPlansParser : UssdResponseParser {
     )
 
     private val datosCu = Regex(
-        """Datos\.cu:?\s*(\d+)\s*(MB|GB)\s*vence\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
+        """Datos\s*\.\s*cu\s*[.:]?\s*(\d+)\s*(MB|GB)\s*vence\s*[.:]?\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
     )
 
     private val datosNocturno = Regex(
-        """Datos:?\s*ilimitados:?\s*Nocturno\s*vence\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
+        """Datos\s*[.:]?\s*ilimitados\s*[.:]?\s*Nocturno\s*[.:]?\s*vence\s*[.:]?\s*(\d{2}-\d{2}-\d{2,4})""", RegexOption.IGNORE_CASE
     )
 
     override fun parse(rawResponseText: String): ParseResult<List<ParsedDashboardValue>> {
-        if (noBonuses.containsMatchIn(rawResponseText)) {
+        val response = UssdTextNormalizer.normalize(rawResponseText)
+        if (noBonuses.containsMatchIn(response)) {
             return ParseResult.Success(
                 listOf(
                     ParsedDashboardValue(
@@ -31,7 +32,7 @@ class BonusUsdPlansParser : UssdResponseParser {
 
         val values = mutableListOf<ParsedDashboardValue>()
 
-        datosCu.find(rawResponseText)?.let { m ->
+        datosCu.find(response)?.let { m ->
             val amount = m.groupValues[1].toDoubleOrNull() ?: return ParseResult.Unrecognized(rawResponseText)
             val unit = m.groupValues[2]
             val dateEpoch = NationalRechargeLimitParser.parseDateDmy(m.groupValues[3])
@@ -52,7 +53,7 @@ class BonusUsdPlansParser : UssdResponseParser {
             )
         }
 
-        datosNocturno.find(rawResponseText)?.let { m ->
+        datosNocturno.find(response)?.let { m ->
             val dateEpoch = NationalRechargeLimitParser.parseDateDmy(m.groupValues[1])
                 ?: return ParseResult.Unrecognized(rawResponseText)
 
