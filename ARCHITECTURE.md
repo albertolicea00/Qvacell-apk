@@ -368,7 +368,7 @@ First-ever test infrastructure for this project (`app/src/test/java/com/qvacell/
 - Robolectric 4.13's bundled ASM cannot parse class files compiled for JDK 25 ("Unsupported class file major version 69") — unit tests are pinned to JDK 17 via a `javaLauncher` toolchain override in `app/build.gradle.kts`'s `tasks.withType<Test>`, independent of whatever JDK invokes Gradle itself.
 - `UssdParserCoverageTest` reads `codes.json` directly off disk (`File("src/main/assets/codes.json")`) rather than through Robolectric's `AssetManager` shadow — this test only needs the JSON content, not real Android asset-resolution behavior, so a plain file read sidesteps Robolectric's resource/asset shadow layer entirely for a case that doesn't need it.
 
-Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX(id)` grouping correctness under out-of-order backfill inserts, anchor `lastSeenAt`/`lastSuccessfulParseAt` independence (the regression test for "no single global last-known-date"), and the real-vs-estimate reconciliation precedence rule (§15.4).
+Coverage: append-only enforcement at the DAO surface, `MAX(capturedAt)`-not-`MAX(id)` grouping correctness under out-of-order backfill inserts, anchor `lastSeenAt`/`lastSuccessfulParseAt` independence (the regression test for "no single global last-known-date"), real-vs-estimate reconciliation precedence (§15.4), invalid-MMI response classification, Cuban mobile-number normalization, provisional ETECSA SMS filtering, and recurring-reminder date calculation. Exact OS behavior—telephony routing, provider permissions, alarm delivery, and receiver lifecycle—remains outside these local unit tests; see §21.
 
 ### 15.8 Parser Rules
 
@@ -433,6 +433,8 @@ After the `main-balance` query completes, the service reads the current values f
 
 This optimization avoids wasting USSD requests (and the ~3–5 second modem round-trip per query) for plans the user doesn't have. The DAO exposes a `suspend fun getLatestPerField()` one-shot query alongside the existing `Flow`-based `observeAllLatestPerField()` to support this synchronous check mid-refresh.
 
+For the selected line's balance code only, a returned text response that names MMI and an invalid-code/connection-problem phrase is classified as a possible line-type mismatch. `MmiErrorClassifier` normalizes accents and case and is covered by positive and negative unit cases. This is a prompt for user confirmation, not proof: wording varies by Android/carrier, while a generic failure callback does not reveal why the network rejected the request.
+
 ### 15.14 Navigation — Dashboard Settings Tab Affinity
 
 Dashboard-related nested routes are split across tabs:
@@ -462,7 +464,7 @@ The navbar click handler navigates directly with `popUpTo(validStartRoute)` — 
 **Awaiting ETECSA samples**:
 - 3 consultation-card USSD codes (`corp-balance` `*111#`, `tfa` `*118#`, `friends-plan` `*222*264#`) — no response text captured yet, cannot write parsers without real samples.
 - Every `SmsBodyParser` implementation — same reason.
-- `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — placeholder pending real sender-ID/short-code examples.
+- `EtecsaSmsFilter`'s "is this an ETECSA message" sender/content heuristic — unit tests cover the current short-code/keyword rule, but do not validate it against real sender IDs or message formats. Keep the heuristic explicitly provisional until representative ETECSA samples are available.
 
 **Not yet done / open before this ships to real users**:
 - The `sendUssdRequest` reliability spike against a real ETECSA SIM (§15.5) — a go/no-go gate for whether silent USSD capture works at all on this carrier, not yet run.
@@ -472,9 +474,9 @@ The navbar click handler navigates directly with `popUpTo(validStartRoute)` — 
 
 ## 16. Dual-SIM Selector
 
-Devices with two or more active SIM subscriptions (`SubscriptionManager.getActiveSubscriptionInfoList()`) show a SIM selector chip in the top app bar of all four main tabs (Home, Compras, Contactos, Ayuda) via `SimSelectorIcon()` inserted into `SearchableTopAppBar`'s `extraActions` slot. Tapping it opens a `ModalBottomSheet` listing all active SIMs (system icon via `createIconBitmap()`, `SimUtils.simLabel()` name, carrier/number subtitle) plus a "Predeterminada" (Auto) option.
+Devices with two or more active SIM subscriptions (`SubscriptionManager.getActiveSubscriptionInfoList()`) show a SIM selector chip in the top app bar of all four main tabs (Home, Compras, Contactos, Ayuda) via `SimSelectorIcon()` inserted into `SearchableTopAppBar`'s `extraActions` slot. The interaction is configurable in Options › SIM y tipo de línea: open the current selection sheet, tap to cycle through active SIMs, or tap the badge to open a dropdown list. The list includes each SIM's configured name and standard/corporate line type.
 
-**Global preference** — `SettingsDataStore.selectedSimSlot` (default `-1` = system decides). Also configurable from Options › Preferencias.
+**Global preference** — `SettingsDataStore.selectedSimSlot` stores the default SIM. It is configurable from Options › SIM y tipo de línea when multiple SIMs are active.
 
 **Per-widget override** — `WidgetPrefs.saveSimSlot()/getSimSlot()` per widget ID. Widget configuration screen shows the SIM picker only when 2+ SIMs are active. `DialTrampolineActivity` reads the per-widget SIM slot and passes it to `DialService`.
 
@@ -548,3 +550,23 @@ Build both release APKs and run the icon coverage and app unit tests with:
 ```
 
 Release APKs are written under `app/build/outputs/apk/release/`.
+
+---
+
+## 21. Unit-Test Coverage and Limits
+
+Shared unit tests live under `app/src/test/java/com/qvacell/app/`; flavor-specific tests use Android Gradle's `app/src/testUnlocked/` source set. They run against both flavors with Robolectric/JUnit where Android APIs are needed. Parser behavior and dashboard persistence have the broadest coverage; service, receiver, widget, and Compose interaction behavior is not comprehensively tested. There is no configured coverage-report task, so a passing test suite must not be interpreted as a measured coverage percentage.
+
+Current focused behavior tests include:
+- `parsing/` — representative and edge-case samples for supported USSD parsers and snapshot parsing; see [parsing/ARCHITECTURE.md](app/src/main/java/com/qvacell/app/parsing/ARCHITECTURE.md).
+- `service/MmiErrorClassifierTest` — Spanish/English invalid-MMI text, accent/case variations, and negative examples. This only classifies returned response text; Android's generic telephony failure callback does not prove the selected SIM's line type is wrong.
+- `testUnlocked/service/EtecsaSmsFilterTest` — boundary checks for the provisional short-code/keyword heuristic; real traffic samples remain required before claiming production accuracy.
+- `model/CubanPhoneNumberTest` — local/country-prefixed Cuban mobile number normalization and invalid prefixes/lengths.
+- `service/ReminderSchedulerTest` — one-time, daily, weekly, monthly, and custom recurrence date calculations. Alarm delivery, reboot recovery, notification actions, and exact-alarm permission behavior still need device/integration coverage.
+- `service/UsageEstimateAccumulatorTest` — estimate counting rules: outgoing Cuban mobile calls only, whole elapsed minutes, sent-SMS Cuban addresses only, and empty logs.
+- `data/SettingsDataStoreTest` — SIM switch action default, persistence, and invalid-value rejection. It does not test telephony-dependent selected-SIM resolution.
+- `service/ContactsRepositoryTest` — flattening contacts into one row per valid Cuban number and applying labels only when a contact has multiple valid numbers.
+- `widget/WidgetPrefsTest` — per-widget setting isolation, defaults, global-style fallback, and clearing a widget's overrides.
+- DAO/repository tests — Room persistence and confirmed-value-versus-estimate behavior; they do not exercise the operating-system telephony, contacts, SMS, or call-log providers.
+
+Before shipping changes to Android platform integrations, add or run device-level checks for actual SIM routing and USSD callbacks, SMS/call-log permissions and provider queries, exact alarm delivery after reboot, and widget actions. These require emulator/device capabilities that ordinary local unit tests cannot faithfully model. When adding a behavior test, document its invariant here and in the owning feature section; do not replace missing carrier samples with invented parser fixtures.
