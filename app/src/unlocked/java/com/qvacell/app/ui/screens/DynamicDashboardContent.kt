@@ -65,7 +65,6 @@ import com.qvacell.app.ui.components.hasCellularService
 import com.qvacell.app.data.SettingsDataStore
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.qvacell.app.ui.components.ConsultCardsRow
 import com.qvacell.app.ui.components.CorporateBalanceCard
 import com.qvacell.app.ui.components.DataUsageCard
 import com.qvacell.app.ui.components.MainBalanceCard
@@ -329,11 +328,6 @@ fun DynamicDashboardContent(
                     onQuery = { requestQuery("bonus-usd-plans") }
                 )
                 }
-                ConsultCardsRow(
-                    planAmigoIsLoading = currentCodeId == "friends-plan",
-                    // TODO: friends-plan (*222*264#) — parser not implemented, needs real ETECSA response samples
-                    onPlanAmigoQuery = { requestQuery("friends-plan") }
-                )
             }
         }
         }
