@@ -80,7 +80,7 @@
     <string name="dashboard_minutes">MINUTES</string>
     <string name="dashboard_sms">SMS</string>
     <string name="dashboard_no_plan">No plan</string>
-    <string name="dashboard_corporate_balance">CORPORATE BALANCE</string>
+    <string name="dashboard_corporate_balance">Corporate Balance</string>
     <string name="dashboard_open_corporate_portal">Open my corporate portal</string>
     <string name="dashboard_not_applicable">Not applicable</string>
     <string name="dashboard_choose_sim">Choose a default SIM to query the dashboard.</string>
@@ -693,11 +693,11 @@
     <string name="options_sim_section">SIM and line type</string>
     <string name="options_sim_type">SIM line type</string>
     <string name="options_sim_not_detected">No active SIM detected</string>
-    <string name="dashboard_corporate_voice">Voice</string>
-    <string name="dashboard_corporate_voice_consumed">Voice balance consumed</string>
-    <string name="dashboard_corporate_sms">SMS</string>
-    <string name="dashboard_corporate_sms_consumed">SMS balance consumed</string>
-    <string name="dashboard_corporate_data">Data</string>
+    <string name="dashboard_corporate_voice">Voice Plan</string>
+    <string name="dashboard_corporate_voice_consumed">Balance consumed</string>
+    <string name="dashboard_corporate_sms">SMS Plan</string>
+    <string name="dashboard_corporate_sms_consumed">Balance consumed</string>
+    <string name="dashboard_corporate_data">Data Plan</string>
     <string name="dashboard_corporate_roaming">Roaming</string>
     <string name="sim_custom_save">Save</string>
     <string name="sim_icon_number">Number</string>

@@ -384,7 +384,7 @@ Full parsing rules, verbatim ETECSA response samples, regex patterns, and field 
 
 The dashboard cards (`MainBalanceCard`, `DataUsageCard`, `NationalBonusCard`, `VoiceSmsRow`, `RechargeLimitCard`) in `DynamicDashboardContent.kt` (unlocked flavor) collect live data from `DashboardDataRepository.observeCurrentValues()` and display three distinct states per card:
 
-The Saldo Corporativo consultation card sits immediately above Saldo. TFA and Plan Amigo use full-width consultation cards below the data cards. These three consultation codes still lack response parsers and show the "UI Próximamente" badge.
+The corporate balance is one grouped card with voice, SMS, data, and roaming values from the same `*111#` response. Voice and SMS each pair the available amount with a compact consumed-CUP line; data follows, then roaming. Section icons and subtle dividers distinguish the groups, and the main values use larger primary-colored type. A rounded primary button below the card opens the corporate portal externally. TFA and Plan Amigo still use full-width consultation cards below the data cards and show the "UI Próximamente" badge.
 
 1. **Sin consultar** (never fetched) — `hasFetched = false`. Shown when no USSD query has populated the card's fields yet. Cards display a placeholder message ("Actualice el dashboard para ver la información." or "Aún no consultado.") instead of data. `DataUsageCard` also hides its "Tarifa por consumo" section and divider in this state.
 2. **Sin plan / No cuenta con...** (fetched, no active plan) — `hasFetched = true`, values are `"--"`. Voice/SMS cards show "Sin plan"; Data card shows "No cuenta con paquetes disponibles"; Bonus card shows "No cuenta con bonos disponibles".
