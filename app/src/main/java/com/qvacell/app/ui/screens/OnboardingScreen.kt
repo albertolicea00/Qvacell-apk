@@ -1,8 +1,8 @@
 package com.qvacell.app.ui.screens
 
 import android.Manifest
-import android.content.Intent
-import android.net.Uri
+import android.content.pm.PackageManager
+import android.telephony.SubscriptionInfo
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -12,7 +12,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,28 +35,22 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.Image
 import androidx.compose.material.icons.filled.AccountBalance
-import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.OpenInBrowser
-import androidx.compose.material.icons.filled.CellTower
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DataUsage
-import androidx.compose.material.icons.filled.DialerSip
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SimCard
+import androidx.compose.material.icons.filled.Work
 import com.qvacell.app.ui.navigation.SquareGrid2x2
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Sms
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -77,28 +71,26 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.qvacell.app.R
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.BuildConfig
+import com.qvacell.app.R
 import com.qvacell.app.data.SettingsDataStore
-import com.qvacell.app.service.DashboardCapture
+import com.qvacell.app.data.SimAppearance
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.OnboardingDataPrefetch
+import com.qvacell.app.service.SimUtils
 import kotlinx.coroutines.launch
-
-private const val GITHUB_RELEASES_URL = "https://github.com/albertolicea00/qvacell-apk/releases"
 
 private sealed class OnboardingPage {
     object Welcome : OnboardingPage()
-    object DashboardChoice : OnboardingPage()
-    object HowDynamicWorks : OnboardingPage()
-    object DynamicUnavailable : OnboardingPage()
     object UssdPermission : OnboardingPage()
-    object SmsPermission : OnboardingPage()
-    object CallLogPermission : OnboardingPage()
+    object SimSetup : OnboardingPage()
     object FeatureContacts : OnboardingPage()
     object FeatureHome : OnboardingPage()
     object FeaturePurchases : OnboardingPage()
@@ -114,28 +106,26 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
     val scope = rememberCoroutineScope()
     val settings = remember { SettingsDataStore(context) }
 
-    var dashboardChoice by remember { mutableStateOf<String?>(null) }
     var currentPageIndex by remember { mutableIntStateOf(0) }
     var ussdGranted by remember { mutableStateOf(DialService.hasCallPermission(context)) }
-    var smsGranted by remember { mutableStateOf(false) }
-    var callLogGranted by remember { mutableStateOf(false) }
+    var phoneStateGranted by remember {
+        mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED)
+    }
+    var activeSims by remember { mutableStateOf(SimUtils.getActiveSubscriptions(context)) }
+    val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    var tourSelectedSlot by remember { mutableIntStateOf(-1) }
+    LaunchedEffect(selectedSimSlot, activeSims) {
+        tourSelectedSlot = SimUtils.resolveSelectedSlot(context, selectedSimSlot)
+    }
+    val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
+    var tourLineTypes by remember { mutableStateOf<Map<Int, Boolean>>(emptyMap()) }
+    var dashboardPrefetchStarted by remember { mutableStateOf(false) }
 
-    val pages = remember(dashboardChoice) {
+    val pages = remember(phoneStateGranted, activeSims) {
         buildList {
             add(OnboardingPage.Welcome)
-            add(OnboardingPage.DashboardChoice)
-            if (dashboardChoice == "dynamic") {
-                if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
-                    add(OnboardingPage.HowDynamicWorks)
-                } else {
-                    add(OnboardingPage.DynamicUnavailable)
-                }
-            }
             add(OnboardingPage.UssdPermission)
-            if (dashboardChoice == "dynamic" && BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
-                add(OnboardingPage.SmsPermission)
-                add(OnboardingPage.CallLogPermission)
-            }
+            if (!phoneStateGranted || activeSims.isNotEmpty()) add(OnboardingPage.SimSetup)
             add(OnboardingPage.FeatureContacts)
             add(OnboardingPage.FeatureHome)
             add(OnboardingPage.FeaturePurchases)
@@ -143,37 +133,56 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
         }
     }
 
-    // Fire background prefetch as soon as the user picks dynamic mode.
-    LaunchedEffect(dashboardChoice) {
-        if (dashboardChoice == "dynamic") {
-            OnboardingDataPrefetch.startBackgroundFetch(context)
-        }
-    }
-
     val ussdPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted -> ussdGranted = granted }
-
-    val smsPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { results -> smsGranted = results.values.all { it } }
-
-    val callLogPermissionLauncher = rememberLauncherForActivityResult(
+    val phoneStateLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> callLogGranted = granted }
+    ) { granted ->
+        phoneStateGranted = granted
+        activeSims = SimUtils.getActiveSubscriptions(context)
+    }
+
+    LaunchedEffect(currentPageIndex, ussdGranted, pages) {
+        val setupIndex = pages.indexOf(OnboardingPage.SimSetup).takeIf { it >= 0 }
+            ?: pages.indexOf(OnboardingPage.UssdPermission)
+        if (BuildConfig.DASHBOARD_CAPTURE_ENABLED && ussdGranted &&
+            currentPageIndex > setupIndex && !dashboardPrefetchStarted
+        ) {
+            dashboardPrefetchStarted = true
+            OnboardingDataPrefetch.startBackgroundFetch(context.applicationContext)
+        }
+    }
 
     fun next() {
         if (currentPageIndex < pages.lastIndex) {
-            currentPageIndex++
+            if (pages[currentPageIndex] == OnboardingPage.SimSetup) {
+                scope.launch {
+                    val slot = SimUtils.resolveSelectedSlot(context, tourSelectedSlot)
+                    if (phoneStateGranted && activeSims.isNotEmpty()) {
+                        for (sim in activeSims) {
+                            val existing = simAppearances[sim.subscriptionId.toString()]
+                            val isCorporate = tourLineTypes[sim.subscriptionId] ?: existing?.isCorporate
+                                ?: return@launch
+                            settings.setSimAppearance(
+                                sim.subscriptionId,
+                                (existing ?: SimAppearance()).copy(
+                                    isCorporate = isCorporate,
+                                    icon = if (isCorporate) "work" else "home"
+                                )
+                            )
+                        }
+                    }
+                    if (slot >= 0) settings.setSelectedSimSlot(slot)
+                    currentPageIndex++
+                }
+            } else {
+                currentPageIndex++
+            }
         } else {
             scope.launch {
                 settings.setHasCompletedOnboarding(true)
-                if (dashboardChoice != null) settings.setDashboardMode(dashboardChoice!!)
                 if (ussdGranted) settings.setUssdCaptureEnabled(true)
-                if (smsGranted) {
-                    settings.setSmsCaptureEnabled(true)
-                    DashboardCapture.scheduleEstimationIfEnabled(context, true)
-                }
                 onComplete()
             }
         }
@@ -210,86 +219,80 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
                             next()
                         }
                     )
-                    OnboardingPage.DashboardChoice -> DashboardChoicePage(
-                        selectedChoice = dashboardChoice,
-                        onChoiceSelected = { dashboardChoice = it },
-                        onNext = ::next
-                    )
-                    OnboardingPage.HowDynamicWorks -> HowDynamicWorksPage(onNext = ::next)
-                    OnboardingPage.DynamicUnavailable -> DynamicUnavailablePage(
-                        onSwitchToManual = {
-                            dashboardChoice = "manual"
-                            // pages rebuilds → currentPageIndex now points to UssdPermission
-                        },
-                        onOpenGitHub = {
-                            context.startActivity(
-                                Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_RELEASES_URL))
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            )
-                        }
-                    )
                     OnboardingPage.UssdPermission -> UssdPermissionPage(
                         granted = ussdGranted,
                         onRequest = { ussdPermissionLauncher.launch(Manifest.permission.CALL_PHONE) },
                         onNext = ::next
                     )
-                    OnboardingPage.SmsPermission -> SmsPermissionPage(
-                        granted = smsGranted,
-                        onRequest = {
-                            smsPermissionLauncher.launch(
-                                arrayOf(Manifest.permission.READ_SMS, Manifest.permission.RECEIVE_SMS)
-                            )
-                        },
-                        onNext = ::next
-                    )
-                    OnboardingPage.CallLogPermission -> CallLogPermissionPage(
-                        granted = callLogGranted,
-                        onRequest = { callLogPermissionLauncher.launch(Manifest.permission.READ_CALL_LOG) },
-                        onNext = ::next
-                    )
+                    OnboardingPage.SimSetup -> if (!phoneStateGranted) {
+                        PageLayout(
+                            icon = Icons.Filled.SimCard,
+                            title = stringResource(R.string.onboarding_sim_title),
+                            subtitle = stringResource(R.string.onboarding_sim_subtitle),
+                            content = { Text(stringResource(R.string.onboarding_sim_permission)) },
+                            buttonLabel = stringResource(R.string.onboarding_sim_detect),
+                            onButton = { phoneStateLauncher.launch(Manifest.permission.READ_PHONE_STATE) },
+                            skipLabel = stringResource(R.string.onboarding_skip_for_now),
+                            onSkip = ::next
+                        )
+                    } else {
+                        SimSetupPage(
+                            sims = activeSims,
+                            selectedSlot = tourSelectedSlot,
+                            appearances = simAppearances,
+                            lineTypes = tourLineTypes,
+                            onSelect = { slot -> tourSelectedSlot = slot },
+                            onSelectType = { sim, isCorporate ->
+                                tourLineTypes = tourLineTypes + (sim.subscriptionId to isCorporate)
+                            },
+                            onNext = ::next
+                        )
+                    }
                     OnboardingPage.FeatureContacts -> FeaturePage(
                         icon = Icons.Filled.People,
-                        title = "Contactos",
-                        subtitle = "Gestiona y llama directamente desde la app",
+                        title = stringResource(R.string.onboarding_contacts_title),
+                        subtitle = stringResource(R.string.onboarding_contacts_subtitle),
                         bullets = listOf(
-                            "Marcación directa a cualquier contacto",
-                            "Compara planes entre contactos",
-                            "Búsqueda rápida en tu agenda"
+                            stringResource(R.string.onboarding_contacts_bullet1),
+                            stringResource(R.string.onboarding_contacts_bullet2),
+                            stringResource(R.string.onboarding_contacts_bullet3)
                         ),
                         onNext = ::next
                     )
                     OnboardingPage.FeatureHome -> FeaturePage(
                         icon = Icons.Filled.Home,
-                        title = "Inicio",
-                        subtitle = "Acceso rápido a los servicios más usados",
-                        bullets = listOf(
-                            "Recargas y paquetes en un toque",
-                            "Dashboard con tu saldo y consumo",
-                            "Consultas USSD sin salir de la app"
-                        ),
+                        title = stringResource(R.string.onboarding_home_title),
+                        subtitle = stringResource(R.string.onboarding_home_subtitle),
+                        bullets = buildList {
+                            add(stringResource(R.string.onboarding_home_bullet1))
+                            if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                                add(stringResource(R.string.onboarding_home_bullet2))
+                            }
+                            add(stringResource(R.string.onboarding_home_bullet3))
+                        },
                         onNext = ::next
                     )
                     OnboardingPage.FeaturePurchases -> FeaturePage(
                         icon = Icons.Filled.ShoppingCart,
-                        title = "Compras",
-                        subtitle = "Todos los paquetes y servicios ETECSA",
+                        title = stringResource(R.string.onboarding_purchases_title),
+                        subtitle = stringResource(R.string.onboarding_purchases_subtitle),
                         bullets = listOf(
-                            "Paquetes de datos, Nauta, voz y combinados",
-                            "Activación de servicios especiales",
-                            "Confirmación antes de marcar"
+                            stringResource(R.string.onboarding_purchases_bullet1),
+                            stringResource(R.string.onboarding_purchases_bullet2),
+                            stringResource(R.string.onboarding_purchases_bullet3)
                         ),
                         onNext = ::next
                     )
                     OnboardingPage.FeatureOptions -> FeaturePage(
                         icon = SquareGrid2x2,
-                        title = "Personalización",
-                        subtitle = "Adapta la app a tu estilo y necesidades",
+                        title = stringResource(R.string.onboarding_options_title),
+                        subtitle = stringResource(R.string.onboarding_options_subtitle),
                         bullets = listOf(
-                            "Tema claro, oscuro o automático",
-                            "Color de acento personalizado",
-                            "Recordatorios automáticos de recarga"
+                            stringResource(R.string.onboarding_options_bullet1),
+                            stringResource(R.string.onboarding_options_bullet2),
+                            stringResource(R.string.onboarding_options_bullet3)
                         ),
-                        buttonLabel = "¡Listo, vamos!",
+                        buttonLabel = stringResource(R.string.onboarding_ready_button),
                         onNext = ::next
                     )
                     null -> Unit
@@ -304,7 +307,7 @@ fun OnboardingScreen(onComplete: () -> Unit, onSkipTour: (() -> Unit)? = null) {
                         .padding(horizontal = 32.dp)
                         .padding(bottom = 12.dp)
                 ) {
-                    Text("Saltar tour", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.onboarding_skip_tour), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -342,7 +345,7 @@ private fun PageLayout(
     title: String,
     subtitle: String,
     content: @Composable ColumnScope.() -> Unit = {},
-    buttonLabel: String = "Continuar",
+    buttonLabel: String? = null,
     onButton: (() -> Unit)?,
     buttonEnabled: Boolean = true,
     skipLabel: String? = null,
@@ -411,7 +414,7 @@ private fun PageLayout(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(50)
             ) {
-                Text(buttonLabel, modifier = Modifier.padding(vertical = 4.dp))
+                Text(buttonLabel ?: stringResource(R.string.onboarding_continue), modifier = Modifier.padding(vertical = 4.dp))
             }
         }
 
@@ -451,7 +454,7 @@ private fun GrantedBadge() {
             Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(10.dp))
             Text(
-                "Permiso concedido",
+                stringResource(R.string.onboarding_ussd_granted),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -490,7 +493,7 @@ private fun WelcomePage(onNext: () -> Unit) {
 
         TextButton(onClick = { uriHandler.openUri("https://github.com/albertolicea00") }) {
             Text(
-                "by @albertolicea00",
+                stringResource(R.string.onboarding_author),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -499,7 +502,7 @@ private fun WelcomePage(onNext: () -> Unit) {
         Spacer(Modifier.height(24.dp))
 
         Text(
-            "Bienvenido a Qvacell",
+            stringResource(R.string.onboarding_welcome_title),
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center
         )
@@ -507,7 +510,7 @@ private fun WelcomePage(onNext: () -> Unit) {
         Spacer(Modifier.height(12.dp))
 
         Text(
-            "Tu asistente para servicios ETECSA y Cubacel en Cuba",
+            stringResource(R.string.onboarding_welcome_subtitle),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -520,170 +523,30 @@ private fun WelcomePage(onNext: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(50)
         ) {
-            Text("Comenzar", modifier = Modifier.padding(vertical = 4.dp))
+            Text(stringResource(R.string.onboarding_start), modifier = Modifier.padding(vertical = 4.dp))
         }
 
         Spacer(Modifier.height(16.dp))
     }
-}
-
-@Composable
-private fun DashboardChoicePage(
-    selectedChoice: String?,
-    onChoiceSelected: (String) -> Unit,
-    onNext: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.weight(0.5f))
-
-        Text(
-            "¿Cómo quieres ver tu información?",
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            "Puedes cambiarlo más adelante desde Opciones",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(32.dp))
-
-        DashboardChoiceCard(
-            selected = selectedChoice == "dynamic",
-            icon = Icons.Filled.Analytics,
-            title = "Dashboard Dinámico",
-            description = "Saldo, datos y llamadas actualizados en tiempo real. Requiere algunos permisos opcionales.",
-            onClick = { onChoiceSelected("dynamic") }
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        DashboardChoiceCard(
-            selected = selectedChoice == "manual",
-            icon = Icons.Filled.DialerSip,
-            title = "Marcación Rápida",
-            description = "Solo los botones esenciales para marcar códigos USSD. Sin permisos adicionales.",
-            onClick = { onChoiceSelected("manual") }
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        Button(
-            onClick = onNext,
-            enabled = selectedChoice != null,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(50)
-        ) {
-            Text("Continuar", modifier = Modifier.padding(vertical = 4.dp))
-        }
-
-        Spacer(Modifier.height(16.dp))
-    }
-}
-
-@Composable
-private fun DashboardChoiceCard(
-    selected: Boolean,
-    icon: ImageVector,
-    title: String,
-    description: String,
-    onClick: () -> Unit
-) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary
-                      else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-    val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
-                         else MaterialTheme.colorScheme.surfaceContainer
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(
-                width = if (selected) 2.dp else 1.dp,
-                color = borderColor,
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor)
-    ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(Modifier.width(16.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (selected) {
-                Spacer(Modifier.width(8.dp))
-                Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-            }
-        }
-    }
-}
-
-@Composable
-private fun HowDynamicWorksPage(onNext: () -> Unit) {
-    PageLayout(
-        icon = Icons.Filled.Analytics,
-        title = "Tu dashboard en tiempo real",
-        subtitle = "El modo dinámico mantiene tu información siempre al día",
-        content = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                BulletItem(Icons.Filled.AccountBalance, "Saldo ETECSA siempre actualizado")
-                BulletItem(Icons.Filled.DataUsage, "Consumo de datos y minutos en tiempo real")
-                BulletItem(Icons.Filled.History, "Historial de recargas y compras")
-                Spacer(Modifier.height(4.dp))
-                InfoCard(
-                    icon = Icons.Filled.Info,
-                    text = "Más permisos aceptes → más datos en tiempo real. Tú decides cuáles conceder — todos son opcionales.",
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-            }
-        },
-        buttonLabel = "Entendido",
-        onButton = onNext
-    )
 }
 
 @Composable
 private fun UssdPermissionPage(granted: Boolean, onRequest: () -> Unit, onNext: () -> Unit) {
     PageLayout(
         icon = Icons.Filled.Phone,
-        title = "Marcación USSD",
-        subtitle = "Permite a Qvacell marcar códigos como *222# directamente sin abrir el marcador",
+        title = stringResource(R.string.onboarding_ussd_title),
+        subtitle = stringResource(R.string.onboarding_ussd_subtitle),
         content = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                BulletItem(Icons.Filled.ShoppingCart, "Compras y recargas sin salir de la app")
-                BulletItem(Icons.Filled.AccountBalance, "Consultas de saldo en tiempo real")
-                BulletItem(Icons.Filled.Sms, "Activación de servicios ETECSA")
+                BulletItem(Icons.Filled.ShoppingCart, stringResource(R.string.onboarding_ussd_bullet1))
+                BulletItem(Icons.Filled.AccountBalance, stringResource(R.string.onboarding_ussd_bullet2))
+                BulletItem(Icons.Filled.Sms, stringResource(R.string.onboarding_ussd_bullet3))
                 Spacer(Modifier.height(4.dp))
                 if (granted) {
                     GrantedBadge()
                 } else {
                     Text(
-                        "Sin este permiso abriremos el marcador del sistema. Puedes concederlo más tarde desde Opciones.",
+                        stringResource(R.string.onboarding_ussd_rationale),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -691,63 +554,131 @@ private fun UssdPermissionPage(granted: Boolean, onRequest: () -> Unit, onNext: 
                 }
             }
         },
-        buttonLabel = if (granted) "Continuar" else "Conceder Permiso",
+        buttonLabel = if (granted) stringResource(R.string.onboarding_continue) else stringResource(R.string.onboarding_grant_permission),
         onButton = if (granted) onNext else onRequest,
-        skipLabel = if (!granted) "Saltar por ahora" else null,
+        skipLabel = if (!granted) stringResource(R.string.onboarding_skip_for_now) else null,
         onSkip = if (!granted) onNext else null
     )
 }
 
 @Composable
-private fun SmsPermissionPage(granted: Boolean, onRequest: () -> Unit, onNext: () -> Unit) {
+private fun SimSetupPage(
+    sims: List<SubscriptionInfo>,
+    selectedSlot: Int,
+    appearances: Map<String, SimAppearance>,
+    lineTypes: Map<Int, Boolean>,
+    onSelect: (Int) -> Unit,
+    onSelectType: (SubscriptionInfo, Boolean) -> Unit,
+    onNext: () -> Unit
+) {
+    val context = LocalContext.current
+    val effectiveSlot = SimUtils.resolveSelectedSlot(context, selectedSlot)
+    val canContinue = effectiveSlot >= 0 && sims.all {
+        it.subscriptionId in lineTypes || it.subscriptionId.toString() in appearances
+    }
     PageLayout(
-        icon = Icons.Filled.Sms,
-        title = "Lectura de SMS",
-        subtitle = "Detecta recargas y saldo leyendo los SMS de ETECSA y Cubacel automáticamente",
+        icon = Icons.Filled.SimCard,
+        title = stringResource(R.string.onboarding_sim_title),
+        subtitle = stringResource(R.string.onboarding_sim_subtitle),
         content = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                BulletItem(Icons.Filled.AccountBalance, "Detecta recargas al instante")
-                BulletItem(Icons.Filled.Notifications, "Saldo actualizado al recibir el SMS")
-                Spacer(Modifier.height(4.dp))
-                InfoCard(
-                    icon = Icons.Filled.Security,
-                    text = "Solo se leen mensajes de ETECSA y Cubacel. Tus conversaciones personales nunca se acceden ni se envían a ningún servidor.",
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-                if (granted) {
-                    Spacer(Modifier.height(4.dp))
-                    GrantedBadge()
+            sims.forEach { sim ->
+                val appearance = appearances[sim.subscriptionId.toString()]
+                val isCorporate = lineTypes[sim.subscriptionId] ?: appearance?.isCorporate
+                val isPrimary = effectiveSlot == sim.simSlotIndex
+                val phoneNumber = SimUtils.getPhoneNumber(context, sim)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .clickable { onSelect(sim.simSlotIndex) },
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        if (isPrimary) 2.dp else 1.dp,
+                        if (isPrimary) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                    ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isPrimary) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Icon(
+                                Icons.Filled.SimCard,
+                                contentDescription = null,
+                                tint = SimUtils.simColor(sim.simSlotIndex, appearance),
+                                modifier = Modifier.size(40.dp)
+                            )
+                            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                                Text(
+                                    SimUtils.simLabel(sim, appearance),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                phoneNumber?.let {
+                                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(0.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            FilterChip(
+                                selected = isCorporate == false,
+                                onClick = { onSelectType(sim, false) },
+                                label = { Text(stringResource(R.string.sim_personal_line)) },
+                                shape = RoundedCornerShape(topStart = 28.dp, bottomStart = 28.dp, topEnd = 0.dp, bottomEnd = 0.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = isCorporate == false,
+                                    borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                    borderWidth = 1.dp,
+                                    selectedBorderWidth = 2.dp
+                                ),
+                                leadingIcon = { Icon(Icons.Filled.Home, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                modifier = Modifier.weight(1f)
+                            )
+                            FilterChip(
+                                selected = isCorporate == true,
+                                onClick = { onSelectType(sim, true) },
+                                label = { Text(stringResource(R.string.sim_corporate_line)) },
+                                shape = RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = 28.dp, bottomEnd = 28.dp),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                border = FilterChipDefaults.filterChipBorder(
+                                    enabled = true,
+                                    selected = isCorporate == true,
+                                    borderColor = MaterialTheme.colorScheme.outlineVariant,
+                                    selectedBorderColor = MaterialTheme.colorScheme.primary,
+                                    borderWidth = 1.dp,
+                                    selectedBorderWidth = 2.dp
+                                ),
+                                leadingIcon = { Icon(Icons.Filled.Work, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (!isPrimary) {
+                            Text(
+                                stringResource(R.string.onboarding_sim_make_primary),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 8.dp, start = 8.dp)
+                            )
+                        }
+                    }
                 }
             }
         },
-        buttonLabel = if (granted) "Continuar" else "Conceder Permiso",
-        onButton = if (granted) onNext else onRequest,
-        skipLabel = if (!granted) "Saltar por ahora" else null,
-        onSkip = if (!granted) onNext else null
-    )
-}
-
-@Composable
-private fun CallLogPermissionPage(granted: Boolean, onRequest: () -> Unit, onNext: () -> Unit) {
-    PageLayout(
-        icon = Icons.Filled.Phone,
-        title = "Registro de Llamadas",
-        subtitle = "Calcula los minutos usados y mantiene tu saldo de voz siempre al día",
-        content = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                BulletItem(Icons.Filled.Timer, "Cuenta las llamadas realizadas")
-                BulletItem(Icons.Filled.DataUsage, "Calcula el consumo de minutos")
-                BulletItem(Icons.Filled.Sync, "Actualiza el dashboard en segundo plano")
-                if (granted) {
-                    Spacer(Modifier.height(4.dp))
-                    GrantedBadge()
-                }
-            }
-        },
-        buttonLabel = if (granted) "Continuar" else "Conceder Permiso",
-        onButton = if (granted) onNext else onRequest,
-        skipLabel = if (!granted) "Saltar por ahora" else null,
-        onSkip = if (!granted) onNext else null
+        onButton = onNext,
+        buttonEnabled = canContinue
     )
 }
 
@@ -757,7 +688,7 @@ private fun FeaturePage(
     title: String,
     subtitle: String,
     bullets: List<String>,
-    buttonLabel: String = "Continuar",
+    buttonLabel: String? = null,
     onNext: () -> Unit
 ) {
     PageLayout(
@@ -771,37 +702,5 @@ private fun FeaturePage(
         },
         buttonLabel = buttonLabel,
         onButton = onNext
-    )
-}
-
-@Composable
-private fun DynamicUnavailablePage(
-    onSwitchToManual: () -> Unit,
-    onOpenGitHub: () -> Unit
-) {
-    PageLayout(
-        icon = Icons.Filled.OpenInBrowser,
-        title = "Función no disponible",
-        subtitle = "El Dashboard Dinámico no está incluido en la versión de Play Store",
-        content = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                InfoCard(
-                    icon = Icons.Filled.Info,
-                    text = "Esta versión de Qvacell está limitada por las políticas de Google Play. La captura automática de USSD, SMS y registro de llamadas solo está disponible en la versión completa desde GitHub.",
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-                Button(
-                    onClick = onOpenGitHub,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(50)
-                ) {
-                    Icon(Icons.Filled.OpenInBrowser, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Ver releases en GitHub", modifier = Modifier.padding(vertical = 4.dp))
-                }
-            }
-        },
-        buttonLabel = "Continuar con Marcación Rápida",
-        onButton = onSwitchToManual
     )
 }

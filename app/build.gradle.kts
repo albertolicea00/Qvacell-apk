@@ -1,9 +1,15 @@
+import java.security.MessageDigest
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
+    id("com.google.firebase.firebase-perf")
 }
 
 android {
@@ -12,34 +18,72 @@ android {
     // an AGP version the installed Android Studio (2025.1 Meerkat) actually supports syncing.
     compileSdk = 36
 
+    val baseVersionCode = 8
+    val appVersionName = "1.0.8"
+
     defaultConfig {
         applicationId = "com.qvacell.app"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        // Target Android 14 (API 34) for broad OEM compatibility (e.g. Xiaomi HyperOS/MIUI
+        // package installer rejection on API 36) while satisfying Google Play requirements.
+        targetSdk = 34
+        versionCode = baseVersionCode
+        versionName = appVersionName
     }
 
     // "unlocked" (GitHub/sideload) gets the dashboard data-capture pipeline — silent USSD capture,
     // SMS reading, call-log estimation — and the sensitive permissions/receivers it needs.
     // "store" (Google Play) ships without any of that, so the store build never has to clear
     // Play's restricted-permissions review for RECEIVE_SMS/READ_SMS/READ_CALL_LOG.
+    //
+    // Parity-based versionCode scheme:
+    //   store (Google Play): even (baseVersionCode * 2) -> e.g. 5 * 2 = 10
+    //   unlocked (GitHub sideload): odd (baseVersionCode * 2 + 1) -> e.g. 5 * 2 + 1 = 11
+    // Guarantees:
+    //   1. Neither flavor ever collides across releases.
+    //   2. unlocked is always strictly greater than store for the same release, allowing
+    //      seamless update/sideload over the store build without uninstalling or data loss.
     flavorDimensions += "distribution"
     productFlavors {
         create("unlocked") {
             dimension = "distribution"
+            versionCode = baseVersionCode * 2 + 1
+            versionName = appVersionName
             buildConfigField("boolean", "DASHBOARD_CAPTURE_ENABLED", "true")
         }
         create("store") {
             dimension = "distribution"
+            versionCode = baseVersionCode * 2
+            versionName = appVersionName
             buildConfigField("boolean", "DASHBOARD_CAPTURE_ENABLED", "false")
+        }
+    }
+
+    val releasePropsFile = rootProject.file("keys/release.properties")
+    val releaseProps = Properties()
+    if (releasePropsFile.exists()) {
+        releasePropsFile.inputStream().use { releaseProps.load(it) }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = rootProject.file("keys/release.jks")
+            storePassword = releaseProps.getProperty("storePassword")
+            keyAlias = releaseProps.getProperty("keyAlias", "albertolicea00")
+            keyPassword = releaseProps.getProperty("keyPassword")
+            enableV1Signing = true
+            enableV2Signing = true
         }
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (releasePropsFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 
@@ -66,16 +110,48 @@ android {
         }
     }
 
+    applicationVariants.all {
+        val variant = this
+        val apkFileName = "qvacell-v${variant.versionName}-${variant.buildType.name}-${variant.flavorName}.apk"
+        outputs.all {
+            val outputImpl = this as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            outputImpl?.outputFileName = apkFileName
+        }
+        assembleProvider.configure {
+            doLast {
+                variant.outputs.forEach { output ->
+                    val apkFile = (output as? com.android.build.gradle.internal.api.BaseVariantOutputImpl)?.outputFile
+                    if (apkFile != null && apkFile.exists()) {
+                        // Export copy to app/build/outputs/apk/{debug|release}/
+                        val targetDir = File(layout.buildDirectory.get().asFile, "outputs/apk/${variant.buildType.name}")
+                        targetDir.mkdirs()
+                        val destApk = File(targetDir, apkFile.name)
+                        apkFile.copyTo(destApk, overwrite = true)
+
+                        // Solo las de debug deben tener el SHA-256
+                        if (variant.buildType.name == "debug") {
+                            val digest = MessageDigest.getInstance("SHA-256")
+                            val hashBytes = digest.digest(apkFile.readBytes())
+                            val sha256 = hashBytes.joinToString("") { b -> "%02x".format(b) }
+                            val shaContent = "$sha256  ${apkFile.name}\n"
+                            File(apkFile.parentFile, "${apkFile.name}.sha256").writeText(shaContent)
+                            File(targetDir, "${apkFile.name}.sha256").writeText(shaContent)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
-// TODO: the legacy `applicationVariants`/`BaseVariantOutputImpl` API this used to rename output
-// APKs to "qvacell-<variant>-v<versionName>.apk" is gone under AGP 9's variant API, and the
-// direct outputFileName-mutation replacement doesn't compile against this AGP/AGP-recipes'
-// current shape either — needs AGP 9's "listenToArtifacts" recipe, not a mechanical port.
-// Dropped for now (default AGP output naming applies) rather than block this build; unrelated
-// to the AGP bump's actual goal (unblocking compilation for the new dashboard-pipeline code).
-
 dependencies {
+    // BoM 35.0.0 pulls measurement 24.0.0 compiled with Kotlin metadata 2.4, which
+    // this project's Kotlin 2.2.10 compiler cannot read.
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-perf")
+
     val composeBom = platform("androidx.compose:compose-bom:2024.09.03")
     implementation(composeBom)
     androidTestImplementation(composeBom)

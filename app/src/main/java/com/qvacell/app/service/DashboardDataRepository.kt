@@ -1,6 +1,7 @@
 package com.qvacell.app.service
 
 import android.content.Context
+import androidx.room.withTransaction
 import com.qvacell.app.data.QvacellDatabase
 import com.qvacell.app.model.DashboardValueSnapshot
 import com.qvacell.app.model.SourceAnchor
@@ -23,29 +24,49 @@ import kotlinx.coroutines.flow.map
  */
 class DashboardDataRepository(
     context: Context,
-    database: QvacellDatabase = QvacellDatabase.get(context)
+    private val database: QvacellDatabase = QvacellDatabase.get(context)
 ) {
     private val valueDao = database.dashboardValueSnapshotDao()
     private val anchorDao = database.sourceAnchorDao()
 
-    fun observeCurrentValues(): Flow<Map<String, DashboardValueSnapshot>> =
-        valueDao.observeAllLatestPerField().map(::reconcile)
+    fun observeCurrentValues(subscriptionId: Int? = null): Flow<Map<String, DashboardValueSnapshot>> =
+        (subscriptionId?.let { valueDao.observeForSubscription("sim:$it:") }
+            ?: valueDao.observeAllLatestPerField()).map(::reconcile)
 
     fun observeHistory(fieldType: String): Flow<List<DashboardValueSnapshot>> =
         valueDao.observeHistory(fieldType)
+
+    suspend fun getCurrentValues(subscriptionId: Int? = null): Map<String, DashboardValueSnapshot> =
+        reconcile(subscriptionId?.let { valueDao.getForSubscription("sim:$it:") }
+            ?: valueDao.getLatestPerField())
 
     fun observeAnchors(): Flow<List<SourceAnchor>> = anchorDao.observeAll()
 
     suspend fun latestConfirmedAnchorTimestamp(): Long? = anchorDao.latestSuccessfulParseAt()
 
-    suspend fun recordUssdParse(codeId: String, rawText: String, capturedAt: Long = System.currentTimeMillis()) {
-        val signalId = "ussd:$codeId"
+    /** Remove captured values, estimates, and retained raw-response anchors for all SIMs. */
+    suspend fun clearCollectedData() {
+        database.withTransaction {
+            valueDao.deleteAll()
+            anchorDao.deleteAll()
+        }
+    }
+
+    suspend fun recordUssdParse(
+        codeId: String,
+        rawText: String,
+        capturedAt: Long = System.currentTimeMillis(),
+        subscriptionId: Int? = null
+    ): Boolean {
+        val signalId = if (subscriptionId == null) "ussd:$codeId" else "sim:$subscriptionId:ussd:$codeId"
         upsertAnchorSeen(signalId, "USSD", rawText, capturedAt)
         val result = UssdParsers.forCode(codeId).parse(rawText)
         if (result is ParseResult.Success) {
             result.value.forEach { valueDao.insert(it.toSnapshot(signalId, SourceKind.USSD_REAL, capturedAt)) }
             upsertAnchorParsed(signalId, "USSD", rawText, capturedAt)
+            return true
         }
+        return false
     }
 
     /** [messageTimestamp] MUST be the SMS's own timestamp (e.g. Telephony.Sms.DATE), never

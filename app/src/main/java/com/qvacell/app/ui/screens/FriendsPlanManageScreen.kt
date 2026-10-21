@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -30,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.runtime.Composable
@@ -41,13 +43,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.UssdCode
-import com.qvacell.app.service.DialService
+import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.BackNavigationIcon
+import com.qvacell.app.ui.components.rememberDirectDialAction
 
 /**
  * Options › Cuenta › Gestionar Plan Amigo — activate/deactivate/status query up top, then two
@@ -58,32 +63,37 @@ import com.qvacell.app.ui.components.BackNavigationIcon
 fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
+    val dialDirect = rememberDirectDialAction()
 
     var addFriendNumber by remember { mutableStateOf("") }
     var removeFriendNumber by remember { mutableStateOf("") }
+    var showNonCubanError by remember { mutableStateOf(false) }
 
     val addContactLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        pickedNumber(context, result)?.let { addFriendNumber = it }
+        val n = pickedNumber(context, result)
+        if (n != null) addFriendNumber = n else if (result.data?.data != null) showNonCubanError = true
     }
     val removeContactLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        pickedNumber(context, result)?.let { removeFriendNumber = it }
+        val n = pickedNumber(context, result)
+        if (n != null) removeFriendNumber = n else if (result.data?.data != null) showNonCubanError = true
     }
 
     fun dial(code: UssdCode?, input: String? = null) {
         if (code == null) return
-        DialService.dialDirect(context, code.resolvedCode(input))
+        dialDirect(code.resolvedCode(input))
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("Gestionar Plan Amigo") },
-                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+                title = { Text(stringResource(R.string.title_friends_plan)) },
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) },
+                actions = { SimSelectorIcon() }
             )
         }
     ) { padding ->
@@ -93,44 +103,55 @@ fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 Column {
-                    ActionRow("Activar Plan Amigo", Icons.Filled.PersonAdd) { dial(repository.findCodeById("friends-plan-activate")) }
+                    ActionRow(stringResource(R.string.friends_plan_activate), Icons.Filled.PersonAdd) { dial(repository.findCodeById("friends-plan-activate")) }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    ActionRow("Desactivar Plan Amigo", Icons.Filled.PersonRemove) { dial(repository.findCodeById("friends-plan-deactivate")) }
+                    ActionRow(stringResource(R.string.friends_plan_deactivate), Icons.Filled.PersonRemove) { dial(repository.findCodeById("friends-plan-deactivate")) }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    ActionRow("Consultar Plan Amigo", Icons.Filled.Groups) { dial(repository.findCodeById("friends-plan-status-settings")) }
+                    ActionRow(stringResource(R.string.friends_plan_check), Icons.Filled.Groups) { dial(repository.findCodeById("friends-plan-status-settings")) }
                 }
             }
             Text(
-                "Activar el Plan Amigos tiene un costo de $25.00.",
+                stringResource(R.string.friends_plan_cost_note),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 16.dp)
             )
 
-            SectionHeader("Agregar Amigo")
+            SectionHeader(stringResource(R.string.friends_plan_add_section))
             NumberFormCard(
                 number = addFriendNumber,
                 onNumberChange = { addFriendNumber = it },
                 onPickContact = { addContactLauncher.launch(pickContactIntent()) },
-                actionLabel = "Agregar",
+                actionLabel = stringResource(R.string.friends_plan_action_add),
                 onSubmit = {
                     dial(repository.findCodeById("friends-plan-add-member"), addFriendNumber)
                     addFriendNumber = ""
                 }
             )
 
-            SectionHeader("Eliminar Amigo")
+            SectionHeader(stringResource(R.string.friends_plan_remove_section))
             NumberFormCard(
                 number = removeFriendNumber,
                 onNumberChange = { removeFriendNumber = it },
                 onPickContact = { removeContactLauncher.launch(pickContactIntent()) },
-                actionLabel = "Eliminar",
+                actionLabel = stringResource(R.string.friends_plan_action_remove),
                 onSubmit = {
                     dial(repository.findCodeById("friends-plan-remove-member"), removeFriendNumber)
                     removeFriendNumber = ""
                 }
             )
         }
+    }
+
+    if (showNonCubanError) {
+        AlertDialog(
+            onDismissRequest = { showNonCubanError = false },
+            title = { Text(stringResource(R.string.dialog_invalid_number)) },
+            text = { Text(stringResource(R.string.friends_plan_non_cuban_error)) },
+            confirmButton = {
+                TextButton(onClick = { showNonCubanError = false }) { Text(stringResource(R.string.action_accept)) }
+            }
+        )
     }
 }
 
@@ -197,7 +218,7 @@ private fun NumberFormCard(
                     decorationBox = { inner ->
                         if (number.isEmpty()) {
                             Text(
-                                "Número (+53 ...)",
+                                stringResource(R.string.transfer_number_hint),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                             )
@@ -208,7 +229,7 @@ private fun NumberFormCard(
                 IconButton(onClick = onPickContact, modifier = Modifier.size(40.dp)) {
                     Icon(
                         Icons.Filled.Person,
-                        contentDescription = "Elegir de contactos",
+                        contentDescription = stringResource(R.string.transfer_choose_contact),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.size(20.dp)
                     )

@@ -6,3 +6,11 @@ local.properties
 *.iml
 .kotlin/
 captures/
+
+keys/release.jks
+keys/release.properties
+keys/google-services.json
+/app/google-services.json
+
+# Added by ggshield
+.cache_ggshield

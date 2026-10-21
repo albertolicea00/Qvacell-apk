@@ -18,6 +18,9 @@ interface SourceAnchorDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(anchor: SourceAnchor)
 
+    @Query("DELETE FROM source_anchors")
+    suspend fun deleteAll()
+
     /** Most recent confirmed (non-estimated) capture across every signal — the only timestamp
      *  the estimation engine trusts as "since when do we estimate usage". */
     @Query("SELECT MAX(lastSuccessfulParseAt) FROM source_anchors")

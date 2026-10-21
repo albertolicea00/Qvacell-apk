@@ -1,5 +1,7 @@
 package com.qvacell.app.ui.components
 
+import com.qvacell.app.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,18 +34,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.qvacell.app.service.DeviceContact
+import com.qvacell.app.service.ContactEntry
 
-/**
- * One row per contact. Swiping left dials *99 (collect call), swiping right dials #31# (hidden
- * caller ID) — same as the native Samsung Contacts app's swipe-to-call — while tapping the row
- * fires [onClick] (used to open the full options sheet, see `ContactOptionsSheet`). Neither swipe
- * actually removes the row: `confirmValueChange` always returns false so it just fires the call
- * and springs back.
- */
 @Composable
 fun ContactRow(
-    contact: DeviceContact,
+    entry: ContactEntry,
     onClick: () -> Unit,
     onCallCollect: () -> Unit,
     onCallAnonymous: () -> Unit,
@@ -66,7 +61,7 @@ fun ContactRow(
         backgroundContent = {
             val (color, icon, label, alignment) = when (dismissState.dismissDirection) {
                 SwipeToDismissBoxValue.StartToEnd ->
-                    SwipeBackground(MaterialTheme.colorScheme.secondary, Icons.Filled.Security, "Oculto", Alignment.CenterStart)
+                    SwipeBackground(MaterialTheme.colorScheme.secondary, Icons.Filled.Security, stringResource(R.string.contact_hidden), Alignment.CenterStart)
                 SwipeToDismissBoxValue.EndToStart ->
                     SwipeBackground(MaterialTheme.colorScheme.primary, Icons.Filled.Call, "*99", Alignment.CenterEnd)
                 SwipeToDismissBoxValue.Settled ->
@@ -102,9 +97,10 @@ fun ContactRow(
                 }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(contact.name, style = MaterialTheme.typography.bodyLarge)
+                    Text(entry.contact.name, style = MaterialTheme.typography.bodyLarge)
+                    val subtitle = if (entry.label != null) "${entry.label} · ${entry.number}" else entry.number
                     Text(
-                        contact.cubanNumbers.joinToString(", "),
+                        subtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

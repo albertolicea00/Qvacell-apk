@@ -35,20 +35,30 @@ Una aplicación para Android para acceder rápidamente a los **códigos de servi
 > **App Nativa de Android**
 > Esta aplicación está construida de forma nativa para Android con el fin de aprovechar funciones exclusivas de la plataforma (como servicios en segundo plano, identificación de llamadas e integración con SMS) que no se podían replicar completamente en iOS. Por esta razón, existe como un repositorio nativo dedicado e independiente.
 
-## 🛠️ Requisitos
+## 🛠️ Requisitos y Compatibilidad
 
-- 🤖 Android Studio (última versión estable)
-- 📱 Android 8.0+ (API 26)
-- Kotlin 2.0+, Jetpack Compose
+- 🤖 Android Studio (última versión estable para desarrollo)
+- 📱 **Versiones de Android compatibles:**
+  - **Mínimo requerido:** Android 8.0 Oreo (API 26)
+  - **Objetivo actual:** Android 14 (API 34)
+  - **Probado y compatible:** Android 8.0, 9 (Pie), 10 (Q), 11, 12, 13, 14 y 15.
+  - **Capas de personalización compatibles:** One UI (Samsung), HyperOS / MIUI (Xiaomi/Redmi), Android AOSP / Stock, entre otros.
+- 🔑 **Firma de APK:** Compatible con esquemas V1 (JAR) y V2 (Full APK Signature) para asegurar instalación en dispositivos antiguos y ROMs de fabricantes.
+- 💻 Kotlin 2.0+, Jetpack Compose
 
 ## 📦 Variantes de Compilación (Flavors) y Permisos
 
-Este proyecto usa dos "product flavors" de Gradle (dimensión `distribution`) para publicar dos versiones distintas desde el mismo código:
+| Flavor | Distribución | Paridad `versionCode` | Permisos sensibles | Auto-actualización del dashboard |
+| --- | --- | --- | --- | --- |
+| **`store`** | Google Play | **Par** (`base * 2`) | Ninguno de los tres siguientes | Desactivada — solo marcado manual, igual que cualquier otro código de la app |
+| **`unlocked`** | GitHub / APK manual | **Impar** (`base * 2 + 1`) | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (más `CALL_PHONE`) | Activada (interruptores opcionales en Opciones) — captura en segundo plano |
 
-| Flavor | Distribución | Permisos sensibles | Auto-actualización del dashboard |
-| --- | --- | --- | --- |
-| **`store`** | Google Play | Ninguno de los tres siguientes | Desactivada — solo marcado manual, igual que cualquier otro código de la app |
-| **`unlocked`** | GitHub / APK manual | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (más el `CALL_PHONE` ya existente, ahora también usado para captura silenciosa de USSD) | Activada (interruptores opcionales en Opciones) — lee SMS de ETECSA y respuestas USSD en segundo plano y estima el consumo desde la última lectura confirmada, para mantener el dashboard de saldo/datos/voz/SMS actualizado entre consultas manuales |
+> [!TIP]
+> **Estrategia de Paridad de Versiones (`versionCode` Par/Impar)**:
+> Ambos flavors comparten el mismo `applicationId` (`com.qvacell.app`). Para garantizar que un usuario pueda descargar la versión completa (`unlocked`) de GitHub e **instalarla directamente encima** de la versión de Google Play sin desinstalar ni perder datos:
+> - La versión `store` recibe un número par (ej. base 3 $\rightarrow$ code 6).
+> - La versión `unlocked` recibe el número impar inmediatamente superior (ej. base 3 $\rightarrow$ code 7).
+> Al ser $7 > 6$, el sistema Android lo reconoce como una actualización válida. Además, nunca existirá colisión de códigos entre versiones futuras.
 
 `store` existe específicamente para que la versión de Play Store nunca tenga que pasar la revisión de permisos restringidos de Google para `READ_SMS`/`READ_CALL_LOG` — se compila del mismo código exacto, solo que sin los source sets de captura (`app/src/store/`) que sí tiene `unlocked` (`app/src/unlocked/`). Ver [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) para cómo funciona la separación y qué hace la capa de captura de cada flavor.
 
@@ -122,11 +132,25 @@ _El catálogo completo de códigos USSD se carga desde [`codes.json`](app/src/ma
 
 Los códigos de consulta gratuitos se marcan inmediatamente. Los códigos de compra de pago se detienen en el menú de confirmación de ETECSA por defecto; la opción **Acción sin Confirmación** sustituye el código por una variante que autoconfirma, con una advertencia visible en la interfaz.
 
+## 📊 Firebase
+
+La app usa Firebase Analytics para medir primeras aperturas, sesiones y vistas de pantallas (incluidos los dashboards Manual y Dinámico), Crashlytics para reportes de fallos y Performance Monitoring para tiempos de arranque y carga de contactos. Los reportes incluyen la variante `store` o `unlocked`. No se envían nombres de contactos, números telefónicos, PIN, códigos USSD ni respuestas USSD como eventos personalizados. Performance no mide directamente CPU, memoria ni batería.
+
+Para compilar, registra la app Android `com.qvacell.app` en un proyecto Firebase con Analytics habilitado y coloca el archivo descargado en `app/google-services.json`. Git ignora este archivo; consérvalo localmente y comprueba que su clave de API esté restringida a las API de Firebase que usa la app. Ambas variantes comparten esa configuración. Consulta **Analytics › DebugView**, **Crashlytics** y **Performance** en la consola Firebase para validar los reportes. La métrica `first_open` cuenta la primera apertura tras instalar o reinstalar; las descargas de Google Play se consultan en Play Console.
+
 ## 🔍 Directorio Telefónico y Base de Datos Offline
 
 En **Opciones › Utilidades**:
 
 - **Buscar en Database**: Búsqueda inversa offline sobre una base de datos SQLite (`.db`) suministrada por el usuario, importada mediante el selector de archivos del sistema. Por seguridad y privacidad, esta función viene oculta por defecto (se desbloquea tocando 5 veces la versión en _Acerca de_) y la búsqueda es estrictamente solo por número (sin búsqueda por nombre).
+
+## 📶 Red LTE (4G) en Android
+
+En **Opciones › Utilidades › Forzar red a solo LTE (4G)**, Qvacell ofrece un acceso directo al menú de información de radio de Android. La app no cambia la red por sí misma: el usuario debe elegir manualmente **LTE Only / LTE_ONLY** en ese menú. El acceso puede estar bloqueado o no existir según la marca y el modelo.
+
+Antes de cambiar el modo, anota el tipo de red preferida para poder restaurarlo. Algunos teléfonos muestran opciones como **LTE/TD-SCDMA/UMTS** o **LTE/TD-SCDMA/WCDMA**. El modo **Solo LTE** puede impedir recibir y realizar llamadas y enviar SMS; restablece el modo original al terminar.
+
+No confundas este menú de Android con el **Field Test Mode** del iPhone: al marcar `*3001#12345#*` se muestran estadísticas técnicas de señal en tiempo real (por ejemplo, RSRP, bandas y frecuencias), pero no permite bloquear bandas ni seleccionar LTE Only. En Android, `*#*#4636#*#*` puede abrir información de teléfono/red en algunos modelos, y algunos Samsung ofrecen su propio menú de selección de bandas con `*#2263#`; la disponibilidad depende del fabricante y del dispositivo.
 
 ## 🛜 Salas de Navegación y Wi-Fi Público
 
@@ -139,7 +163,9 @@ Incluye un directorio offline de salas de navegación oficiales de ETECSA y punt
 ## 🚧 Limitaciones Conocidas
 
 - **El Identificador de Llamadas no puede mostrar un nombre personalizado en la interfaz del sistema.** A diferencia de la extensión CallKit Call Directory de iOS, la API `CallScreeningService` de Android no permite que una app que no sea el marcador predeterminado inyecte un nombre en la pantalla de llamada entrante del propio sistema. Esta app en su lugar muestra el nombre resuelto mediante una notificación emergente cuando suena una llamada `*99` envuelta. Convertir la app en el marcador predeterminado del usuario para lograr la inyección completa del nombre se descartó deliberadamente — es un compromiso mucho mayor (reemplazar la interfaz principal del teléfono) por una sola función.
+- **Es posible que el número telefónico de la SIM no se detecte automáticamente.** La mayoría de las tarjetas SIM (especialmente Cubacel / ETECSA) no vienen con el número de teléfono (MSISDN) grabado directamente en el chip por la operadora. En tales casos, las APIs de telefonía de Android devuelven `null` o vacío, por lo que la aplicación recurre a mostrar el nombre de la operadora o la ranura (ej. `SIM 1` / `SIM 2`).
 - **Los marcadores de operador/fabricante pueden interceptar los códigos USSD** antes de que el intent `ACTION_DIAL` de esta app llegue al módem, según el dispositivo y la ROM. Este es un comportamiento de la plataforma/fabricante de Android fuera del control de la app.
+- **Puede aparecer un aviso USSD del sistema si se pierde la señal durante una consulta del dashboard.** Qvacell detiene las consultas restantes y muestra su propio estado, pero la API pública `sendUssdRequest` de Android no permite cancelar una petición ya enviada a telefonía ni cerrar un aviso que muestre el sistema o el operador. Activar el modo avión durante una consulta reproduce esta limitación.
 
 ## 🤝 Contribuir
 
@@ -156,6 +182,7 @@ Los códigos se compilaron a partir de los siguientes sitios:
 - https://www.fonoma.com/blog/codigos-ussd-cuba
 - https://www.etecsa.cu/es/taxonomy/term/1445
 - https://www.etecsa.cu/en/rooms-public-spaces
+- https://www.etecsa.cu/es/empresas/movil-combos
 - https://www.ecured.cu/Entumovil
 - https://www.escambray.cu/2017/etecsa-informa-sobre-nuevos-servicios-de-telefonia-movil-para-clientes-prepago-infografia/
 - https://www.entumovil.cu/#:~:text=Para%20activar%20las%20siguientes%20prestaciones%2C,portal%20el%20de%20su%20preferencia.

@@ -3,9 +3,12 @@ package com.qvacell.app.service
 import android.content.Context
 import android.provider.Telephony
 import com.qvacell.app.model.UssdCode
+import com.qvacell.app.data.SettingsDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 
 /**
  * Full/sideload-flavor implementation — same package + object name + function signatures as the
@@ -15,8 +18,7 @@ import kotlinx.coroutines.launch
  */
 object DashboardCapture {
 
-    /** Preserves today's exact tap-to-dial UX unless the experimental toggle is on AND
-     *  CALL_PHONE is granted — any capture failure/timeout falls back to [DialService.dial]. */
+    /** Captures a manual query when enabled; a failed capture never sends the code again. */
     fun captureOrDial(
         context: Context,
         code: UssdCode,
@@ -24,12 +26,29 @@ object DashboardCapture {
         captureEnabled: Boolean
     ) {
         if (captureEnabled && DialService.hasCallPermission(context)) {
-            UssdCaptureService.requestUssd(context, code) { result ->
-                when (result) {
-                    is UssdCaptureResult.Success -> CoroutineScope(Dispatchers.IO).launch {
-                        repository.recordUssdParse(code.id, result.response)
+            if (DashboardRefreshService.currentCodeId.value != null || DashboardRefreshService.isRefreshing.value) return
+            DashboardRefreshService.setCurrentCode(code.id)
+            CoroutineScope(Dispatchers.IO).launch {
+                val settings = SettingsDataStore(context)
+                val line = SimUtils.resolveDashboardLine(
+                    context, settings.selectedSimSlot.first(), settings.simAppearances.first()
+                )
+                if (line.needsSelection ||
+                    (code.id in setOf("main-balance", "corp-balance") && code.id != line.balanceCodeId)
+                ) {
+                    DashboardRefreshService.setCurrentCode(null)
+                    return@launch
+                }
+                UssdCaptureService.requestUssd(context, code, line.subscriptionId) { result ->
+                    when (result) {
+                        is UssdCaptureResult.Success -> CoroutineScope(Dispatchers.IO).launch {
+                            repository.recordUssdParse(code.id, result.response, subscriptionId = line.subscriptionId)
+                            DashboardRefreshService.setCurrentCode(null)
+                        }
+                        is UssdCaptureResult.Failure -> {
+                            DashboardRefreshService.setCurrentCode(null)
+                        }
                     }
-                    is UssdCaptureResult.Failure -> DialService.dialDirect(context, code.resolvedCode())
                 }
             }
         } else {
@@ -41,29 +60,33 @@ object DashboardCapture {
         if (enabled) EstimationScheduler(context).schedule() else EstimationScheduler(context).cancel()
     }
 
-    /** One-time historical SMS scan — call right after READ_SMS is newly granted. */
-    fun triggerSmsBackfill(context: Context, repository: DashboardDataRepository) {
-        CoroutineScope(Dispatchers.IO).launch {
-            context.contentResolver.query(
-                Telephony.Sms.Inbox.CONTENT_URI,
-                arrayOf(Telephony.Sms.ADDRESS, Telephony.Sms.BODY, Telephony.Sms.DATE),
-                null,
-                null,
-                "${Telephony.Sms.DATE} ASC"
-            )?.use { cursor ->
-                val addressIdx = cursor.getColumnIndex(Telephony.Sms.ADDRESS)
-                val bodyIdx = cursor.getColumnIndex(Telephony.Sms.BODY)
-                val dateIdx = cursor.getColumnIndex(Telephony.Sms.DATE)
-                while (cursor.moveToNext()) {
-                    val sender = cursor.getString(addressIdx) ?: continue
-                    val body = cursor.getString(bodyIdx) ?: continue
-                    val date = cursor.getLong(dateIdx)
-                    if (EtecsaSmsFilter.isEtecsaMessage(sender, body)) {
-                        repository.recordSmsBody(sender, body, date)
+    /** One-time historical SMS scan, independent of live incoming-SMS capture. */
+    suspend fun triggerSmsBackfill(context: Context, repository: DashboardDataRepository): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val cursor = context.contentResolver.query(
+                    Telephony.Sms.Inbox.CONTENT_URI,
+                    arrayOf(Telephony.Sms.ADDRESS, Telephony.Sms.BODY, Telephony.Sms.DATE),
+                    null,
+                    null,
+                    "${Telephony.Sms.DATE} ASC"
+                ) ?: return@withContext false
+                cursor.use {
+                    val addressIdx = it.getColumnIndex(Telephony.Sms.ADDRESS)
+                    val bodyIdx = it.getColumnIndex(Telephony.Sms.BODY)
+                    val dateIdx = it.getColumnIndex(Telephony.Sms.DATE)
+                    while (it.moveToNext()) {
+                        val sender = it.getString(addressIdx) ?: continue
+                        val body = it.getString(bodyIdx) ?: continue
+                        val date = it.getLong(dateIdx)
+                        if (EtecsaSmsFilter.isEtecsaMessage(sender, body)) {
+                            repository.recordSmsBody(sender, body, date)
+                        }
                     }
                 }
+                true
+            } catch (_: SecurityException) {
+                false
             }
-            EstimationEngine.computeAndRecordEstimate(context, repository)
         }
-    }
 }

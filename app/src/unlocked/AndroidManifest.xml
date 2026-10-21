@@ -3,8 +3,9 @@
 
     <!-- Dashboard data pipeline (full/sideload flavor only). Silent USSD capture reuses the
          CALL_PHONE permission already declared in the shared manifest for Compras; these three
-         are net-new and are gated behind the "Detección automática por SMS" toggle in Options,
-         off by default. -->
+         are net-new. RECEIVE_SMS gates new-message capture; READ_SMS gates the optional
+         one-time history import; READ_CALL_LOG enables estimates when new-message capture is on.
+         Both SMS controls are off by default. -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />

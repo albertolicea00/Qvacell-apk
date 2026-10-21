@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -40,6 +41,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,28 +59,31 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.UssdCode
 import com.qvacell.app.service.DashboardCapture
 import com.qvacell.app.service.DashboardDataRepository
-import com.qvacell.app.service.DialService
 import com.qvacell.app.service.TransferPinStore
 import com.qvacell.app.ui.components.CodeRow
+import com.qvacell.app.ui.components.rememberDirectDialAction
 import com.qvacell.app.ui.resolveAndroidIcon
 
-private data class QuickTile(val codeId: String, val label: String)
+private data class QuickTile(val codeId: String, @StringRes val labelRes: Int)
 
 private val QUICK_TILES = listOf(
-    QuickTile("main-balance",            "Saldo"),
-    QuickTile("national-recharge-limit", "Límite"),
-    QuickTile("bonus-usd-plans",         "Bono"),
-    QuickTile("data-plan",               "Datos"),
-    QuickTile("voice-balance",           "Voz"),
-    QuickTile("sms-balance",             "SMS"),
-    QuickTile("friends-plan",            "Amigo"),
-    QuickTile("tfa",                     "TFA"),
-    QuickTile("postpaid-balance",        "Pospago"),
+    QuickTile("main-balance",            R.string.dashboard_tile_balance),
+    QuickTile("national-recharge-limit", R.string.dashboard_tile_limit),
+    QuickTile("corp-balance",            R.string.dashboard_tile_corp),
+    QuickTile("data-plan",               R.string.dashboard_tile_data),
+    QuickTile("voice-balance",           R.string.dashboard_tile_voice),
+    QuickTile("sms-balance",             R.string.dashboard_tile_sms),
+    QuickTile("bonus-usd-plans",         R.string.dashboard_tile_bonus),
+    QuickTile("friends-plan",            R.string.dashboard_tile_friends),
+    QuickTile("tfa",                     R.string.dashboard_tile_tfa),
 )
 
 private const val TILE_COLUMNS = 3
@@ -90,13 +95,14 @@ fun ManualDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
-    tileStyle: String = "filled"
+    tileStyle: String = "filled",
+    hiddenSections: Set<String> = emptySet()
 ) {
     val showAsList = tileStyle == "list"
     val context = LocalContext.current
+    val dialDirect = rememberDirectDialAction()
     val pinStore = remember { TransferPinStore(context) }
-
-    val resolvedTiles = remember {
+    val resolvedTiles = remember(repository) {
         QUICK_TILES.mapNotNull { tile ->
             repository.findCodeById(tile.codeId)?.let { tile to it }
         }
@@ -110,6 +116,7 @@ fun ManualDashboardContent(
     var transferAmount by remember { mutableStateOf("") }
     var transferPinVisible by remember { mutableStateOf(false) }
     var cardNumber by remember { mutableStateOf("") }
+    var showNonCubanError by remember { mutableStateOf(false) }
 
     val pickContactLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -119,7 +126,13 @@ fun ManualDashboardContent(
             if (cursor.moveToFirst()) {
                 val idx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
                 if (idx >= 0) {
-                    CubanPhoneNumber.normalize(cursor.getString(idx))?.let { transferNumber = it }
+                    val raw = cursor.getString(idx)
+                    val normalized = CubanPhoneNumber.normalize(raw)
+                    if (normalized != null) {
+                        transferNumber = normalized
+                    } else {
+                        showNonCubanError = true
+                    }
                 }
             }
         }
@@ -133,10 +146,10 @@ fun ManualDashboardContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Quick-action queries — tile grid or contact list
-        if (resolvedTiles.isNotEmpty()) {
+        if (resolvedTiles.isNotEmpty() && "consultas" !in hiddenSections) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "CONSULTAS",
+                    stringResource(R.string.dashboard_consultas),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp)
@@ -175,7 +188,7 @@ fun ManualDashboardContent(
                                     row.forEach { (tile, code) ->
                                         QuickActionTile(
                                             code = code,
-                                            label = tile.label,
+                                            label = stringResource(tile.labelRes),
                                             size = tileSize,
                                             outline = tileStyle == "outline",
                                             onClick = {
@@ -197,10 +210,11 @@ fun ManualDashboardContent(
         }
 
         // Transfer section
+        if ("transferir" !in hiddenSections) {
         val transferEnabled = transferNumber.isNotBlank() && transferPin.isNotBlank() && transferAmount.isNotBlank()
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                "TRANSFERIR SALDO",
+                stringResource(R.string.transfer_title).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
@@ -225,7 +239,7 @@ fun ManualDashboardContent(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (transferNumber.isEmpty()) Text("Número (+53 ...)", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                if (transferNumber.isEmpty()) Text(stringResource(R.string.transfer_number_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                 inner()
                             }
                         )
@@ -239,7 +253,7 @@ fun ManualDashboardContent(
                         ) {
                             Icon(
                                 Icons.Filled.Person,
-                                contentDescription = "Elegir de contactos",
+                                contentDescription = stringResource(R.string.transfer_choose_contact),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier.size(20.dp)
                             )
@@ -266,7 +280,7 @@ fun ManualDashboardContent(
                                 visualTransformation = if (transferPinVisible) VisualTransformation.None else PasswordVisualTransformation(),
                                 singleLine = true,
                                 decorationBox = { inner ->
-                                    if (transferPin.isEmpty()) Text("Clave", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                    if (transferPin.isEmpty()) Text(stringResource(R.string.contacts_pin_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                     inner()
                                 }
                             )
@@ -289,7 +303,7 @@ fun ManualDashboardContent(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (transferAmount.isEmpty()) Text("Monto", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                if (transferAmount.isEmpty()) Text(stringResource(R.string.contacts_amount_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                 inner()
                             }
                         )
@@ -302,24 +316,26 @@ fun ManualDashboardContent(
                             .fillMaxWidth()
                             .clickable(enabled = transferEnabled) {
                                 pinStore.save(transferPin)
-                                DialService.dialDirect(context, "*234*1*$transferNumber*$transferPin*$transferAmount#")
+                                dialDirect("*234*1*$transferNumber*$transferPin*$transferAmount#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Transferir", style = MaterialTheme.typography.bodyMedium, color = transferTint)
+                        Text(stringResource(R.string.contacts_transfer_action), style = MaterialTheme.typography.bodyMedium, color = transferTint)
                         Spacer(Modifier.width(4.dp))
                         Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = transferTint, modifier = Modifier.size(16.dp))
                     }
                 }
             }
         }
+        }
 
         // Recargar por Llamada — standalone card (above tarjeta)
+        if ("recargar" !in hiddenSections) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
-                "RECARGAR SALDO",
+                stringResource(R.string.recharge_title).uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
@@ -332,7 +348,7 @@ fun ManualDashboardContent(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { DialService.dialDirect(context, "*88#") }
+                        .clickable { dialDirect("*88#") }
                         .padding(horizontal = 16.dp, vertical = 14.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -345,7 +361,7 @@ fun ManualDashboardContent(
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
-                            "Recargar por Llamada",
+                            stringResource(R.string.recharge_by_call),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(start = 8.dp)
@@ -382,7 +398,7 @@ fun ManualDashboardContent(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true,
                         decorationBox = { inner ->
-                            if (cardNumber.isEmpty()) Text("Número de tarjeta", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                            if (cardNumber.isEmpty()) Text(stringResource(R.string.recharge_card_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                             inner()
                         }
                     )
@@ -396,24 +412,25 @@ fun ManualDashboardContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable(enabled = rechargeEnabled) {
-                            DialService.dialDirect(context, "*662*$cardNumber#")
+                            dialDirect("*662*$cardNumber#")
                         }
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Recargar con Tarjeta", style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
+                    Text(stringResource(R.string.recharge_with_card), style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
                     Spacer(Modifier.width(4.dp))
                     Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = rechargeTint, modifier = Modifier.size(16.dp))
                 }
             }
         }
+        }
 
         // Advance balance section
-        if (advanceBalanceCodes.isNotEmpty()) {
+        if (advanceBalanceCodes.isNotEmpty() && "adelanta" !in hiddenSections) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    "ADELANTA SALDO",
+                    stringResource(R.string.recharge_advance_section),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
@@ -424,7 +441,7 @@ fun ManualDashboardContent(
                 ) {
                     advanceBalanceCodes.forEach { code ->
                         androidx.compose.material3.OutlinedButton(
-                            onClick = { DialService.dialDirect(context, code.resolvedCode()) },
+                            onClick = { dialDirect(code.resolvedCode()) },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(code.price ?: code.title.value)
@@ -433,6 +450,17 @@ fun ManualDashboardContent(
                 }
             }
         }
+    }
+
+    if (showNonCubanError) {
+        AlertDialog(
+            onDismissRequest = { showNonCubanError = false },
+            title = { Text(stringResource(R.string.transfer_invalid_number_title)) },
+            text = { Text(stringResource(R.string.transfer_invalid_number_desc)) },
+            confirmButton = {
+                TextButton(onClick = { showNonCubanError = false }) { Text(stringResource(R.string.action_ok)) }
+            }
+        )
     }
 }
 

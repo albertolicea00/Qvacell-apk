@@ -25,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.service.DashboardDataRepository
+import com.qvacell.app.service.UpdateChecker
+import kotlinx.coroutines.launch
 
 private const val GITHUB_RELEASES_URL = "https://github.com/albertolicea00/qvacell-apk/releases"
 
@@ -41,10 +44,10 @@ fun DynamicDashboardContent(
     repository: CatalogRepository,
     dashboardRepository: DashboardDataRepository,
     ussdCaptureEnabled: Boolean,
-    onTransfer: () -> Unit,
-    onRecharge: () -> Unit
+    cardTapMode: String = "tap_confirm"
 ) {
     val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -111,7 +114,11 @@ fun DynamicDashboardContent(
         Spacer(Modifier.height(8.dp))
 
         Button(
-            onClick = { uriHandler.openUri(GITHUB_RELEASES_URL) },
+            onClick = {
+                scope.launch {
+                    uriHandler.openUri(UpdateChecker.preferredUnlockedApkUrl() ?: GITHUB_RELEASES_URL)
+                }
+            },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(50)
         ) {
@@ -120,7 +127,7 @@ fun DynamicDashboardContent(
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
-            Text("Ver releases en GitHub", modifier = Modifier.padding(start = 8.dp))
+            Text("Descargar APK completo", modifier = Modifier.padding(start = 8.dp))
         }
     }
 }

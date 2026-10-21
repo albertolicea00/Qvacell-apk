@@ -1,9 +1,47 @@
 package com.qvacell.app.model
 
+import androidx.annotation.StringRes
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.qvacell.app.R
 
-enum class ReminderRecurrence { NONE, DAILY, WEEKLY, MONTHLY, CUSTOM }
+enum class ReminderRecurrence(val label: String, @StringRes val labelRes: Int) {
+    NONE("Una vez", R.string.recurrence_none),
+    DAILY("Cada día", R.string.recurrence_daily),
+    WEEKLY("Cada semana", R.string.recurrence_weekly),
+    MONTHLY("Cada mes", R.string.recurrence_monthly),
+    CUSTOM("Personalizado", R.string.recurrence_custom);
+}
+
+data class ReminderTemplate(
+    val key: String,
+    val title: String,
+    val message: String,
+    val iconName: String,
+    val ussdCodeId: String?,
+    val needsPhoneNumber: Boolean,
+    val defaultRecurrence: ReminderRecurrence
+) {
+    companion object {
+        val quickTemplates = listOf(
+            ReminderTemplate("purchase-package", "Comprar Paquete", "Recuerda comprar tu paquete de datos, voz o SMS.", "shippingbox.fill", null, false, ReminderRecurrence.MONTHLY),
+            ReminderTemplate("transfer-direct", "Hacer Transferencia", "Recuerda hacer tu transferencia de saldo.", "arrow.left.arrow.right", "transfer-direct", true, ReminderRecurrence.NONE),
+            ReminderTemplate("recharge-card", "Recargar Saldo", "Recuerda recargar tu saldo con una tarjeta.", "creditcard.fill", "recharge-card", false, ReminderRecurrence.NONE),
+        )
+        val custom = ReminderTemplate("custom", "", "", "bell.fill", null, false, ReminderRecurrence.NONE)
+
+        fun forKey(key: String?): ReminderTemplate =
+            quickTemplates.find { it.key == key } ?: custom
+
+        @StringRes
+        fun titleRes(key: String?): Int = when (key) {
+            "purchase-package" -> R.string.template_purchase_package
+            "transfer-direct" -> R.string.template_transfer_direct
+            "recharge-card" -> R.string.template_recharge_card
+            else -> R.string.template_custom
+        }
+    }
+}
 
 @Entity(tableName = "reminders")
 data class Reminder(

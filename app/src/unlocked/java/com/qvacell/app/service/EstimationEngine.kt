@@ -7,7 +7,6 @@ import android.provider.CallLog
 import android.provider.Telephony
 import androidx.core.content.ContextCompat
 import com.qvacell.app.data.FieldTypes
-import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.parsing.ParsedDashboardValue
 
 /**
@@ -21,8 +20,7 @@ object EstimationEngine {
         val anchor = repository.latestConfirmedAnchorTimestamp() ?: return
         val now = System.currentTimeMillis()
 
-        val callsMade = mutableListOf<Int>()
-        var minutesTalked = 0L
+        val estimate = UsageEstimateAccumulator()
         if (hasPermission(context, Manifest.permission.READ_CALL_LOG)) {
             context.contentResolver.query(
                 CallLog.Calls.CONTENT_URI,
@@ -36,16 +34,16 @@ object EstimationEngine {
                 val typeIdx = cursor.getColumnIndex(CallLog.Calls.TYPE)
                 while (cursor.moveToNext()) {
                     // ETECSA plans bill outgoing minutes, not incoming — count outgoing only.
-                    if (cursor.getInt(typeIdx) != CallLog.Calls.OUTGOING_TYPE) continue
-                    val number = cursor.getString(numberIdx) ?: continue
-                    if (CubanPhoneNumber.normalize(number) == null) continue
-                    callsMade.add(1)
-                    minutesTalked += cursor.getLong(durationIdx) / 60
+                    estimate.addCall(
+                        type = cursor.getInt(typeIdx),
+                        outgoingType = CallLog.Calls.OUTGOING_TYPE,
+                        number = cursor.getString(numberIdx),
+                        durationSeconds = cursor.getLong(durationIdx)
+                    )
                 }
             }
         }
 
-        var smsSent = 0
         if (hasPermission(context, Manifest.permission.READ_SMS)) {
             context.contentResolver.query(
                 Telephony.Sms.Sent.CONTENT_URI,
@@ -56,18 +54,16 @@ object EstimationEngine {
             )?.use { cursor ->
                 val addressIdx = cursor.getColumnIndex(Telephony.Sms.ADDRESS)
                 while (cursor.moveToNext()) {
-                    val address = cursor.getString(addressIdx) ?: continue
-                    if (CubanPhoneNumber.normalize(address) == null) continue
-                    smsSent++
+                    estimate.addSentSms(cursor.getString(addressIdx))
                 }
             }
         }
 
         repository.recordEstimate(
             listOf(
-                ParsedDashboardValue(fieldType = FieldTypes.CALLS_MADE_ESTIMATE, numericValue = callsMade.size.toDouble()),
-                ParsedDashboardValue(fieldType = FieldTypes.VOICE_MINUTES_ESTIMATE, numericValue = minutesTalked.toDouble()),
-                ParsedDashboardValue(fieldType = FieldTypes.SMS_SENT_ESTIMATE, numericValue = smsSent.toDouble())
+                ParsedDashboardValue(fieldType = FieldTypes.CALLS_MADE_ESTIMATE, numericValue = estimate.callsMade.toDouble()),
+                ParsedDashboardValue(fieldType = FieldTypes.VOICE_MINUTES_ESTIMATE, numericValue = estimate.voiceMinutes.toDouble()),
+                ParsedDashboardValue(fieldType = FieldTypes.SMS_SENT_ESTIMATE, numericValue = estimate.smsSent.toDouble())
             ),
             now
         )

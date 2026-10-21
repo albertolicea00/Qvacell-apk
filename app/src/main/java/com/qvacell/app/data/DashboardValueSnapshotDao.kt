@@ -12,6 +12,9 @@ interface DashboardValueSnapshotDao {
     @Insert
     suspend fun insert(snapshot: DashboardValueSnapshot): Long
 
+    @Query("DELETE FROM dashboard_value_snapshots")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM dashboard_value_snapshots WHERE fieldType = :fieldType ORDER BY capturedAt ASC")
     fun observeHistory(fieldType: String): Flow<List<DashboardValueSnapshot>>
 
@@ -38,4 +41,23 @@ interface DashboardValueSnapshotDao {
         """
     )
     fun observeAllLatestPerField(): Flow<List<DashboardValueSnapshot>>
+
+    @Query("SELECT * FROM dashboard_value_snapshots WHERE sourceSignalId LIKE :sourcePrefix || '%'")
+    fun observeForSubscription(sourcePrefix: String): Flow<List<DashboardValueSnapshot>>
+
+    @Query(
+        """
+        SELECT s.* FROM dashboard_value_snapshots s
+        INNER JOIN (
+            SELECT fieldType, (sourceKind != 'ESTIMATED') AS isReal, MAX(capturedAt) AS maxCapturedAt
+            FROM dashboard_value_snapshots GROUP BY fieldType, isReal
+        ) latest ON s.fieldType = latest.fieldType
+            AND s.capturedAt = latest.maxCapturedAt
+            AND (s.sourceKind != 'ESTIMATED') = latest.isReal
+        """
+    )
+    suspend fun getLatestPerField(): List<DashboardValueSnapshot>
+
+    @Query("SELECT * FROM dashboard_value_snapshots WHERE sourceSignalId LIKE :sourcePrefix || '%'")
+    suspend fun getForSubscription(sourcePrefix: String): List<DashboardValueSnapshot>
 }

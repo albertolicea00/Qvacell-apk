@@ -3,9 +3,16 @@ package com.qvacell.app.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.qvacell.app.service.SimUtils
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 private val Context.dataStore by preferencesDataStore(name = "qvacell_settings")
 
@@ -19,12 +26,23 @@ class SettingsDataStore(private val context: Context) {
     private val debugDbSearchKey = stringPreferencesKey("debug_db_search_enabled")
     private val quickPurchaseNoConfirmKey = booleanPreferencesKey("quick_purchase_no_confirm_default")
     private val showNetworkStatusKey = booleanPreferencesKey("show_network_status")
+    private val contactCallModeKey = stringPreferencesKey("contact_call_mode")
     private val ussdCaptureEnabledKey = booleanPreferencesKey("ussd_capture_enabled")
     private val smsCaptureEnabledKey = booleanPreferencesKey("sms_capture_enabled")
+    private val smsHistoryEnabledKey = booleanPreferencesKey("sms_history_enabled")
     private val hasRunSmsBackfillKey = booleanPreferencesKey("has_run_sms_backfill")
     private val hasCompletedOnboardingKey = booleanPreferencesKey("has_completed_onboarding")
-    private val dashboardModeKey = stringPreferencesKey("dashboard_mode")
     private val quickActionsStyleKey = stringPreferencesKey("quick_actions_style")
+    private val cardTapModeKey = stringPreferencesKey("card_tap_mode")
+    private val dashboardLoadingStyleKey = stringPreferencesKey("dashboard_loading_style")
+    private val manualHiddenSectionsKey = stringSetPreferencesKey("manual_hidden_sections")
+    private val selectedSimSlotKey = intPreferencesKey("selected_sim_slot")
+    private val selectedSimSubscriptionIdKey = intPreferencesKey("selected_sim_subscription_id")
+    private val simAppearancesKey = stringPreferencesKey("sim_appearances")
+    private val simSwitchActionKey = stringPreferencesKey("sim_switch_action")
+    private val staleDaysThresholdKey = intPreferencesKey("stale_days_threshold")
+    private val autoUpdateCheckKey = stringPreferencesKey("auto_update_check")
+    private val lastSuccessfulUpdateCheckAtKey = longPreferencesKey("last_successful_update_check_at")
 
     val themeMode = context.dataStore.data.map {
         ThemeMode.valueOf(it[themeModeKey] ?: ThemeMode.SYSTEM.name)
@@ -50,26 +68,68 @@ class SettingsDataStore(private val context: Context) {
     // cellular signal before a USSD dial, same AppStorage flag as iOS's showNetworkStatus.
     val showNetworkStatus = context.dataStore.data.map { it[showNetworkStatusKey] ?: false }
 
+    // "dialer" (default) or "direct" for *99 and hidden-number calls from Contacts.
+    val contactCallMode = context.dataStore.data.map { it[contactCallModeKey] ?: "dialer" }
+
     // "Consulta automática de saldo (experimental)" — silent TelephonyManager.sendUssdRequest
     // capture instead of the plain system-dialer flow. Off by default: ETECSA's gateway
     // reliability through this API is unverified. Full flavor only (see BuildConfig.DASHBOARD_CAPTURE_ENABLED).
     val ussdCaptureEnabled = context.dataStore.data.map { it[ussdCaptureEnabledKey] ?: false }
 
-    // "Detección automática por SMS" — reads new + historical ETECSA SMS and the call log to
-    // estimate usage. Off by default; enabling it requests RECEIVE_SMS/READ_SMS/READ_CALL_LOG.
+    // New ETECSA SMS capture and call-log estimation. Off by default.
     val smsCaptureEnabled = context.dataStore.data.map { it[smsCaptureEnabledKey] ?: false }
 
-    // One-way — the historical SMS scan only ever runs once per install, right after READ_SMS is
-    // newly granted.
+    // Separate consent for importing existing SMS. Previous users who completed the one-time
+    // import keep the history switch on when this preference is introduced.
+    val smsHistoryEnabled = context.dataStore.data.map {
+        it[smsHistoryEnabledKey] ?: (it[hasRunSmsBackfillKey] ?: false)
+    }
+
+    // The historical SMS scan runs once per install after READ_SMS is granted.
     val hasRunSmsBackfill = context.dataStore.data.map { it[hasRunSmsBackfillKey] ?: false }
 
     val hasCompletedOnboarding = context.dataStore.data.map { it[hasCompletedOnboardingKey] ?: false }
 
-    // "dynamic" or "manual" — set during onboarding, empty string means not yet chosen.
-    val dashboardMode = context.dataStore.data.map { it[dashboardModeKey] ?: "" }
-
-    // "filled" (default) or "outline" — tile card style for "manual" dashboard mode.
+    // "filled" (default), "outline", or "list" for manual-dashboard actions.
     val quickActionsStyle = context.dataStore.data.map { it[quickActionsStyleKey] ?: "filled" }
+
+    // How dashboard cards trigger USSD queries: tap_confirm (default), tap, double_tap,
+    // long_confirm, long, triple_tap.
+    val cardTapMode = context.dataStore.data.map { it[cardTapModeKey] ?: "tap_confirm" }
+    val dashboardLoadingStyle = context.dataStore.data.map { it[dashboardLoadingStyleKey] ?: "sweep" }
+
+    // Empty by default, so all manual-dashboard sections are visible.
+    // Optional hidden sections: "consultas", "transferir", "recargar", "adelanta".
+    val manualHiddenSections = context.dataStore.data.map { it[manualHiddenSectionsKey] ?: emptySet() }
+
+    // Use the saved SIM, or choose an active SIM for existing installs without a selection.
+    data class SimSelectorPreferences(val selectedSlot: Int, val appearances: Map<String, SimAppearance>)
+
+    val simSelectorPreferences: Flow<SimSelectorPreferences?> = context.dataStore.data.map { preferences ->
+        SimSelectorPreferences(
+            selectedSlot = SimUtils.resolveSelectedSlot(
+                context,
+                preferences[selectedSimSlotKey] ?: -1,
+                preferences[selectedSimSubscriptionIdKey] ?: -1
+            ),
+            appearances = decodeSimAppearances(preferences[simAppearancesKey])
+        )
+    }
+    val selectedSimSlot = context.dataStore.data.map {
+        SimUtils.resolveSelectedSlot(
+            context,
+            it[selectedSimSlotKey] ?: -1,
+            it[selectedSimSubscriptionIdKey] ?: -1
+        )
+    }
+    val simAppearances = context.dataStore.data.map { decodeSimAppearances(it[simAppearancesKey]) }
+    val simSwitchAction = context.dataStore.data.map { it[simSwitchActionKey] ?: "sheet" }
+
+    val staleDaysThreshold = context.dataStore.data.map { it[staleDaysThresholdKey] ?: 14 }
+
+    // "unlocked" (default), "playstore", or "none"
+    val autoUpdateCheck = context.dataStore.data.map { it[autoUpdateCheckKey] ?: "unlocked" }
+    val lastSuccessfulUpdateCheckAt = context.dataStore.data.map { it[lastSuccessfulUpdateCheckAtKey] ?: 0L }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[themeModeKey] = mode.name }
@@ -95,12 +155,20 @@ class SettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[showNetworkStatusKey] = enabled }
     }
 
+    suspend fun setContactCallMode(mode: String) {
+        context.dataStore.edit { it[contactCallModeKey] = mode }
+    }
+
     suspend fun setUssdCaptureEnabled(enabled: Boolean) {
         context.dataStore.edit { it[ussdCaptureEnabledKey] = enabled }
     }
 
     suspend fun setSmsCaptureEnabled(enabled: Boolean) {
         context.dataStore.edit { it[smsCaptureEnabledKey] = enabled }
+    }
+
+    suspend fun setSmsHistoryEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[smsHistoryEnabledKey] = enabled }
     }
 
     suspend fun setHasRunSmsBackfill(enabled: Boolean) {
@@ -111,12 +179,73 @@ class SettingsDataStore(private val context: Context) {
         context.dataStore.edit { it[hasCompletedOnboardingKey] = completed }
     }
 
-    suspend fun setDashboardMode(mode: String) {
-        context.dataStore.edit { it[dashboardModeKey] = mode }
-    }
-
     suspend fun setQuickActionsStyle(style: String) {
         context.dataStore.edit { it[quickActionsStyleKey] = style }
+    }
+
+    suspend fun setCardTapMode(mode: String) {
+        context.dataStore.edit { it[cardTapModeKey] = mode }
+    }
+
+    suspend fun setDashboardLoadingStyle(style: String) {
+        context.dataStore.edit { it[dashboardLoadingStyleKey] = style }
+    }
+
+    suspend fun setManualHiddenSections(sections: Set<String>) {
+        context.dataStore.edit { it[manualHiddenSectionsKey] = sections }
+    }
+
+    suspend fun setSelectedSimSlot(slot: Int) {
+        require(slot >= 0) { "A SIM must be selected" }
+        val subscriptionId = SimUtils.getActiveSubscriptions(context)
+            .firstOrNull { it.simSlotIndex == slot }
+            ?.subscriptionId
+        context.dataStore.edit { preferences ->
+            preferences[selectedSimSlotKey] = slot
+            if (subscriptionId != null) preferences[selectedSimSubscriptionIdKey] = subscriptionId
+        }
+    }
+
+    suspend fun setSimSwitchAction(action: String) {
+        require(action in setOf("sheet", "cycle", "menu")) { "Unknown SIM switch action" }
+        context.dataStore.edit { it[simSwitchActionKey] = action }
+    }
+
+    suspend fun setSimAppearance(subscriptionId: Int, appearance: SimAppearance) {
+        context.dataStore.edit { preferences ->
+            val current = decodeSimAppearances(preferences[simAppearancesKey])
+            preferences[simAppearancesKey] = Json.encodeToString(current + (subscriptionId.toString() to appearance))
+        }
+    }
+
+    suspend fun setSimLineType(subscriptionId: Int, isCorporate: Boolean) {
+        context.dataStore.edit { preferences ->
+            val current = decodeSimAppearances(preferences[simAppearancesKey])
+            val key = subscriptionId.toString()
+            val appearance = current[key] ?: SimAppearance()
+            preferences[simAppearancesKey] = Json.encodeToString(
+                current + (key to appearance.copy(isCorporate = isCorporate))
+            )
+        }
+    }
+
+    private fun decodeSimAppearances(value: String?): Map<String, SimAppearance> =
+        runCatching { Json.decodeFromString<Map<String, SimAppearance>>(value ?: "{}") }
+            .getOrDefault(emptyMap())
+
+    suspend fun setStaleDaysThreshold(days: Int) {
+        context.dataStore.edit { it[staleDaysThresholdKey] = days }
+    }
+
+    suspend fun setAutoUpdateCheck(mode: String) {
+        context.dataStore.edit {
+            if (it[autoUpdateCheckKey] != mode) it.remove(lastSuccessfulUpdateCheckAtKey)
+            it[autoUpdateCheckKey] = mode
+        }
+    }
+
+    suspend fun setLastSuccessfulUpdateCheckAt(timeMillis: Long) {
+        context.dataStore.edit { it[lastSuccessfulUpdateCheckAtKey] = timeMillis }
     }
 
     companion object {

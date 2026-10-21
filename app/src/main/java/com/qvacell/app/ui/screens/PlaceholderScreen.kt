@@ -60,7 +60,7 @@ fun PlaceholderScreen(title: String, description: String, onBack: (() -> Unit)? 
             }
             Spacer(Modifier.height(32.dp))
             Text(
-                "Próximamente",
+                androidx.compose.ui.res.stringResource(com.qvacell.app.R.string.action_coming_soon),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground
             )

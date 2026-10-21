@@ -23,7 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.qvacell.app.R
 import androidx.compose.ui.unit.dp
 import com.qvacell.app.model.UssdCode
 import com.qvacell.app.ui.resolveAndroidIcon
@@ -90,7 +92,7 @@ fun CodeRow(
                 color = MaterialTheme.colorScheme.secondaryContainer
             ) {
                 Text(
-                    "Suscripción",
+                    stringResource(R.string.subscription_badge),
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )

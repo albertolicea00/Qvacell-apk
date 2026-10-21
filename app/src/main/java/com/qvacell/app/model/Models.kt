@@ -8,8 +8,8 @@ data class LocalizedString(
     val es: String,
     val en: String
 ) {
-    // App UI copy is Spanish-only for now (no locale switch wired up yet).
-    val value: String get() = es
+    val value: String
+        get() = if (java.util.Locale.getDefault().language.startsWith("en", ignoreCase = true)) en else es
 
     override fun toString(): String = value
 }

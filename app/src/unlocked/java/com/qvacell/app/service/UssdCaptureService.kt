@@ -19,20 +19,27 @@ sealed interface UssdCaptureResult {
 /**
  * Wraps TelephonyManager.sendUssdRequest (API 26+) — silent capture of a USSD response's reply
  * text, bypassing the system dialer. ETECSA's gateway reliability through this API is unverified
- * (some carriers route the reply as an OS-level dialog the callback never sees) — callers MUST
- * treat [UssdCaptureResult.Failure] as "fall back to DialService.dial", never as a dead end.
+ * (some carriers route the reply as an OS-level dialog the callback never sees). Callers decide
+ * whether to surface a dashboard error or fall back to dialing for a manual action.
  * Requires CALL_PHONE (already granted for Compras).
  */
 object UssdCaptureService {
     private const val TIMEOUT_MILLIS = 15_000L
 
-    fun requestUssd(context: Context, code: UssdCode, onResult: (UssdCaptureResult) -> Unit) {
+    fun requestUssd(
+        context: Context,
+        code: UssdCode,
+        subscriptionId: Int? = null,
+        onResult: (UssdCaptureResult) -> Unit
+    ) {
         if (!DialService.hasCallPermission(context)) {
             onResult(UssdCaptureResult.Failure("permission_denied"))
             return
         }
 
-        val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val baseTelephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        val telephonyManager = subscriptionId?.let { baseTelephonyManager.createForSubscriptionId(it) }
+            ?: baseTelephonyManager
         val deferred = CompletableDeferred<UssdCaptureResult>()
 
         try {
@@ -59,6 +66,12 @@ object UssdCaptureService {
             )
         } catch (e: SecurityException) {
             onResult(UssdCaptureResult.Failure("security_exception"))
+            return
+        } catch (e: IllegalArgumentException) {
+            onResult(UssdCaptureResult.Failure("invalid_subscription"))
+            return
+        } catch (e: UnsupportedOperationException) {
+            onResult(UssdCaptureResult.Failure("unsupported"))
             return
         }
 

@@ -8,5 +8,7 @@
     android:initialLayout="@layout/widget_quick_actions"
     android:resizeMode="none"
     android:widgetCategory="home_screen"
+    android:widgetFeatures="reconfigurable"
+    android:previewLayout="@layout/widget_quick_actions"
     android:configure="com.qvacell.app.widget.QuickActionsWidgetConfigure"
     android:description="@string/app_name" />

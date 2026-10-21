@@ -4,10 +4,12 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import com.qvacell.app.service.AppTelemetry
 
 class QvacellApplication : Application() {
     override fun onCreate() {
         super.onCreate()
+        AppTelemetry.initialize(this)
         createNotificationChannels()
     }
 

@@ -10,16 +10,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,13 +35,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.qvacell.app.service.DialService
-import com.qvacell.app.ui.components.ScanCardButton
+import com.qvacell.app.R
+import com.qvacell.app.data.CatalogRepository
 
 @Composable
 fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
     val context = LocalContext.current
+    val dialDirect = rememberDirectDialAction(onDone)
+    val repository = remember { CatalogRepository(context) }
+    val advanceBalanceCodes = remember {
+        listOf("advance-balance-25", "advance-balance-50").mapNotNull { repository.findCodeById(it) }
+    }
     var cardNumber by remember { mutableStateOf("") }
 
     val rechargeEnabled = cardNumber.isNotBlank()
@@ -51,22 +61,57 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Recargar con Tarjeta",
+                stringResource(R.string.recharge_title),
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(bottom = 4.dp)
+                modifier = Modifier.padding(bottom = 2.dp)
             )
 
-            Text(
-                "Número de Tarjeta",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
-            )
+            // Recargar por Llamada — card sola
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            dialDirect("*88#")
+                        }
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Filled.Phone,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            stringResource(R.string.recharge_by_call),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+
+            // Formulario de Recargar con Tarjeta
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
             ) {
                 Column {
@@ -91,7 +136,13 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    if (cardNumber.isEmpty()) Text("Número de tarjeta", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                    if (cardNumber.isEmpty()) {
+                                        Text(
+                                            stringResource(R.string.recharge_card_hint),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                        )
+                                    }
                                     inner()
                                 }
                             }
@@ -100,22 +151,48 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
                         Spacer(Modifier.width(4.dp))
                     }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    val tint = if (rechargeEnabled) MaterialTheme.colorScheme.primary
-                               else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                    val rechargeTint = if (rechargeEnabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable(enabled = rechargeEnabled) {
-                                DialService.dial(context, "*662*$cardNumber#")
-                                onDone()
+                                dialDirect("*662*$cardNumber#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Recargar", style = MaterialTheme.typography.bodyMedium, color = tint)
+                        Text(stringResource(R.string.recharge_with_card), style = MaterialTheme.typography.bodyMedium, color = rechargeTint)
                         Spacer(Modifier.width(4.dp))
-                        Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = rechargeTint, modifier = Modifier.size(16.dp))
+                    }
+                }
+            }
+
+            // Opciones de Adelanta Saldo debajo de ambos
+            if (advanceBalanceCodes.isNotEmpty()) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(R.string.recharge_advance_section),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        advanceBalanceCodes.forEach { code ->
+                            OutlinedButton(
+                                onClick = {
+                                    dialDirect(code.resolvedCode())
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(code.price ?: code.title.value)
+                            }
+                        }
                     }
                 }
             }

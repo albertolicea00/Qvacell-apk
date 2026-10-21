@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -22,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import com.qvacell.app.R
 
 /**
  * TopAppBar that shows a title with a search icon action by default, and swaps
@@ -36,13 +39,14 @@ fun SearchableTopAppBar(
     onQueryChange: (String) -> Unit,
     searching: Boolean,
     onSearchingChange: (Boolean) -> Unit,
-    placeholder: String = "Buscar",
+    placeholder: String? = null,
     showSearchAction: Boolean = true,
     // e.g. "Salas de Navegación" shown small above the province name — the section this
     // screen's title belongs to, when that's worth spelling out separately from the title.
     subtitle: String? = null,
     // Non-null only for screens pushed on top of another (never the bottom-tab roots).
-    onBack: (() -> Unit)? = null
+    onBack: (() -> Unit)? = null,
+    extraActions: @Composable RowScope.() -> Unit = {}
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -58,7 +62,7 @@ fun SearchableTopAppBar(
                     value = query,
                     onValueChange = onQueryChange,
                     modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-                    placeholder = { Text(placeholder) },
+                    placeholder = { Text(placeholder ?: stringResource(R.string.action_search_hint)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     colors = TextFieldDefaults.colors(
@@ -81,6 +85,7 @@ fun SearchableTopAppBar(
             if (onBack != null) BackNavigationIcon(onBack)
         },
         actions = {
+            if (!searching) { extraActions() }
             if (showSearchAction || searching) {
                 IconButton(onClick = {
                     if (searching) {
@@ -92,7 +97,7 @@ fun SearchableTopAppBar(
                 }) {
                     Icon(
                         imageVector = if (searching) Icons.Filled.Close else Icons.Filled.Search,
-                        contentDescription = if (searching) "Cerrar búsqueda" else "Buscar",
+                        contentDescription = if (searching) stringResource(R.string.action_close_search) else stringResource(R.string.action_search),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }

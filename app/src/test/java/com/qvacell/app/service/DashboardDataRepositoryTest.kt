@@ -84,6 +84,40 @@ class DashboardDataRepositoryTest {
     }
 
     @Test
+    fun `dashboard values stay on their own subscription`() = runTest {
+        val response = "Saldo: 23.50 CUP"
+        assertEquals(true, repository.recordUssdParse("main-balance", response, capturedAt = 1000L, subscriptionId = 41))
+        assertEquals(true, repository.recordUssdParse("main-balance", "Saldo: 80 CUP", capturedAt = 2000L, subscriptionId = 42))
+
+        assertEquals(23.5, repository.getCurrentValues(41)["main_balance"]?.numericValue)
+        assertEquals(80.0, repository.getCurrentValues(42)["main_balance"]?.numericValue)
+        assertEquals(80.0, repository.getCurrentValues()["main_balance"]?.numericValue)
+    }
+
+    @Test
+    fun `clearCollectedData removes values estimates and raw response anchors`() = runTest {
+        assertEquals(true, repository.recordUssdParse("main-balance", "Saldo: 23.50 CUP", subscriptionId = 41))
+        repository.recordEstimate(
+            listOf(ParsedDashboardValue(fieldType = "calls_made_estimate", numericValue = 3.0)),
+            estimatedAt = 2000L
+        )
+        assertEquals(2, repository.getCurrentValues().size)
+
+        repository.clearCollectedData()
+
+        assertEquals(0, repository.getCurrentValues().size)
+        repository.observeAnchors().test {
+            assertEquals(emptyList<SourceAnchor>(), awaitItem())
+        }
+    }
+
+    @Test
+    fun `unrecognized corporate response does not count as parsed`() = runTest {
+        assertEquals(false, repository.recordUssdParse("corp-balance", "respuesta pendiente", subscriptionId = 41))
+        assertEquals(null, repository.getCurrentValues(41)["main_balance"])
+    }
+
+    @Test
     fun `recordSmsBody uses the message's own timestamp, not wall-clock now`() = runTest {
         // No SMS parser matches yet (stubs), so no value/anchor is recorded — this asserts the
         // call completes without throwing and touches nothing when nothing matches.

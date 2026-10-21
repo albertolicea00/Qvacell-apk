@@ -35,20 +35,32 @@ An Android app to quickly access the **USSD service codes of ETECSA (Cubacel)**:
 > **Native Android App**
 > This app is built natively for Android to leverage platform-specific capabilities (like advanced background services, call screening, and SMS integration) that could not be fully replicated on iOS. This is why it exists as a separate, dedicated native repository.
 
-## 🛠️ Requirements
+## 🛠️ Requirements & Compatibility
 
-- 🤖 Android Studio (latest stable)
-- 📱 Android 8.0+ (API 26)
-- Kotlin 2.0+, Jetpack Compose
+- 🤖 Android Studio (latest stable for development)
+- 📱 **Supported Android Versions:**
+  - **Minimum required:** Android 8.0 Oreo (API 26)
+  - **Target SDK:** Android 14 (API 34)
+  - **Tested & compatible:** Android 8.0, 9 (Pie), 10 (Q), 11, 12, 13, 14, and 15.
+  - **OEM Skins tested:** One UI (Samsung), HyperOS / MIUI (Xiaomi/Redmi), Android AOSP / Stock, etc.
+- 🔑 **APK Signing:** Dual V1 (JAR) and V2 (Full APK Signature) schemes enabled for maximum compatibility across legacy Android versions and custom vendor installers.
+- 💻 Kotlin 2.0+, Jetpack Compose
 
 ## 📦 Build Flavors & Permissions
 
 This project uses two Gradle product flavors (dimension `distribution`) to ship two distinct versions from the same codebase:
 
-| Flavor | Distribution | Sensitive permissions | Dashboard auto-refresh |
-| --- | --- | --- | --- |
-| **`store`** | Google Play | None of the three below | Off — manual dial only, exactly like every other code in the app |
-| **`unlocked`** | GitHub / manual APK sideload | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (plus the existing `CALL_PHONE`, now also used for silent USSD capture) | On (opt-in toggles in Options) — reads ETECSA SMS and USSD responses in the background and estimates usage since the last confirmed reading, to keep the balance/data/voice/SMS dashboard fresh between manual checks |
+| Flavor | Distribution | `versionCode` Parity | Sensitive permissions | Dashboard auto-refresh |
+| --- | --- | --- | --- | --- |
+| **`store`** | Google Play | **Even** (`base * 2`) | None of the three below | Off — manual dial only, exactly like every other code in the app |
+| **`unlocked`** | GitHub / manual APK sideload | **Odd** (`base * 2 + 1`) | `RECEIVE_SMS`, `READ_SMS`, `READ_CALL_LOG` (plus `CALL_PHONE`) | On (opt-in toggles in Options) — background capture & estimation |
+
+> [!TIP]
+> **Version Parity Strategy (Even/Odd `versionCode`)**:
+> Both flavors share the exact same `applicationId` (`com.qvacell.app`). To ensure users can download the full `unlocked` APK from GitHub and **install it directly over** the Play Store build without uninstalling or losing data:
+> - The `store` flavor gets an even number (e.g. base 3 $\rightarrow$ code 6).
+> - The `unlocked` flavor gets the next odd number (e.g. base 3 $\rightarrow$ code 7).
+> Because $7 > 6$, the Android package manager treats it as a legitimate upgrade. Furthermore, version codes will never collide across past, present, or future releases.
 
 `store` exists specifically so the Play Store build never has to clear Google's restricted-permissions review for `READ_SMS`/`READ_CALL_LOG` — it's built from the exact same source, just missing the capture source sets (`app/src/store/`) instead of `unlocked`'s (`app/src/unlocked/`). See [ARCHITECTURE.md § 15](ARCHITECTURE.md#15-dashboard-dynamic-data-pipeline) for how the split works and what each flavor's capture layer does.
 
@@ -122,11 +134,25 @@ _The full USSD code catalog is loaded from the bundled [`codes.json`](app/src/ma
 
 Free query codes dial immediately. Paid purchase codes stop at ETECSA's confirmation menu by default; an optional **Acción sin Confirmación** setting substitutes a code variant that auto-confirms, with a visible UI safety warning.
 
+## 📊 Firebase
+
+The app uses Firebase Analytics for first opens, sessions, and screen views (including the Manual and Dynamic dashboards), Crashlytics for crash reports, and Performance Monitoring for startup and contacts-loading duration. Reports include the `store` or `unlocked` distribution. Custom telemetry does not send contact names, phone numbers, PINs, USSD codes, or USSD responses. Performance does not directly measure CPU, memory, or battery use.
+
+To build, register the Android app `com.qvacell.app` in a Firebase project with Analytics enabled and place the downloaded configuration at `app/google-services.json`. This file is ignored by Git; keep it local and check that its API key is restricted to the Firebase APIs the app uses. Both flavors share it. Check **Analytics › DebugView**, **Crashlytics**, and **Performance** in the Firebase console to validate reporting. `first_open` counts first launches after install or reinstall; Google Play download counts are available in Play Console.
+
 ## 🔍 Phone Directory & Offline Database Search
 
 Under **Options › Utilidades**:
 
 - **Buscar en Database**: Advanced offline reverse phone lookup over a user-supplied SQLite (`.db`) file, imported via the system file picker. For security and privacy, this feature is hidden by default (unlocked by tapping the app version 5 times in _Acerca de_) and searches strictly by phone number (no name lookup).
+
+## 📶 LTE-only network mode on Android
+
+Under **Options › Utilidades › Forzar red a solo LTE (4G)**, Qvacell provides a shortcut to Android's radio information menu. The app does not change the network mode itself: the user must manually choose **LTE Only / LTE_ONLY** in that menu. Access may be blocked or unavailable depending on the phone brand and model.
+
+Before changing modes, note the current preferred network type so you can restore it. Some phones show options such as **LTE/TD-SCDMA/UMTS** or **LTE/TD-SCDMA/WCDMA**. **LTE Only** may prevent incoming and outgoing calls and SMS; restore the original mode when finished.
+
+Do not confuse Android's radio menu with iPhone **Field Test Mode**: dialing `*3001#12345#*` displays live technical signal statistics (for example, RSRP, bands, and frequencies), but it does not allow band locking or LTE-only selection. On Android, `*#*#4636#*#*` may open phone/network information on some models, and some Samsung devices provide a separate band-selection menu through `*#2263#`; availability depends on the manufacturer and device.
 
 ## 🛜 Navigation Rooms & Public Wi-Fi
 
@@ -139,7 +165,9 @@ Includes an offline directory of official ETECSA navigation rooms and public Wi-
 ## 🚧 Known Limitations
 
 - **Caller ID cannot show a custom name in the system in-call UI.** Unlike iOS's CallKit Call Directory Extension, Android's `CallScreeningService` API does not let a non-default-dialer app inject a caller name into the system's own incoming-call screen. This app instead surfaces the resolved name via a heads-up notification when a wrapped `*99` collect call rings. Becoming the user's default dialer app to get full name injection was deliberately not pursued — it's a much larger commitment (replacing core phone UI) for one feature.
+- **SIM phone numbers may not be detected automatically.** Most SIM cards (especially Cubacel / ETECSA) do not have the phone number (MSISDN) written directly onto the SIM chip by the carrier. In such cases, Android's telephony APIs return `null` or empty, so the app falls back to displaying the carrier name or slot index (e.g. `SIM 1` / `SIM 2`).
 - **Carrier/OEM dialer apps may intercept USSD codes** before this app's `ACTION_DIAL` intent reaches the modem, depending on device and ROM. This is an Android platform/OEM behavior outside the app's control.
+- **A system USSD error dialog may appear if cellular service drops during a dashboard query.** Qvacell stops the remaining requests and shows its own status, but Android's public `sendUssdRequest` API cannot cancel a request already sent to the telephony service or dismiss a dialog shown by the system or carrier. Airplane mode during a query reproduces the same limitation.
 
 ## 🤝 Contributing
 
@@ -156,6 +184,7 @@ The codes were saved from the following sites:
 - https://www.fonoma.com/blog/codigos-ussd-cuba
 - https://www.etecsa.cu/es/taxonomy/term/1445
 - https://www.etecsa.cu/en/rooms-public-spaces
+- https://www.etecsa.cu/es/empresas/movil-combos
 - https://www.ecured.cu/Entumovil
 - https://www.escambray.cu/2017/etecsa-informa-sobre-nuevos-servicios-de-telefonia-movil-para-clientes-prepago-infografia/
 - https://www.entumovil.cu/#:~:text=Para%20activar%20las%20siguientes%20prestaciones%2C,portal%20el%20de%20su%20preferencia.

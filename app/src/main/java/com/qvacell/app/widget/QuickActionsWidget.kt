@@ -64,10 +64,10 @@ class QuickActionsWidget : AppWidgetProvider() {
 
             val settings = WidgetSettings
             val contentStyle = settings.getContentStyle(context)
-            val bgColor = settings.getBackgroundColor(context)
-            val iconColor = settings.getIconColor(context)
+            val bgColor = WidgetPrefs.getBackgroundColor(context, widgetId)
+            val iconColor = WidgetPrefs.getIconColor(context, widgetId)
             val textColor = settings.getTextColor(context)
-            val iconShape = settings.getIconShape(context)
+            val iconShape = WidgetPrefs.getIconShape(context, widgetId)
             val alignment = settings.getAlignment(context)
 
             val showIcon = contentStyle in listOf("icon_only", "icon_text")
@@ -140,6 +140,7 @@ class QuickActionsWidget : AppWidgetProvider() {
 
             val intent = Intent(context, DialTrampolineActivity::class.java).apply {
                 putExtra(DialTrampolineActivity.EXTRA_CODE_ID, codeId)
+                putExtra(DialTrampolineActivity.EXTRA_WIDGET_ID, widgetId)
             }
             val pi = PendingIntent.getActivity(
                 context, widgetId, intent,

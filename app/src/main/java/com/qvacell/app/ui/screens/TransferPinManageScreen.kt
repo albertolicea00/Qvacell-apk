@@ -33,13 +33,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.TransferPinStore
+import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.BackNavigationIcon
 
 /**
@@ -66,13 +69,14 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text("PIN de Transferencia") },
-                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+                title = { Text(stringResource(R.string.options_transfer_pin)) },
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) },
+                actions = { SimSelectorIcon() }
             )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(vertical = 8.dp)) {
-            SectionHeader("Cambiar Clave")
+            SectionHeader(stringResource(R.string.transfer_pin_change_section))
             Card(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
@@ -81,17 +85,17 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
                     PinFieldRow(
                         value = currentPin,
                         onValueChange = { currentPin = it },
-                        placeholder = "Clave actual"
+                        placeholder = stringResource(R.string.transfer_pin_current_hint)
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     PinFieldRow(
                         value = newPin,
                         onValueChange = { newPin = it },
-                        placeholder = "Clave nueva"
+                        placeholder = stringResource(R.string.transfer_pin_new_hint)
                     )
                     if (showsSamePinError) {
                         Text(
-                            "La clave nueva es igual a la actual.",
+                            stringResource(R.string.transfer_pin_same_error),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
@@ -99,7 +103,7 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
                     }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SubmitRow(
-                        label = "Cambiar Clave",
+                        label = stringResource(R.string.transfer_pin_change_button),
                         enabled = !isChangeDisabled,
                         onClick = {
                             val code = repository.findCodeById("transfer-pin-change")
@@ -119,7 +123,7 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
                 }
             }
 
-            SectionHeader("Guardar Clave")
+            SectionHeader(stringResource(R.string.transfer_pin_save_section))
             Card(
                 modifier = Modifier.padding(horizontal = 16.dp).fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
@@ -128,11 +132,11 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
                     PinFieldRow(
                         value = savedPin,
                         onValueChange = { savedPin = it },
-                        placeholder = "Clave"
+                        placeholder = stringResource(R.string.dialog_pin)
                     )
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                     SubmitRow(
-                        label = "Guardar Clave",
+                        label = stringResource(R.string.transfer_pin_save_button),
                         enabled = savedPin.isNotBlank(),
                         onClick = {
                             pinStore.save(savedPin)
@@ -153,7 +157,7 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
                             horizontalArrangement = Arrangement.End
                         ) {
                             Text(
-                                "Olvidar Clave Guardada",
+                                stringResource(R.string.transfer_pin_forget_button),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.error
                             )
@@ -162,8 +166,7 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
                 }
             }
             Text(
-                "Se guarda cifrada en este dispositivo (nunca sale de él) y se rellena sola al " +
-                    "transferir, tanto en Home como dentro de un contacto.",
+                stringResource(R.string.transfer_pin_footer_note),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp)
@@ -205,7 +208,7 @@ private fun PinFieldRow(value: String, onValueChange: (String) -> Unit, placehol
         IconButton(onClick = { visible = !visible }) {
             Icon(
                 if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                contentDescription = if (visible) "Ocultar" else "Mostrar",
+                contentDescription = stringResource(if (visible) R.string.action_hide else R.string.action_show),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
             )
         }

@@ -1,6 +1,7 @@
 package com.qvacell.app.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,12 +14,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowOutward
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -30,10 +38,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
+import com.qvacell.app.service.DialService
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.model.UssdCode
 import com.qvacell.app.model.UssdCodeGroup
@@ -42,12 +53,18 @@ import com.qvacell.app.ui.components.CodeRow
 import com.qvacell.app.ui.components.GroupHeader
 
 import com.qvacell.app.ui.components.SearchableTopAppBar
+import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.rememberCodeActionHandler
 // import com.qvacell.app.ui.resolveAndroidIcon // unused while the group icon below is commented out
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? = null) {
+fun CategoryListScreen(
+    categoryId: String,
+    title: String,
+    onBack: (() -> Unit)? = null,
+    onNavigateToSms: (() -> Unit)? = null
+) {
     val context = LocalContext.current
     val repository = remember { CatalogRepository(context) }
     val catalog = remember { repository.loadCatalog() }
@@ -64,6 +81,11 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
         onOpenCodeOptions = { code -> codeForOptionsSheet = code }
     )
 
+    var showPurchaseMenu by remember { mutableStateOf(false) }
+    var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
+    val advanceBalanceCodes = remember {
+        listOf("advance-balance-25", "advance-balance-50").mapNotNull { repository.findCodeById(it) }
+    }
     var query by remember { mutableStateOf("") }
     var searching by remember { mutableStateOf(false) }
     val filteredGroups = remember(category, query) {
@@ -90,12 +112,42 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
                 onQueryChange = { query = it },
                 searching = searching,
                 onSearchingChange = { searching = it },
-                onBack = onBack
+                showSearchAction = true,
+                onBack = onBack,
+                extraActions = {
+                    if (onBack == null) SimSelectorIcon()
+                    if (categoryId == "purchase" && onNavigateToSms != null) {
+                        IconButton(onClick = { showPurchaseMenu = true }, modifier = Modifier.size(36.dp)) {
+                            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_menu), modifier = Modifier.size(22.dp))
+                        }
+                        DropdownMenu(
+                            expanded = showPurchaseMenu,
+                            onDismissRequest = { showPurchaseMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.title_sms_services)) },
+                                onClick = {
+                                    showPurchaseMenu = false
+                                    onNavigateToSms()
+                                }
+                            )
+                            if (advanceBalanceCodes.isNotEmpty()) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.advance_balance)) },
+                                    onClick = {
+                                        showPurchaseMenu = false
+                                        showAdvanceBalanceSheet = true
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
             )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            if (categoryId == "purchase") {
+            if (categoryId == "purchase" && !quickActionEnabled) {
                 Card(
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -111,11 +163,11 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                "Marcar sin Confirmación",
+                                stringResource(R.string.purchase_without_confirm),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             Text(
-                                "Marca el código saltando el paso de confirmación de ETECSA",
+                                stringResource(R.string.purchase_without_confirm_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -143,7 +195,7 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
                         modifier = Modifier.size(48.dp)
                     )
                     Text(
-                        "Sin resultados para \"$query\"",
+                        stringResource(R.string.no_results_for, query),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -215,5 +267,68 @@ fun CategoryListScreen(categoryId: String, title: String, onBack: (() -> Unit)? 
 
     codeForOptionsSheet?.let { code ->
         CodeOptionsSheet(code = code, onDismiss = { codeForOptionsSheet = null })
+    }
+
+    if (showAdvanceBalanceSheet && advanceBalanceCodes.isNotEmpty()) {
+        ModalBottomSheet(
+            onDismissRequest = { showAdvanceBalanceSheet = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    stringResource(R.string.advance_balance),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
+                ) {
+                    Column {
+                        advanceBalanceCodes.forEachIndexed { index, code ->
+                            if (index > 0) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        DialService.dialDirect(context, code.resolvedCode())
+                                        showAdvanceBalanceSheet = false
+                                    }
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        code.price ?: code.title.value,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        code.details.value,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

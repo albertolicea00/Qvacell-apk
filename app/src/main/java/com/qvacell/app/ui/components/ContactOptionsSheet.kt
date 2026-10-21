@@ -44,24 +44,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import com.qvacell.app.service.DeviceContact
-import com.qvacell.app.service.DialService
+import com.qvacell.app.R
+import com.qvacell.app.service.ContactEntry
 import com.qvacell.app.service.TransferPinStore
 
-/**
- * Bottom sheet shown when a contact row is tapped — call the contact (collect via `*99` or
- * hidden caller ID via `#31#`), transfer balance to it, or add/remove it from the Plan de
- * Amigos. Mirrors iOS's `ContactCallOptionsSheet`.
- */
 @Composable
-fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
+fun ContactOptionsSheet(entry: ContactEntry, onDismiss: () -> Unit) {
     val context = LocalContext.current
+    val dialDirect = rememberDirectDialAction(onDismiss)
+    val callContact = rememberContactCallAction(onDismiss)
     val pinStore = remember { TransferPinStore(context) }
-    val number = contact.cubanNumbers.firstOrNull()
+    val number: String? = entry.number
 
     var pin by remember { mutableStateOf(pinStore.load() ?: "") }
     var amount by remember { mutableStateOf("") }
@@ -88,7 +86,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                     modifier = Modifier.padding(14.dp).size(28.dp)
                 )
             }
-            Text(contact.name, style = MaterialTheme.typography.titleMedium)
+            Text(entry.contact.name, style = MaterialTheme.typography.titleMedium)
             if (number != null) {
                 Text(
                     number,
@@ -105,24 +103,24 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    onClick = { DialService.dial(context, "*99$number"); onDismiss() },
+                    onClick = { callContact("*99$number") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.Call, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Llamar con *99", modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.contacts_call_99), modifier = Modifier.padding(start = 8.dp))
                 }
                 OutlinedButton(
-                    onClick = { DialService.dial(context, "#31#$number"); onDismiss() },
+                    onClick = { callContact("#31#$number") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Icon(Icons.Filled.Security, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text("Llamar Anónimo", modifier = Modifier.padding(start = 8.dp))
+                    Text(stringResource(R.string.contacts_call_anonymous), modifier = Modifier.padding(start = 8.dp))
                 }
             }
 
             // Transfer section
             Text(
-                "Transferir Saldo",
+                stringResource(R.string.contacts_transfer_section),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 32.dp, top = 8.dp, bottom = 4.dp)
@@ -151,7 +149,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                                 visualTransformation = if (pinVisible) VisualTransformation.None else PasswordVisualTransformation(),
                                 singleLine = true,
                                 decorationBox = { inner ->
-                                    if (pin.isEmpty()) Text("Clave", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                    if (pin.isEmpty()) Text(stringResource(R.string.contacts_pin_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                     inner()
                                 }
                             )
@@ -174,7 +172,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (amount.isEmpty()) Text("Monto", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
+                                if (amount.isEmpty()) Text(stringResource(R.string.contacts_amount_hint), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                                 inner()
                             }
                         )
@@ -188,14 +186,13 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                             .fillMaxWidth()
                             .clickable(enabled = transferEnabled) {
                                 pinStore.save(pin)
-                                DialService.dial(context, "*234*1*$number*$pin*$amount#")
-                                onDismiss()
+                                dialDirect("*234*1*$number*$pin*$amount#")
                             }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Transferir", style = MaterialTheme.typography.bodyMedium, color = tint)
+                        Text(stringResource(R.string.contacts_transfer_action), style = MaterialTheme.typography.bodyMedium, color = tint)
                         Spacer(Modifier.width(4.dp))
                         Icon(Icons.Filled.ArrowOutward, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
                     }
@@ -211,7 +208,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { DialService.dial(context, "*133*4*2*1*$number#"); onDismiss() }
+                            .clickable { dialDirect("*133*4*2*1*$number#") }
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -224,7 +221,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Agregar al Plan Amigo",
+                            stringResource(R.string.contacts_add_friends_plan),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f)
@@ -240,7 +237,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { DialService.dial(context, "*133*4*2*2*$number#"); onDismiss() }
+                            .clickable { dialDirect("*133*4*2*2*$number#") }
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
@@ -253,7 +250,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Eliminar del Plan Amigo",
+                            stringResource(R.string.contacts_remove_friends_plan),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.weight(1f)
@@ -269,7 +266,7 @@ fun ContactOptionsSheet(contact: DeviceContact, onDismiss: () -> Unit) {
             }
         } else {
             Text(
-                "Este contacto no tiene un número en formato cubano.",
+                stringResource(R.string.contacts_no_cuban_number),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(16.dp)

@@ -6,10 +6,13 @@ import org.junit.Test
 class UssdParsersTest {
 
     @Test
-    fun `stub parser returns Unresolved for arbitrary input across all known code ids`() {
+    fun `every known code id has a registered parser`() {
         UssdParsers.KNOWN_CODE_IDS.forEach { id ->
-            val result = UssdParsers.forCode(id).parse("cualquier texto de respuesta USSD")
-            assertTrue("expected Unresolved for '$id', got $result", result is ParseResult.Unresolved)
+            val parser = UssdParsers.forCode(id)
+            assertTrue(
+                "expected a real parser for '$id', got ${parser::class.simpleName}",
+                parser !is StubUssdResponseParser
+            )
         }
     }
 
@@ -20,8 +23,13 @@ class UssdParsersTest {
     }
 
     @Test
-    fun `stub tolerates empty input`() {
-        val result = UssdParsers.forCode("main-balance").parse("")
-        assertTrue(result is ParseResult.Unresolved)
+    fun `real parsers return Unrecognized for gibberish, not crash`() {
+        UssdParsers.KNOWN_CODE_IDS.forEach { id ->
+            val result = UssdParsers.forCode(id).parse("cualquier texto de respuesta USSD")
+            assertTrue(
+                "expected Unrecognized for '$id', got $result",
+                result is ParseResult.Unrecognized
+            )
+        }
     }
 }

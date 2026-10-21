@@ -24,9 +24,10 @@ All codes live in `app/src/main/assets/codes.json`. When adding or changing a co
 - Use `{input}` inside `code` for the user-provided part.
 - `type` is `ussd` for dialed sequences ending in `#`, `call` for plain numbers, `sms` for SMS-based services.
 - Cite a source (ETECSA announcement, official page) in your PR description.
+- If you add or change an Android Material icon identifier, update `AndroidIconResolver.kt` too. Its direct references let R8 keep only catalog icons; the unit test checks that every icon in `codes.json` is mapped. See [ARCHITECTURE.md § 20](ARCHITECTURE.md#20-release-apk-optimization-r8).
 
 > [!IMPORTANT]
-> `codes.json` is shared verbatim with the [iOS app](https://github.com/albertolicea00/qvacell-ios) and the web version of the project. Modifying its schema or structure without coordination can break the other platforms.
+> Keep the catalog schema and code data coordinated with the [iOS app](https://github.com/albertolicea00/qvacell-ios) and the web version. Platform-specific presentation fields, including icon identifiers, can differ; changes to the shared schema or code data can break the other platforms.
 
 ## Pull Request Process
 

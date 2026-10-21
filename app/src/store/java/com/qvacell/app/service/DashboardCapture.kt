@@ -20,5 +20,5 @@ object DashboardCapture {
 
     fun scheduleEstimationIfEnabled(context: Context, enabled: Boolean) = Unit
 
-    fun triggerSmsBackfill(context: Context, repository: DashboardDataRepository) = Unit
+    suspend fun triggerSmsBackfill(context: Context, repository: DashboardDataRepository): Boolean = false
 }
