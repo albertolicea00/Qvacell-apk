@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -70,8 +72,7 @@ fun HomeQuickActionsScreen(
 
     var showTransferSheet by remember { mutableStateOf(false) }
     var showRechargeSheet by remember { mutableStateOf(false) }
-    var showDashboardMenu by remember { mutableStateOf(false) }
-    var showManualMenu by remember { mutableStateOf(false) }
+    var showHomeMenu by remember { mutableStateOf(false) }
     var showDynamicDashboard by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(showDynamicDashboard) {
         onDynamicDashboardChanged(showDynamicDashboard)
@@ -123,9 +124,9 @@ fun HomeQuickActionsScreen(
                         )
                     }
                 }
-                if (showDynamicDashboard) {
+                Box {
                     IconButton(
-                        onClick = { showDashboardMenu = true },
+                        onClick = { showHomeMenu = true },
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
@@ -135,70 +136,14 @@ fun HomeQuickActionsScreen(
                         )
                     }
                     DropdownMenu(
-                        expanded = showDashboardMenu,
-                        onDismissRequest = { showDashboardMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.reminders_title)) },
-                            onClick = {
-                                showDashboardMenu = false
-                                onNavigateToReminders()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.title_events)) },
-                            onClick = {
-                                showDashboardMenu = false
-                                onNavigateToEvents()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.tab_options)) },
-                            onClick = {
-                                showDashboardMenu = false
-                                onNavigateToSettings()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.help_title)) },
-                            onClick = {
-                                showDashboardMenu = false
-                                onNavigateToHelp()
-                            }
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            showDynamicDashboard = false
-                        },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.GridView,
-                            contentDescription = stringResource(R.string.action_switch_to_manual),
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                } else {
-                    IconButton(
-                        onClick = { showManualMenu = true },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.MoreVert,
-                            contentDescription = stringResource(R.string.action_menu),
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = showManualMenu,
-                        onDismissRequest = { showManualMenu = false }
+                        expanded = showHomeMenu,
+                        onDismissRequest = { showHomeMenu = false }
                     ) {
                         if ("transferir" in manualHiddenSections) {
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.quick_action_transfer)) },
                                 onClick = {
-                                    showManualMenu = false
+                                    showHomeMenu = false
                                     showTransferSheet = true
                                 }
                             )
@@ -207,7 +152,7 @@ fun HomeQuickActionsScreen(
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.quick_action_recharge)) },
                                 onClick = {
-                                    showManualMenu = false
+                                    showHomeMenu = false
                                     showRechargeSheet = true
                                 }
                             )
@@ -215,34 +160,66 @@ fun HomeQuickActionsScreen(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.options_friends_plan)) },
                             onClick = {
-                                showManualMenu = false
+                                showHomeMenu = false
                                 onNavigateToFriendsPlan()
                             }
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.reminders_title)) },
                             onClick = {
-                                showManualMenu = false
+                                showHomeMenu = false
                                 onNavigateToReminders()
                             }
                         )
+                        if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.title_events)) },
+                                onClick = {
+                                    showHomeMenu = false
+                                    onNavigateToEvents()
+                                }
+                            )
+                        }
+                        if (showDynamicDashboard && BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                            HorizontalDivider()
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.tab_options)) },
+                                onClick = {
+                                    showHomeMenu = false
+                                    onNavigateToSettings()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.help_title)) },
+                                onClick = {
+                                    showHomeMenu = false
+                                    onNavigateToHelp()
+                                }
+                            )
+                        }
                     }
-                    IconButton(
-                        onClick = {
-                            if (!BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
-                                showUnavailableDialog = true
-                            } else {
-                                showDynamicDashboard = true
-                            }
-                        },
-                        modifier = Modifier.size(36.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.InsertChart,
-                            contentDescription = stringResource(R.string.action_switch_to_dynamic),
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                }
+                IconButton(
+                    onClick = {
+                        showHomeMenu = false
+                        if (showDynamicDashboard) {
+                            showDynamicDashboard = false
+                        } else if (!BuildConfig.DASHBOARD_CAPTURE_ENABLED) {
+                            showUnavailableDialog = true
+                        } else {
+                            showDynamicDashboard = true
+                        }
+                    },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        if (showDynamicDashboard) Icons.Filled.GridView else Icons.Filled.InsertChart,
+                        contentDescription = stringResource(
+                            if (showDynamicDashboard) R.string.action_switch_to_manual
+                            else R.string.action_switch_to_dynamic
+                        ),
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
             }
         )

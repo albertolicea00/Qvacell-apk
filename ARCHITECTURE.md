@@ -127,6 +127,8 @@ Tapping a row in `CategoryListScreen` dials/prompts/sends an SMS intent directly
 
 Home starts a fresh session with the manual dashboard (Marcación Rápida). Its top bar switches between manual and dynamic; `rememberSaveable` retains this choice in the Home navigation entry when opening another destination, returning with Back, or recreating the activity. The store flavor shows an availability dialog when dynamic is selected. Onboarding does not ask for a dashboard type, and Options exposes settings for each dashboard without a persistent type selector. An older saved `dashboard_mode` preference is ignored.
 
+Home uses one overflow menu anchored to its three-dot button in both dashboard modes. Its common actions remain in the same order: transfer balance, recharge balance, manage Friends Plan, and reminders. Transfer and recharge appear only when their corresponding manual dashboard sections are hidden (`transferir` / `recargar` in `manualHiddenSections`); both modes use the same visibility rule. Events appears in both modes only in the `unlocked` flavor. Dashboard Options and Help are appended only while the dynamic dashboard is active. The menu closes before opening another screen, a sheet, or changing dashboard mode.
+
 ---
 
 ## 5. Code Execution Path
