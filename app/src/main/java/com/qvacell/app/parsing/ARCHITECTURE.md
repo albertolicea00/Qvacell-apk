@@ -388,7 +388,9 @@ User has no active SMS plan.
 USSD: `*111#`
 
 Parser: `CorporateBalanceParser.kt`
-Tests: `CorporateBalanceParserTest.kt` (5 cases)
+Tests: `CorporateBalanceParserTest.kt` (13 cases), plus three corporate line snapshots in `FullLineSnapshotTest.kt`.
+
+The original postpaid-parser proposal is implemented under `corp-balance` / `CorporateBalanceParser`, not `postpaid-balance` / `PostpaidBalanceParser`. Tests assert the actual code id and resolve the implemented parser through `UssdParsers`. Coverage includes the supplied full and data-only responses, zero allowances and consumption, nonzero comma/dot decimals, empty/whitespace input, unrelated text, and Spanish/English MMI errors. Zero-only and decimal-variation inputs are synthetic edge cases derived from the observed format, not additional captured carrier responses. Integration snapshots use the three supplied corporate responses through the registry alongside the existing six-code personal-line tests; corporate lines do not execute those personal queries.
 
 Observed samples provided for a corporate line:
 

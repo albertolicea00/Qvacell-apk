@@ -10,9 +10,10 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 
 /**
- * Integration tests: real ETECSA response snapshots from 3 different lines, parsed through all 6
- * USSD parsers. Verifies cross-card consistency (e.g. *222# datos matches *222*328# datos) and
- * that every parser returns Success for known-good input.
+ * Integration tests: three personal-line snapshots exercise the six personal USSD parsers;
+ * three corporate snapshots exercise the registered *111# parser. Corporate lines use their
+ * own query instead of the personal codes. Verifies cross-card consistency and Success for
+ * known-good responses through the registry.
  */
 class FullLineSnapshotTest {
 
@@ -133,5 +134,44 @@ class FullLineSnapshotTest {
         assertNull(v.field(FieldTypes.VOICE_MINUTES_REMAINING))
         assertNull(v.field(FieldTypes.SMS_COUNT_REMAINING))
         assertEquals(199.35, v.field(FieldTypes.MAIN_BALANCE)!!.numericValue!!, 0.01)
+    }
+
+    // ── Linea 4 (corporate, voice + SMS + data) ──
+
+    @Test
+    fun `linea 4 corporate - real full snapshot parses through the registry`() {
+        val values = parse("corp-balance", "Voz: 335 MIN. Saldo consumido 0.00 CUP. SMS 60. Saldo consumido 0.00 CUP. Datos: 0 MB. Roaming:")
+
+        assertEquals(335.0, values.field(FieldTypes.VOICE_MINUTES_REMAINING)!!.numericValue!!, 0.0)
+        assertEquals(60.0, values.field(FieldTypes.SMS_COUNT_REMAINING)!!.numericValue!!, 0.0)
+        assertEquals(0.0, values.field(FieldTypes.DATA_DATOS_MB)!!.numericValue!!, 0.0)
+        assertEquals(0.0, values.field(FieldTypes.CORPORATE_VOICE_CONSUMED_CUP)!!.numericValue!!, 0.0)
+        assertEquals(0.0, values.field(FieldTypes.CORPORATE_SMS_CONSUMED_CUP)!!.numericValue!!, 0.0)
+        assertEquals("", values.field(FieldTypes.CORPORATE_ROAMING)!!.textValue)
+        assertNull(values.field(FieldTypes.MAIN_BALANCE))
+    }
+
+    // ── Linea 5 (corporate, data only) ──
+
+    @Test
+    fun `linea 5 corporate - real 1164 MB snapshot parses through the registry`() {
+        val values = parse("corp-balance", "Datos: 1164 MB. Roaming:")
+
+        assertEquals(1164.0, values.field(FieldTypes.DATA_DATOS_MB)!!.numericValue!!, 0.0)
+        assertEquals("MB", values.field(FieldTypes.DATA_DATOS_MB)!!.unit)
+        assertEquals("", values.field(FieldTypes.CORPORATE_ROAMING)!!.textValue)
+        assertEquals(setOf(FieldTypes.DATA_DATOS_MB, FieldTypes.CORPORATE_ROAMING), values.map { it.fieldType }.toSet())
+    }
+
+    // ── Linea 6 (corporate, data only) ──
+
+    @Test
+    fun `linea 6 corporate - real 20223 MB snapshot parses through the registry`() {
+        val values = parse("corp-balance", "Datos: 20223 MB. Roaming:")
+
+        assertEquals(20223.0, values.field(FieldTypes.DATA_DATOS_MB)!!.numericValue!!, 0.0)
+        assertEquals("MB", values.field(FieldTypes.DATA_DATOS_MB)!!.unit)
+        assertEquals("", values.field(FieldTypes.CORPORATE_ROAMING)!!.textValue)
+        assertEquals(setOf(FieldTypes.DATA_DATOS_MB, FieldTypes.CORPORATE_ROAMING), values.map { it.fieldType }.toSet())
     }
 }
