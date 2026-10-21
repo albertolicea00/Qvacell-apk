@@ -45,6 +45,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.qvacell.app.R
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -96,7 +97,7 @@ fun RechargeCardScannerDialog(
                     .padding(16.dp)
                     .statusBarsPadding()
             ) {
-                Icon(Icons.Filled.Close, contentDescription = "Cerrar", tint = Color.White)
+                Icon(Icons.Filled.Close, contentDescription = context.getString(R.string.action_close), tint = Color.White)
             }
 
             Text(
@@ -205,7 +206,7 @@ fun ScanCardButton(onCodeScanned: (String) -> Unit) {
     ) {
         Icon(
             Icons.Filled.CameraAlt,
-            contentDescription = "Escanear tarjeta",
+            contentDescription = context.getString(R.string.recharge_scan_card),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(20.dp)
         )
