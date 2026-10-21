@@ -89,6 +89,7 @@ import kotlinx.coroutines.launch
 import com.qvacell.app.ui.screens.CategoryListScreen
 import com.qvacell.app.ui.screens.ContactsListScreen
 import com.qvacell.app.ui.screens.DashboardHelpScreen
+import com.qvacell.app.ui.screens.DashboardEventsScreen
 import com.qvacell.app.ui.screens.DashboardSettingsScreen
 import com.qvacell.app.ui.screens.DirectorySearchScreen
 import com.qvacell.app.ui.screens.FriendsPlanManageScreen
@@ -101,6 +102,7 @@ import com.qvacell.app.ui.screens.OptionsDestination
 import com.qvacell.app.ui.screens.OptionsScreen
 import com.qvacell.app.ui.screens.ReminderEditScreen
 import com.qvacell.app.ui.screens.ReminderListScreen
+import com.qvacell.app.ui.screens.RadioNetworkHelpScreen
 import com.qvacell.app.ui.screens.TransferPinManageScreen
 import com.qvacell.app.ui.screens.VoiceShortcutsScreen
 import com.qvacell.app.ui.screens.WifiProvinceDetailScreen
