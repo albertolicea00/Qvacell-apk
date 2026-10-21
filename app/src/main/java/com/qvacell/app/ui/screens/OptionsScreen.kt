@@ -145,6 +145,7 @@ sealed class OptionsDestination {
     data object VoiceShortcuts : OptionsDestination()
     data object DashboardSettings : OptionsDestination()
     data object CallerID : OptionsDestination()
+    data object RadioNetworkHelp : OptionsDestination()
 }
 
 @Composable
@@ -303,6 +304,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         ) {
             item {
                 OptionsSection(header = stringResource(R.string.options_section_account_short)) {
+                    OptionsRow(
+                        headline = stringResource(R.string.options_about_links),
+                        supporting = stringResource(R.string.options_about_links_desc),
+                        icon = Icons.Filled.Link,
+                        onClick = { showInterestLinksSheet = true }
+                    )
+                    OptionsDivider()
                     if (payPerUseCode != null) {
                         OptionsRow(
                             headline = payPerUseCode.title.value,
@@ -367,6 +375,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
             item {
                 OptionsSection(header = stringResource(R.string.options_section_tools_short)) {
+                    OptionsRow(
+                        headline = stringResource(R.string.options_force_lte_title),
+                        supporting = stringResource(R.string.options_force_lte_desc),
+                        icon = Icons.Filled.Wifi,
+                        onClick = { onNavigate(OptionsDestination.RadioNetworkHelp) }
+                    )
+                    OptionsDivider()
                     OptionsRow(
                         headline = stringResource(R.string.reminders_title),
                         supporting = stringResource(R.string.options_tools_reminders_desc),
@@ -556,13 +571,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
             item {
                 OptionsSection(header = stringResource(R.string.options_section_about)) {
-                    OptionsRow(
-                        headline = stringResource(R.string.options_about_links),
-                        supporting = stringResource(R.string.options_about_links_desc),
-                        icon = Icons.Filled.Link,
-                        onClick = { showInterestLinksSheet = true }
-                    )
-                    OptionsDivider()
                     OptionsRow(
                         headline = stringResource(R.string.options_about_caller_id),
                         supporting = if (isCallerIdRoleHeld) stringResource(R.string.options_about_caller_id_active) else stringResource(R.string.options_about_caller_id_inactive),

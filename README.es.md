@@ -144,6 +144,14 @@ En **Opciones › Utilidades**:
 
 - **Buscar en Database**: Búsqueda inversa offline sobre una base de datos SQLite (`.db`) suministrada por el usuario, importada mediante el selector de archivos del sistema. Por seguridad y privacidad, esta función viene oculta por defecto (se desbloquea tocando 5 veces la versión en _Acerca de_) y la búsqueda es estrictamente solo por número (sin búsqueda por nombre).
 
+## 📶 Red LTE (4G) en Android
+
+En **Opciones › Utilidades › Forzar red a solo LTE (4G)**, Qvacell ofrece un acceso directo al menú de información de radio de Android. La app no cambia la red por sí misma: el usuario debe elegir manualmente **LTE Only / LTE_ONLY** en ese menú. El acceso puede estar bloqueado o no existir según la marca y el modelo.
+
+Antes de cambiar el modo, anota el tipo de red preferida para poder restaurarlo. Algunos teléfonos muestran opciones como **LTE/TD-SCDMA/UMTS** o **LTE/TD-SCDMA/WCDMA**. El modo **Solo LTE** puede impedir recibir y realizar llamadas y enviar SMS; restablece el modo original al terminar.
+
+No confundas este menú de Android con el **Field Test Mode** del iPhone: al marcar `*3001#12345#*` se muestran estadísticas técnicas de señal en tiempo real (por ejemplo, RSRP, bandas y frecuencias), pero no permite bloquear bandas ni seleccionar LTE Only. En Android, `*#*#4636#*#*` puede abrir información de teléfono/red en algunos modelos, y algunos Samsung ofrecen su propio menú de selección de bandas con `*#2263#`; la disponibilidad depende del fabricante y del dispositivo.
+
 ## 🛜 Salas de Navegación y Wi-Fi Público
 
 Incluye un directorio offline de salas de navegación oficiales de ETECSA y puntos Wi-Fi públicos por provincia.

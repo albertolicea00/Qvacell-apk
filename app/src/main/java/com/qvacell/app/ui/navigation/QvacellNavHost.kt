@@ -446,6 +446,7 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                     OptionsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
                     OptionsDestination.DashboardSettings -> Routes.DASHBOARD_SETTINGS
                     OptionsDestination.CallerID -> Routes.CALLER_ID
+                    OptionsDestination.RadioNetworkHelp -> Routes.RADIO_NETWORK_HELP
                 }
                 navController.navigate(route)
             }
@@ -557,11 +558,10 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                 )
             }
             composable(Routes.DASHBOARD_EVENTS) {
-                PlaceholderScreen(
-                    title = stringResource(R.string.title_dashboard_events),
-                    description = stringResource(R.string.title_dashboard_events_placeholder),
-                    onBack = { navController.popBackStack() }
-                )
+                DashboardEventsScreen(onBack = { navController.popBackStack() })
+            }
+            composable(Routes.RADIO_NETWORK_HELP) {
+                RadioNetworkHelpScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.HOME_WIDGETS) {
                 HomeWidgetsScreen(onBack = { navController.popBackStack() })

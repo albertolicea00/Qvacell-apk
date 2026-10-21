@@ -51,6 +51,7 @@ object Routes {
     }
     const val SMS_SERVICES = "sms"
     const val WIFI_PROVINCES = "settings/wifi"
+    const val RADIO_NETWORK_HELP = "settings/radio-network"
     const val WIFI_PROVINCE_DETAIL = "settings/wifi/{province}"
     const val DIRECTORY_SEARCH = "settings/directory"
     const val HELP = "settings/help"

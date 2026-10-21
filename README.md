@@ -146,6 +146,14 @@ Under **Options › Utilidades**:
 
 - **Buscar en Database**: Advanced offline reverse phone lookup over a user-supplied SQLite (`.db`) file, imported via the system file picker. For security and privacy, this feature is hidden by default (unlocked by tapping the app version 5 times in _Acerca de_) and searches strictly by phone number (no name lookup).
 
+## 📶 LTE-only network mode on Android
+
+Under **Options › Utilidades › Forzar red a solo LTE (4G)**, Qvacell provides a shortcut to Android's radio information menu. The app does not change the network mode itself: the user must manually choose **LTE Only / LTE_ONLY** in that menu. Access may be blocked or unavailable depending on the phone brand and model.
+
+Before changing modes, note the current preferred network type so you can restore it. Some phones show options such as **LTE/TD-SCDMA/UMTS** or **LTE/TD-SCDMA/WCDMA**. **LTE Only** may prevent incoming and outgoing calls and SMS; restore the original mode when finished.
+
+Do not confuse Android's radio menu with iPhone **Field Test Mode**: dialing `*3001#12345#*` displays live technical signal statistics (for example, RSRP, bands, and frequencies), but it does not allow band locking or LTE-only selection. On Android, `*#*#4636#*#*` may open phone/network information on some models, and some Samsung devices provide a separate band-selection menu through `*#2263#`; availability depends on the manufacturer and device.
+
 ## 🛜 Navigation Rooms & Public Wi-Fi
 
 Includes an offline directory of official ETECSA navigation rooms and public Wi-Fi hotspots by province.
