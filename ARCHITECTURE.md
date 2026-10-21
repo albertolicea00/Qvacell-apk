@@ -125,7 +125,7 @@ Tapping a row in `CategoryListScreen` dials/prompts/sends an SMS intent directly
 
 `OptionsScreen` pushes nested routes (`Routes` in `NavGraph.kt`) for Reminders, SMS services, WiFi rooms, Directory search (hidden by default), Transfer PIN management, and Help — same structure as the iOS app's `SettingsView` push destinations, minus Siri/Shortcuts (iOS-only, not ported) and with the Caller-ID settings replaced by a role-request action (§11) instead of a system-settings deep link.
 
-Home always opens with the manual dashboard (Marcación Rápida). Its top bar switches to the dynamic dashboard for the current screen session and back to manual; the store flavor shows an availability dialog when dynamic is selected. Onboarding does not ask for a dashboard type, and Options exposes settings for each dashboard without a persistent type selector. An older saved `dashboard_mode` preference is ignored.
+Home starts a fresh session with the manual dashboard (Marcación Rápida). Its top bar switches between manual and dynamic; `rememberSaveable` retains this choice in the Home navigation entry when opening another destination, returning with Back, or recreating the activity. The store flavor shows an availability dialog when dynamic is selected. Onboarding does not ask for a dashboard type, and Options exposes settings for each dashboard without a persistent type selector. An older saved `dashboard_mode` preference is ignored.
 
 ---
 
@@ -437,11 +437,13 @@ For the selected line's balance code only, a returned text response that names M
 
 ### 15.14 Navigation — Dashboard Settings Tab Affinity
 
-Dashboard-related nested routes are split across tabs:
-- `DASHBOARD_HELP`, `DASHBOARD_EVENTS` → `HOME_NESTED_ROUTES` (highlighted under Home tab).
-- `DASHBOARD_SETTINGS` → `OPTIONS_NESTED_ROUTES` (highlighted under Options tab, since it's a settings screen).
+Dashboard-related nested routes are organized by their parent context:
+- `DASHBOARD_SETTINGS`, `DASHBOARD_HELP` → `OPTIONS_NESTED_ROUTES` (highlighted under Options tab with corresponding dynamic icon, since both are configuration and documentation destinations).
+- `DASHBOARD_EVENTS` → `HOME_NESTED_ROUTES` (highlighted under Home tab).
 
-The navbar click handler navigates directly with `popUpTo(validStartRoute)` — no failed `popBackStack` before navigate.
+This parent context controls the selected bottom tab and its icon; the destinations remain in the shared navigation graph. Opening a destination from either dashboard's overflow menu uses `navigate()` without removing Home from the back stack. Both the toolbar Back button and system Back pop to the previous destination, and Home restores its saved manual/dynamic choice. Opening Help from Dashboard Settings (or Settings from Help) likewise returns to the immediately preceding screen first.
+
+Tapping a bottom tab is a separate action: nested Home/Options screens return to that tab's root when it is present; other tab switches use `popUpTo(validStartRoute)` with state saving and restoration.
 
 ### 15.15 Status — done vs. planned
 

@@ -28,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -71,7 +72,7 @@ fun HomeQuickActionsScreen(
     var showRechargeSheet by remember { mutableStateOf(false) }
     var showDashboardMenu by remember { mutableStateOf(false) }
     var showManualMenu by remember { mutableStateOf(false) }
-    var showDynamicDashboard by remember { mutableStateOf(false) }
+    var showDynamicDashboard by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(showDynamicDashboard) {
         onDynamicDashboardChanged(showDynamicDashboard)
         AppTelemetry.screen(context, if (showDynamicDashboard) "dashboard_dynamic" else "dashboard_manual")

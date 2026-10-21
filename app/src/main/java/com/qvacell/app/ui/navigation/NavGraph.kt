@@ -61,7 +61,7 @@ object Routes {
     const val HOME_WIDGETS = "settings/widgets"
     const val VOICE_SHORTCUTS = "settings/voice-shortcuts"
     const val DASHBOARD_SETTINGS = "settings/dashboard"
-    const val DASHBOARD_HELP = "dashboard/help"
+    const val DASHBOARD_HELP = "settings/dashboard-help"
     const val DASHBOARD_EVENTS = "dashboard/events"
     const val CALLER_ID = "settings/caller-id"
 }
