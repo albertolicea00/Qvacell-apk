@@ -724,8 +724,8 @@
     <!-- Remaining UI labels -->
     <string name="options_section_account_short">Account</string>
     <string name="options_section_tools_short">Utilities</string>
-    <string name="options_force_lte_title">Force network to LTE only (4G)</string>
-    <string name="options_force_lte_desc">Open Android’s radio menu to select LTE Only manually.</string>
+    <string name="options_force_lte_title">Force LTE Only (4G)</string>
+    <string name="options_force_lte_desc">Forces the network into LTE-only mode by selecting it manually.</string>
     <string name="radio_network_help_intro">This shortcut opens Android’s native radio or network information menu. Qvacell does not change the network type; you must select LTE Only manually in that menu.</string>
     <string name="radio_network_help_warning">If you select LTE Only, your phone will not receive or make calls or send SMS. Before changing it, note the current preferred network type so you can restore it later.</string>
     <string name="radio_network_help_restore">Your original preferred network type may appear as “LTE/TD-SCDMA/UMTS” or “LTE/TD-SCDMA/WCDMA”. Write it down before selecting LTE Only and restore it when you are done.</string>

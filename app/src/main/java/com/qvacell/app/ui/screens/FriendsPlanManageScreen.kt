@@ -50,6 +50,7 @@ import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.model.CubanPhoneNumber
 import com.qvacell.app.model.UssdCode
+import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.BackNavigationIcon
 import com.qvacell.app.ui.components.rememberDirectDialAction
 
@@ -90,8 +91,9 @@ fun FriendsPlanManageScreen(onBack: (() -> Unit)? = null) {
         topBar = {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
-                title = { Text(stringResource(R.string.options_friends_plan)) },
-                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+                title = { Text(stringResource(R.string.title_friends_plan)) },
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) },
+                actions = { SimSelectorIcon() }
             )
         }
     ) { padding ->

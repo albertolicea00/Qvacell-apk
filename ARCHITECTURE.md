@@ -129,6 +129,8 @@ Home starts a fresh session with the manual dashboard (Marcación Rápida). Its 
 
 Home uses one overflow menu anchored to its three-dot button in both dashboard modes. Its common actions remain in the same order: transfer balance, recharge balance, manage Friends Plan, and reminders. Transfer and recharge appear only when their corresponding manual dashboard sections are hidden (`transferir` / `recargar` in `manualHiddenSections`); both modes use the same visibility rule. Events appears in both modes only in the `unlocked` flavor. Dashboard Options and Help are appended only while the dynamic dashboard is active. The menu closes before opening another screen, a sheet, or changing dashboard mode.
 
+The Options root, Friends Plan management, transfer PIN management, and offline database search expose the shared `SimSelectorIcon` in their top bars. It appears when multiple active SIMs are available and preserves the configured SIM appearance and switch behavior. Selection updates the shared `SettingsDataStore` preference; calls and USSD actions continue through `DialService`, which reads that selected slot when attaching the phone account to each intent.
+
 ---
 
 ## 5. Code Execution Path

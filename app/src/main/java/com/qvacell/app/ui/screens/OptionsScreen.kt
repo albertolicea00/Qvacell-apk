@@ -101,6 +101,7 @@ import com.qvacell.app.service.UpdateChecker
 import com.qvacell.app.service.UpdateCheckResult
 import com.qvacell.app.service.UpdateInfo
 import com.qvacell.app.service.SimUtils
+import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.ColorWheelPicker
 import com.qvacell.app.ui.components.DialogActionRow
 import com.qvacell.app.ui.components.UpdateAvailableDialog
@@ -296,7 +297,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         else null
     }
 
-    Scaffold(topBar = { TopAppBar(modifier = Modifier.padding(top = 12.dp), title = { Text(stringResource(R.string.tab_options)) }) }) { padding ->
+    Scaffold(topBar = {
+        TopAppBar(
+            modifier = Modifier.padding(top = 12.dp),
+            title = { Text(stringResource(R.string.tab_options)) },
+            actions = { SimSelectorIcon() }
+        )
+    }) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding),
             contentPadding = PaddingValues(vertical = 8.dp),

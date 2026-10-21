@@ -42,6 +42,7 @@ import com.qvacell.app.R
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.service.DialService
 import com.qvacell.app.service.TransferPinStore
+import com.qvacell.app.ui.components.SimSelectorIcon
 import com.qvacell.app.ui.components.BackNavigationIcon
 
 /**
@@ -69,7 +70,8 @@ fun TransferPinManageScreen(onBack: (() -> Unit)? = null) {
             TopAppBar(
                 modifier = Modifier.padding(top = 12.dp),
                 title = { Text(stringResource(R.string.options_transfer_pin)) },
-                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) }
+                navigationIcon = { if (onBack != null) BackNavigationIcon(onBack) },
+                actions = { SimSelectorIcon() }
             )
         }
     ) { padding ->

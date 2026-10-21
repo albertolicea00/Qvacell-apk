@@ -724,8 +724,8 @@
     <!-- Remaining UI labels -->
     <string name="options_section_account_short">Cuenta</string>
     <string name="options_section_tools_short">Utilidades</string>
-    <string name="options_force_lte_title">Forzar red a solo LTE (4G)</string>
-    <string name="options_force_lte_desc">Abre el menú de radio de Android para seleccionar LTE Only manualmente.</string>
+    <string name="options_force_lte_title">Fuerza solo LTE (4G)</string>
+    <string name="options_force_lte_desc">Fuerza la red a modo solo LTE (4G) seleccionándolo manualmente.</string>
     <string name="radio_network_help_intro">Esta opción abre el menú nativo de información de radio o red de Android mediante un acceso directo. Qvacell no cambia el tipo de red: dentro de ese menú debes seleccionar LTE Only (Solo LTE) manualmente.</string>
     <string name="radio_network_help_warning">Si seleccionas Solo LTE, tu teléfono no recibirá ni podrá realizar llamadas o enviar SMS. Antes de cambiarlo, fíjate en el tipo de red preferida actual para poder restaurarlo después.</string>
     <string name="radio_network_help_restore">El tipo de red preferida original puede aparecer como “LTE/TD-SCDMA/UMTS” o “LTE/TD-SCDMA/WCDMA”. Anótalo antes de elegir Solo LTE y restáuralo cuando termines.</string>
