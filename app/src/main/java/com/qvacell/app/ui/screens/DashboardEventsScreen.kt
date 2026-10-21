@@ -1,6 +1,10 @@
 package com.qvacell.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.animate
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +12,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -24,6 +31,7 @@ import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.filled.PhoneInTalk
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -31,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,12 +57,17 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.qvacell.app.R
 import com.qvacell.app.data.FieldTypes
@@ -73,17 +87,18 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
+import kotlin.math.roundToInt
 
-private enum class EventKind(val icon: ImageVector, val labelRes: Int) {
-    LINE_EXPIRY(Icons.Filled.CreditCard, R.string.events_line_expiry),
-    RECHARGE_DEADLINE(Icons.Filled.CreditCard, R.string.events_recharge_deadline),
-    VOICE_EXPIRY(Icons.Filled.PhoneInTalk, R.string.events_voice_expiry),
-    SMS_EXPIRY(Icons.Filled.Message, R.string.events_sms_expiry),
-    DATA_CU_EXPIRY(Icons.Filled.DataUsage, R.string.events_data_expiry),
-    DATA_TODUS_EXPIRY(Icons.Filled.DataUsage, R.string.events_todus_expiry),
-    DATA_DAILY_EXPIRY(Icons.Filled.DataUsage, R.string.events_daily_expiry),
-    BONUS_CU_EXPIRY(Icons.Filled.DataUsage, R.string.events_bonus_expiry),
-    BONUS_NIGHT_EXPIRY(Icons.Filled.DataUsage, R.string.events_night_bonus_expiry)
+private enum class EventKind(val icon: ImageVector, val labelRes: Int, val reminderMessageRes: Int) {
+    LINE_EXPIRY(Icons.Filled.CreditCard, R.string.events_line_expiry, R.string.events_reminder_line),
+    RECHARGE_DEADLINE(Icons.Filled.CreditCard, R.string.events_recharge_deadline, R.string.events_reminder_recharge),
+    VOICE_EXPIRY(Icons.Filled.PhoneInTalk, R.string.events_voice_expiry, R.string.events_reminder_voice),
+    SMS_EXPIRY(Icons.Filled.Message, R.string.events_sms_expiry, R.string.events_reminder_sms),
+    DATA_CU_EXPIRY(Icons.Filled.DataUsage, R.string.events_data_expiry, R.string.events_reminder_data),
+    DATA_TODUS_EXPIRY(Icons.Filled.DataUsage, R.string.events_todus_expiry, R.string.events_reminder_todus),
+    DATA_DAILY_EXPIRY(Icons.Filled.DataUsage, R.string.events_daily_expiry, R.string.events_reminder_daily),
+    BONUS_CU_EXPIRY(Icons.Filled.DataUsage, R.string.events_bonus_expiry, R.string.events_reminder_bonus),
+    BONUS_NIGHT_EXPIRY(Icons.Filled.DataUsage, R.string.events_night_bonus_expiry, R.string.events_reminder_night_bonus)
 }
 
 private data class DashboardEvent(
@@ -126,6 +141,7 @@ fun DashboardEventsScreen(onBack: () -> Unit) {
     }
     val today = LocalDate.now()
     var displayedMonth by remember { mutableStateOf(YearMonth.now()) }
+    var notificationEvent by remember { mutableStateOf<DashboardEvent?>(null) }
     var collapsedPixels by remember { mutableFloatStateOf(0f) }
     val firstWeekday = WeekFields.of(locale).firstDayOfWeek
     val leadingDays = (displayedMonth.atDay(1).dayOfWeek.value - firstWeekday.value + 7) % 7
@@ -208,11 +224,32 @@ fun DashboardEventsScreen(onBack: () -> Unit) {
                     }
                 } else {
                     items(events, key = { "${it.simSlotIndex}:${it.kind}:${it.date}" }) { event ->
-                        EventRow(event, locale, today, showSimBadge = sims.size > 1)
+                        SwipeableEventRow(
+                            event = event,
+                            locale = locale,
+                            today = today,
+                            showSimBadge = sims.size > 1,
+                            onAddNotification = { notificationEvent = event }
+                        )
                     }
                 }
             }
         }
+    }
+
+    notificationEvent?.let { event ->
+        val eventTitle = stringResource(event.kind.labelRes)
+        val suggestedTime = remember(event) {
+            event.date.atTime(9, 0).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                .coerceAtLeast(System.currentTimeMillis() + 3_600_000L)
+        }
+        ReminderEditScreen(
+            initialTitle = "$eventTitle · ${event.simLabel}",
+            initialMessage = stringResource(event.kind.reminderMessageRes),
+            initialDateMillis = suggestedTime,
+            onDone = { notificationEvent = null },
+            onBack = { notificationEvent = null }
+        )
     }
 }
 
@@ -321,9 +358,91 @@ private fun CalendarCard(
 }
 
 @Composable
-private fun EventRow(event: DashboardEvent, locale: Locale, today: LocalDate, showSimBadge: Boolean) {
+private fun SwipeableEventRow(
+    event: DashboardEvent,
+    locale: Locale,
+    today: LocalDate,
+    showSimBadge: Boolean,
+    onAddNotification: () -> Unit
+) {
+    var offset by remember { mutableFloatStateOf(0f) }
+    var rowWidth by remember { mutableFloatStateOf(0f) }
+    val actionWidth = 112.dp
+    val actionPixels = with(LocalDensity.current) { actionWidth.toPx() }
+    val fullSwipeThreshold = if (rowWidth > 0f) minOf(actionPixels * 1.65f, rowWidth * 0.65f) else actionPixels * 1.65f
+    val actionLabel = stringResource(R.string.events_add_notification)
+    val addNotification = {
+        offset = 0f
+        onAddNotification()
+    }
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .onSizeChanged { rowWidth = it.width.toFloat() }
+            .clip(RoundedCornerShape(18.dp))
+            .semantics {
+                customActions = listOf(CustomAccessibilityAction(actionLabel) {
+                    addNotification()
+                    true
+                })
+            }
+    ) {
+        Box(
+            Modifier.matchParentSize().background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            TextButton(
+                onClick = addNotification,
+                modifier = Modifier.width(actionWidth).fillMaxHeight(),
+                shape = RoundedCornerShape(0.dp)
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Filled.Notifications, contentDescription = null)
+                    Text(
+                        actionLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        }
+        EventRow(
+            event = event,
+            locale = locale,
+            today = today,
+            showSimBadge = showSimBadge,
+            modifier = Modifier
+                .offset { IntOffset(offset.roundToInt(), 0) }
+                .draggable(
+                    orientation = Orientation.Horizontal,
+                    state = rememberDraggableState { delta ->
+                        offset = (offset + delta).coerceIn(-maxOf(rowWidth, actionPixels), 0f)
+                    },
+                    onDragStopped = { velocity ->
+                        if (offset <= -fullSwipeThreshold) {
+                            animate(offset, -maxOf(rowWidth, actionPixels)) { value, _ -> offset = value }
+                            addNotification()
+                        } else {
+                            val reveal = velocity < -600f || (velocity <= 600f && offset < -actionPixels * 0.4f)
+                            animate(offset, if (reveal) -actionPixels else 0f) { value, _ -> offset = value }
+                        }
+                    }
+                )
+        )
+    }
+}
+
+@Composable
+private fun EventRow(
+    event: DashboardEvent,
+    locale: Locale,
+    today: LocalDate,
+    showSimBadge: Boolean,
+    modifier: Modifier = Modifier
+) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
     ) {

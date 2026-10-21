@@ -89,7 +89,10 @@ fun ReminderEditScreen(
     templateKey: String? = null,
     reminderId: String? = null,
     onDone: () -> Unit,
-    onBack: (() -> Unit)? = null
+    onBack: (() -> Unit)? = null,
+    initialTitle: String? = null,
+    initialMessage: String? = null,
+    initialDateMillis: Long? = null
 ) {
     val context = LocalContext.current
     val repository = remember { ReminderRepository(context) }
@@ -139,8 +142,9 @@ fun ReminderEditScreen(
                 dateMillis = r.date
             }
         } else {
-            title = template.title
-            message = template.message
+            title = initialTitle ?: template.title
+            message = initialMessage ?: template.message
+            initialDateMillis?.let { dateMillis = it }
         }
         loaded = true
     }

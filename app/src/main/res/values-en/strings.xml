@@ -53,6 +53,16 @@
     <string name="title_dashboard_events">Events</string>
     <string name="title_dashboard_events_placeholder">Events calendar — coming soon.</string>
     <string name="events_all_title">All events</string>
+    <string name="events_add_notification">Add notification</string>
+    <string name="events_reminder_line">Your line has reached its active-until date. Top up to keep it active.</string>
+    <string name="events_reminder_recharge">Your recharge deadline has arrived. Top up to renew your balance validity.</string>
+    <string name="events_reminder_voice">Your voice plan has expired. Buy a new plan to keep calling with included minutes.</string>
+    <string name="events_reminder_sms">Your SMS plan has expired. Buy another package if you need to keep sending texts.</string>
+    <string name="events_reminder_data">Your data plan has expired. Activate a new offer to keep browsing.</string>
+    <string name="events_reminder_todus">Your toDus package has expired. Activate another if you want to keep using this offer.</string>
+    <string name="events_reminder_daily">Your daily data package has expired. Activate another to keep browsing.</string>
+    <string name="events_reminder_bonus">Your bonus data for national websites has expired.</string>
+    <string name="events_reminder_night_bonus">Your night browsing bonus has expired.</string>
     <string name="events_today">today</string>
     <string name="events_in_one_day">in 1 day</string>
     <string name="events_in_days">in %1$d days</string>

@@ -53,6 +53,16 @@
     <string name="title_dashboard_events">Eventos</string>
     <string name="title_dashboard_events_placeholder">Calendario de eventos — próximamente.</string>
     <string name="events_all_title">Todos los eventos</string>
+    <string name="events_add_notification">Añadir notificación</string>
+    <string name="events_reminder_line">Llegó la fecha límite de actividad de tu línea. Haz una recarga para mantenerla activa.</string>
+    <string name="events_reminder_recharge">Llegó la fecha límite para recargar. Recarga tu saldo para renovar su vigencia.</string>
+    <string name="events_reminder_voice">Tu plan de voz ha expirado. Compra un nuevo plan para seguir llamando con minutos incluidos.</string>
+    <string name="events_reminder_sms">Tu plan de SMS ha expirado. Compra otro paquete si necesitas seguir enviando mensajes.</string>
+    <string name="events_reminder_data">Tu plan de datos ha expirado. Activa una nueva oferta para seguir navegando.</string>
+    <string name="events_reminder_todus">Tu paquete toDus ha expirado. Activa otro si quieres seguir usando esta oferta.</string>
+    <string name="events_reminder_daily">Tu paquete diario de datos ha expirado. Activa otro para seguir navegando.</string>
+    <string name="events_reminder_bonus">Tu bono de datos para sitios nacionales ha expirado.</string>
+    <string name="events_reminder_night_bonus">Tu bono de navegación nocturna ha expirado.</string>
     <string name="events_today">hoy</string>
     <string name="events_in_one_day">dentro de 1 día</string>
     <string name="events_in_days">dentro de %1$d días</string>
