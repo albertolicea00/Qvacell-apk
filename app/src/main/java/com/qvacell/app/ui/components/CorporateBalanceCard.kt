@@ -125,11 +125,13 @@ fun CorporateBalanceCard(
                         modifier = Modifier.padding(start = 7.dp)
                     )
                 }
+                val roamingValue = roaming.ifBlank { "--" }
                 Text(
-                    roaming.ifBlank { "--" },
+                    roamingValue,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    fontWeight = if (roamingValue == "--") FontWeight.Normal else FontWeight.Bold,
+                    color = if (roamingValue == "--") MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f)
+                    else MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -156,7 +158,13 @@ private fun CorporateDataSection(
                     Text(match.groupValues[2], style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.padding(start = 4.dp, bottom = 4.dp))
                 }
             } else {
-                Text(value, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    value,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = if (value.trim() == "--") FontWeight.Normal else FontWeight.Bold,
+                    color = if (value.trim() == "--") MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f)
+                    else MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -190,8 +198,9 @@ private fun CorporateMetricSection(
         }
         Text(value,
             style = if (prominent) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            fontWeight = if (value.trim() == "--") FontWeight.Normal else FontWeight.Bold,
+            color = if (value.trim() == "--") MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f)
+            else MaterialTheme.colorScheme.primary
         )
     }
 }
@@ -208,8 +217,9 @@ private fun CorporateConsumptionRow(label: String, value: String, verticalOffset
         Text(
             value,
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
+            fontWeight = if (value.trim() == "--") FontWeight.Normal else FontWeight.SemiBold,
+            color = if (value.trim() == "--") MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.62f)
+            else MaterialTheme.colorScheme.primary
         )
     }
 }
