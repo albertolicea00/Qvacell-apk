@@ -147,6 +147,23 @@ Separately, the Home Transferir flow and the offline Database search prefill a P
 
 ---
 
+## 5b. Launcher Shortcuts
+
+Static shortcuts declared in `res/xml/shortcuts.xml`, referenced from `AndroidManifest.xml` via `android.app.shortcuts` meta-data. Each fires `ACTION_DIAL_USSD` with a `ussd_code` extra, handled by `MainActivity`.
+
+| Order | ID | USSD | Icon drawable | Label (ES) |
+|---|---|---|---|---|
+| 1 | `saldo_corporativo` | `*111#` | `ic_shortcut_corporate` (account_balance) | Saldo Corporativo |
+| 2 | `consulta_saldo` | `*222#` | `ic_shortcut_balance` (account_balance_wallet) | Saldo Personal |
+| 3 | `bonos_planes` | `*222*266#` | `ic_shortcut_plans` (data_usage) | Bonos y Planes |
+| 4 | `comprar_plan` | `*133#` | `ic_shortcut_purchase` (shopping_cart) | Comprar Plan |
+| 5 | `llamar_cobrar` | `*99` | `ic_shortcut_call` (phone) | Llamar *99 |
+| 6 | `llamar_oculto` | `#31#` | `ic_shortcut_hidden` (visibility_off) | Llamar Oculto |
+
+All icon drawables use tint `#0099CC` (app primary cyan) with white glyph fill. Most launchers show ≤ 4 shortcuts; order in the XML controls priority. Labels are localized in `values/strings.xml` (ES) and `values-en/strings.xml` (EN).
+
+---
+
 ## 6. Reminders & Local Notifications
 
 Options › Utilidades › Recordatorios schedules local notifications for a purchase/recharge/transfer the user needs to make — entirely on-device, with no push infrastructure or Qvacell backend. Firebase telemetry (§19) is independent of reminder delivery.

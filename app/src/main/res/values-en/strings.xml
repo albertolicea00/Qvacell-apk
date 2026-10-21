@@ -2,8 +2,12 @@
     <string name="app_name">Qvacell</string>
 
     <!-- Launcher shortcuts -->
-    <string name="shortcut_saldo_short">Check Balance</string>
-    <string name="shortcut_saldo_long">Check main balance</string>
+    <string name="shortcut_saldo_short">Personal Balance</string>
+    <string name="shortcut_saldo_long">Check personal balance</string>
+    <string name="shortcut_corp_short">Corporate Balance</string>
+    <string name="shortcut_corp_long">Check corporate balance</string>
+    <string name="shortcut_purchase_short">Buy Plan</string>
+    <string name="shortcut_purchase_long">Buy plan (*133#)</string>
     <string name="shortcut_bonos_short">Bonuses &amp; Plans</string>
     <string name="shortcut_bonos_long">Check bonuses and plans</string>
     <string name="shortcut_cobrar_short">Call *99</string>
