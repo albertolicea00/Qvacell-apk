@@ -402,6 +402,8 @@
     <string name="options_dashboards_visible_all">All visible</string>
     <string name="options_dashboards_how_it_works">How the Dashboard Works</string>
     <string name="options_dashboards_how_it_works_desc">Learn and configure how our dynamic dashboard operates</string>
+    <string name="options_sim_settings_title">SIM settings</string>
+    <string name="options_sim_settings_desc">Pay-per-use data, MMS and 3G/4G/LTE services</string>
     <string name="options_about_links">Links of interest</string>
     <string name="options_about_links_desc">ETECSA portals and online services</string>
     <string name="options_about_widgets">Home Widgets</string>

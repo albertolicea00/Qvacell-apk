@@ -402,6 +402,8 @@
     <string name="options_dashboards_visible_all">Todas visibles</string>
     <string name="options_dashboards_how_it_works">Funcionamiento del Dashboard</string>
     <string name="options_dashboards_how_it_works_desc">Conoce y configura cómo funciona nuestro dashboard dinámico</string>
+    <string name="options_sim_settings_title">Configuración de SIM</string>
+    <string name="options_sim_settings_desc">Datos por consumo, MMS y servicios 3G/4G/LTE</string>
     <string name="options_about_links">Enlaces de interés</string>
     <string name="options_about_links_desc">Portales y servicios en línea de ETECSA</string>
     <string name="options_about_widgets">Widgets de Inicio</string>
