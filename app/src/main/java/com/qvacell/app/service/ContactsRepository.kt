@@ -3,9 +3,7 @@ package com.qvacell.app.service
 import android.content.Context
 import android.provider.ContactsContract
 import com.qvacell.app.R
-import com.qvacell.app.data.QvacellDatabase
 import com.qvacell.app.model.CubanPhoneNumber
-import com.qvacell.app.model.WrappedCaller
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -78,22 +76,6 @@ class ContactsRepository(private val context: Context) {
                 )
             }
         }
-
-    /**
-     * Rebuilds the wrapped_callers table from the given contacts so the CallScreeningService
-     * can resolve *99 collect-call caller IDs. Call this after every [loadContacts] fetch,
-     * mirroring the iOS app's ContactsService, which rebuilds its CallerIDStore list the same way.
-     */
-    suspend fun syncWrappedCallers(context: Context, contacts: List<DeviceContact>) = withContext(Dispatchers.IO) {
-        val entries = contacts.flatMap { contact ->
-            contact.cubanNumbers.mapNotNull { number ->
-                WrappedCaller.wrappedNumber(number)?.let { WrappedCaller(it, contact.name) }
-            }
-        }
-        val dao = QvacellDatabase.get(context).wrappedCallerDao()
-        dao.clear()
-        if (entries.isNotEmpty()) dao.upsertAll(entries)
-    }
 }
 
 data class ContactEntry(

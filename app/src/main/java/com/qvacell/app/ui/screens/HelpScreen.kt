@@ -173,12 +173,12 @@ fun HelpScreen(
                 )
             }
 
-            HelpSection(stringResource(R.string.help_directory_title)) {
-                HelpInfoRow(
-                    title = stringResource(R.string.help_directory_q),
-                    text = stringResource(R.string.help_directory_a)
-                )
-            }
+            // HelpSection(stringResource(R.string.help_directory_title)) {
+            //     HelpInfoRow(
+            //         title = stringResource(R.string.help_directory_q),
+            //         text = stringResource(R.string.help_directory_a)
+            //     )
+            // }
 
             HelpSection(stringResource(R.string.help_developer)) {
                 HelpLinkRow(

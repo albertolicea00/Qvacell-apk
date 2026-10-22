@@ -2,8 +2,12 @@
     <string name="app_name">Qvacell</string>
 
     <!-- Launcher shortcuts -->
-    <string name="shortcut_saldo_short">Consultar Saldo</string>
-    <string name="shortcut_saldo_long">Consultar saldo principal</string>
+    <string name="shortcut_saldo_short">Saldo Personal</string>
+    <string name="shortcut_saldo_long">Consultar saldo personal</string>
+    <string name="shortcut_corp_short">Saldo Corporativo</string>
+    <string name="shortcut_corp_long">Consultar saldo corporativo</string>
+    <string name="shortcut_purchase_short">Comprar Plan</string>
+    <string name="shortcut_purchase_long">Comprar plan (*133#)</string>
     <string name="shortcut_bonos_short">Bonos y Planes</string>
     <string name="shortcut_bonos_long">Consultar bonos y planes</string>
     <string name="shortcut_cobrar_short">Llamar *99</string>
@@ -84,8 +88,6 @@
     <string name="events_todus_expiry">Vence el plan toDus</string>
     <string name="events_daily_expiry">Vence el paquete diario</string>
     <string name="events_night_bonus_expiry">Vence el bono nocturno</string>
-    <string name="title_caller_id">Identificador de Llamadas</string>
-    <string name="title_caller_id_placeholder">Identifica llamadas entrantes con información del directorio — función en desarrollo.</string>
 
     <!-- Connection & Network Status -->
     <string name="network_no_signal">Sin señal — el USSD no funcionará</string>
@@ -249,7 +251,6 @@
     <string name="options_transfer_pin">Clave de Transferencia</string>
     <string name="options_widgets">Widgets de Pantalla</string>
     <string name="options_voice_shortcuts">Atajos de Voz</string>
-    <string name="options_caller_id">Identificador de Llamadas (*99)</string>
     <string name="options_version">Versión</string>
     <string name="options_update_available_title">Actualización disponible</string>
     <string name="options_update_available_msg">Hay una nueva versión (%1$s) disponible.</string>
@@ -298,8 +299,6 @@
 
     <!-- Notifications -->
     <string name="notif_channel_reminders">Recordatorios</string>
-    <string name="notif_channel_caller_id">Identificador de Llamadas</string>
-    <string name="caller_id_incoming_collect">Llamada por cobrar de %1$s</string>
 
     <!-- Onboarding -->
     <string name="onboarding_skip">Saltar</string>
@@ -403,11 +402,10 @@
     <string name="options_dashboards_visible_all">Todas visibles</string>
     <string name="options_dashboards_how_it_works">Funcionamiento del Dashboard</string>
     <string name="options_dashboards_how_it_works_desc">Conoce y configura cómo funciona nuestro dashboard dinámico</string>
+    <string name="options_sim_settings_title">Configuración de SIM</string>
+    <string name="options_sim_settings_desc">Datos por consumo, MMS y servicios 3G/4G/LTE</string>
     <string name="options_about_links">Enlaces de interés</string>
     <string name="options_about_links_desc">Portales y servicios en línea de ETECSA</string>
-    <string name="options_about_caller_id">Identificador de Llamadas</string>
-    <string name="options_about_caller_id_active">Activo</string>
-    <string name="options_about_caller_id_inactive">Solicitar rol de selección de llamadas</string>
     <string name="options_about_widgets">Widgets de Inicio</string>
     <string name="options_about_widgets_desc">Widgets para la pantalla de inicio de tu teléfono</string>
     <string name="options_about_gemini">Atajos de Voz (Gemini)</string>

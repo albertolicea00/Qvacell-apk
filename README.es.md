@@ -23,7 +23,6 @@ Una aplicación para Android para acceder rápidamente a los **códigos de servi
 - 📋 **Catálogo USSD Completo** — Organizado por categorías (Saldo y Planes, Compras, Líneas de Ayuda, Utilidades) con solicitudes interactivas según entradas necesarias.
 - 📞 **Marcado en Un Tap** — Abre el marcador del sistema mediante `ACTION_DIAL`, exigiendo la misma confirmación explícita del usuario que `tel://` en iOS.
 - 👤 **Integración con Contactos** — Lee los contactos del dispositivo para llamar, transferir saldo o realizar llamadas a cobro revertido `*99` directamente.
-- 🆔 **Identificador de Llamadas (`*99`)** — Un `CallScreeningService` desenvuelve el número de cobro revertido de ETECSA y muestra el nombre real del contacto mediante una notificación emergente. Ver [Limitaciones Conocidas](#-limitaciones-conocidas) — Android no permite que una app que no sea el marcador predeterminado inyecte un nombre en la interfaz de llamada del sistema como sí lo hace CallKit en iOS.
 - 🛜 **Directorio de Salas de Navegación y Wi-Fi** — Búsqueda offline de salas de navegación de ETECSA y puntos Wi-Fi públicos por provincia.
 - ✉️ **Catálogo de Servicios SMS** — Examina y prellena consultas de servicios por SMS (noticias, tiempo, deportes, tarifas de servicios) sin envío silencioso.
 - 👥 **Gestión de Cuentas y PIN** — Almacena el PIN de transferencia en un almacén local cifrado y gestiona números del Plan Amigo.
@@ -33,7 +32,7 @@ Una aplicación para Android para acceder rápidamente a los **códigos de servi
 
 > [!NOTE]
 > **App Nativa de Android**
-> Esta aplicación está construida de forma nativa para Android con el fin de aprovechar funciones exclusivas de la plataforma (como servicios en segundo plano, identificación de llamadas e integración con SMS) que no se podían replicar completamente en iOS. Por esta razón, existe como un repositorio nativo dedicado e independiente.
+> Esta aplicación está construida de forma nativa para Android con el fin de aprovechar funciones exclusivas de la plataforma (como servicios en segundo plano e integración con SMS) que no se podían replicar completamente en iOS. Por esta razón, existe como un repositorio nativo dedicado e independiente.
 
 ## 🛠️ Requisitos y Compatibilidad
 
@@ -106,18 +105,16 @@ Abre el proyecto en Android Studio y espera la sincronización — el Gradle wra
 
 **El marcado USSD requiere un dispositivo físico con una SIM de Cubacel** 📲 — el emulador no tiene una pila de telefonía real y no puede realizar llamadas.
 
-Para activar el Identificador de Llamadas para llamadas `*99`, abre **Opciones › Acerca de › Identificador de Llamadas** en la app y concede el rol de selección de llamadas cuando se solicite (`RoleManager.ROLE_CALL_SCREENING`). Este es un ajuste manual de Android que se realiza una sola vez — ninguna app puede activarlo automáticamente. Consulta [ARCHITECTURE.md § 11](ARCHITECTURE.md#11-caller-id-callscreeningservice-99-collect-call-identification) para entender por qué el resultado es distinto al de la extensión CallKit de iOS.
-
 ## 🗂️ Estructura del Proyecto
 
 ```
 app/src/main/java/com/qvacell/app/
 ├── QvacellApplication.kt        # Punto de entrada de la app, canales de notificación
 ├── MainActivity.kt              # Host de Activity única, aplica el tema, solicita permiso de notificaciones
-├── model/                       # Catálogo USSDCode/Category, CubanPhoneNumber, Reminder, WrappedCaller
+├── model/                       # Catálogo USSDCode/Category, CubanPhoneNumber, Reminder
 ├── data/                        # Base de datos Room, DAOs, DataStore de preferencias/opciones
 ├── service/                     # DialService, ContactsRepository, TransferPinStore,
-│                                 # ReminderRepository/Scheduler, DirectoryDatabase, CallerIdScreeningService
+│                                 # ReminderRepository/Scheduler, DirectoryDatabase
 ├── receiver/                    # Receivers de alarma/acción de recordatorios, reprogramación al reiniciar
 └── ui/                          # Pantallas Compose, navegación, componentes compartidos
 
@@ -162,7 +159,6 @@ Incluye un directorio offline de salas de navegación oficiales de ETECSA y punt
 
 ## 🚧 Limitaciones Conocidas
 
-- **El Identificador de Llamadas no puede mostrar un nombre personalizado en la interfaz del sistema.** A diferencia de la extensión CallKit Call Directory de iOS, la API `CallScreeningService` de Android no permite que una app que no sea el marcador predeterminado inyecte un nombre en la pantalla de llamada entrante del propio sistema. Esta app en su lugar muestra el nombre resuelto mediante una notificación emergente cuando suena una llamada `*99` envuelta. Convertir la app en el marcador predeterminado del usuario para lograr la inyección completa del nombre se descartó deliberadamente — es un compromiso mucho mayor (reemplazar la interfaz principal del teléfono) por una sola función.
 - **Es posible que el número telefónico de la SIM no se detecte automáticamente.** La mayoría de las tarjetas SIM (especialmente Cubacel / ETECSA) no vienen con el número de teléfono (MSISDN) grabado directamente en el chip por la operadora. En tales casos, las APIs de telefonía de Android devuelven `null` o vacío, por lo que la aplicación recurre a mostrar el nombre de la operadora o la ranura (ej. `SIM 1` / `SIM 2`).
 - **Los marcadores de operador/fabricante pueden interceptar los códigos USSD** antes de que el intent `ACTION_DIAL` de esta app llegue al módem, según el dispositivo y la ROM. Este es un comportamiento de la plataforma/fabricante de Android fuera del control de la app.
 - **Puede aparecer un aviso USSD del sistema si se pierde la señal durante una consulta del dashboard.** Qvacell detiene las consultas restantes y muestra su propio estado, pero la API pública `sendUssdRequest` de Android no permite cancelar una petición ya enviada a telefonía ni cerrar un aviso que muestre el sistema o el operador. Activar el modo avión durante una consulta reproduce esta limitación.

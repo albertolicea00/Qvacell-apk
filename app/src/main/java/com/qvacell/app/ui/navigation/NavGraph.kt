@@ -63,5 +63,4 @@ object Routes {
     const val DASHBOARD_SETTINGS = "settings/dashboard"
     const val DASHBOARD_HELP = "settings/dashboard-help"
     const val DASHBOARD_EVENTS = "dashboard/events"
-    const val CALLER_ID = "settings/caller-id"
 }

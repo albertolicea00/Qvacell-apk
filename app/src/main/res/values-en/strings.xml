@@ -2,8 +2,12 @@
     <string name="app_name">Qvacell</string>
 
     <!-- Launcher shortcuts -->
-    <string name="shortcut_saldo_short">Check Balance</string>
-    <string name="shortcut_saldo_long">Check main balance</string>
+    <string name="shortcut_saldo_short">Personal Balance</string>
+    <string name="shortcut_saldo_long">Check personal balance</string>
+    <string name="shortcut_corp_short">Corporate Balance</string>
+    <string name="shortcut_corp_long">Check corporate balance</string>
+    <string name="shortcut_purchase_short">Buy Plan</string>
+    <string name="shortcut_purchase_long">Buy plan (*133#)</string>
     <string name="shortcut_bonos_short">Bonuses &amp; Plans</string>
     <string name="shortcut_bonos_long">Check bonuses and plans</string>
     <string name="shortcut_cobrar_short">Call *99</string>
@@ -84,8 +88,6 @@
     <string name="events_todus_expiry">toDus plan expires</string>
     <string name="events_daily_expiry">Daily data package expires</string>
     <string name="events_night_bonus_expiry">Night bonus expires</string>
-    <string name="title_caller_id">Caller ID</string>
-    <string name="title_caller_id_placeholder">Identify incoming calls with directory information — feature under development.</string>
 
     <!-- Connection & Network Status -->
     <string name="network_no_signal">No signal — USSD will not work</string>
@@ -249,7 +251,6 @@
     <string name="options_transfer_pin">Transfer PIN</string>
     <string name="options_widgets">Home Widgets</string>
     <string name="options_voice_shortcuts">Voice Shortcuts</string>
-    <string name="options_caller_id">Caller ID (*99)</string>
     <string name="options_version">Version</string>
     <string name="options_update_available_title">Update available</string>
     <string name="options_update_available_msg">A new version (%1$s) is available.</string>
@@ -298,8 +299,6 @@
 
     <!-- Notifications -->
     <string name="notif_channel_reminders">Reminders</string>
-    <string name="notif_channel_caller_id">Caller ID</string>
-    <string name="caller_id_incoming_collect">Collect call from %1$s</string>
 
     <!-- Onboarding -->
     <string name="onboarding_skip">Skip</string>
@@ -403,11 +402,10 @@
     <string name="options_dashboards_visible_all">All visible</string>
     <string name="options_dashboards_how_it_works">How the Dashboard Works</string>
     <string name="options_dashboards_how_it_works_desc">Learn and configure how our dynamic dashboard operates</string>
+    <string name="options_sim_settings_title">SIM settings</string>
+    <string name="options_sim_settings_desc">Pay-per-use data, MMS and 3G/4G/LTE services</string>
     <string name="options_about_links">Links of interest</string>
     <string name="options_about_links_desc">ETECSA portals and online services</string>
-    <string name="options_about_caller_id">Caller ID</string>
-    <string name="options_about_caller_id_active">Active</string>
-    <string name="options_about_caller_id_inactive">Request call screening role</string>
     <string name="options_about_widgets">Home Widgets</string>
     <string name="options_about_widgets_desc">Widgets for your phone\'s home screen</string>
     <string name="options_about_gemini">Voice Shortcuts (Gemini)</string>

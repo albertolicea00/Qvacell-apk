@@ -69,12 +69,6 @@
             </intent-filter>
         </receiver>
 
-        <!--
-          CallScreeningService cannot inject a custom caller-id name into the system
-          in-call UI unless this app is the default Phone/Dialer app (OS platform gap,
-          unlike iOS CallKit CXCallDirectoryExtension). We only screen (never block)
-          and surface the resolved name via a heads-up notification instead.
-        -->
         <receiver
             android:name=".widget.QuickActionsWidget"
             android:exported="true"
@@ -102,14 +96,6 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".service.CallerIdScreeningService"
-            android:exported="true"
-            android:permission="android.permission.BIND_SCREENING_SERVICE">
-            <intent-filter>
-                <action android:name="android.telecom.CallScreeningService" />
-            </intent-filter>
-        </service>
 
     </application>
 </manifest>

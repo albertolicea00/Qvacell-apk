@@ -102,7 +102,6 @@ fun ContactsListScreen() {
                 loadTrace?.stop()
                 isLoading = false
             }
-            repository.syncWrappedCallers(context, contacts)
         } else {
             contacts = emptyList()
             isLoading = false

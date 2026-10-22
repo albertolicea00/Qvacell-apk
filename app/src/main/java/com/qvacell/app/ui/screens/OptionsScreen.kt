@@ -1,7 +1,6 @@
 package com.qvacell.app.ui.screens
 
 import android.Manifest
-import android.app.role.RoleManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.Intent
@@ -31,12 +30,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.DataUsage
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.PhoneDisabled
-import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
@@ -109,8 +104,8 @@ import com.qvacell.app.ui.components.SimAppearanceEditor
 import com.qvacell.app.ui.components.SimBadge
 import com.qvacell.app.ui.components.SimCardGlyph
 import com.qvacell.app.ui.components.rememberCodeActionHandler
-import com.qvacell.app.ui.navigation.bottomTabs
 import com.qvacell.app.ui.resolveAndroidIcon
+import com.qvacell.app.ui.navigation.bottomTabs
 import kotlinx.coroutines.launch
 
 private val ACCENT_COLOR_OPTIONS = listOf(
@@ -145,7 +140,6 @@ sealed class OptionsDestination {
     data object HomeWidgets : OptionsDestination()
     data object VoiceShortcuts : OptionsDestination()
     data object DashboardSettings : OptionsDestination()
-    data object CallerID : OptionsDestination()
     data object RadioNetworkHelp : OptionsDestination()
 }
 
@@ -157,6 +151,10 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     val settings = remember { SettingsDataStore(context) }
     val repository = remember { CatalogRepository(context) }
     val onCodeClick = rememberCodeActionHandler()
+    val simSettingsCodes = remember {
+        listOf("data-pay-per-use", "sms-4222-mms-config", "sms-2266-imei", "sms-2266-lte")
+            .mapNotNull { repository.findCodeById(it) }
+    }
 
     val themeMode by settings.themeMode.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
     val defaultTab by settings.defaultTab.collectAsStateWithLifecycle(initialValue = "home")
@@ -172,13 +170,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     // 5 taps in 3 seconds on the version text toggles unlock / hide.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
-
-    val isCallerIdRoleHeld = remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
-            roleManager.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)
-        } else false
-    }
 
     val ussdCapturePermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -213,6 +204,7 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var showManualVisibilitySheet by remember { mutableStateOf(false) }
     var showAdvanceBalanceSheet by remember { mutableStateOf(false) }
     var showInterestLinksSheet by remember { mutableStateOf(false) }
+    var showSimSettingsSheet by remember { mutableStateOf(false) }
     var showSimSheet by remember { mutableStateOf(false) }
     var showSimSwitchActionSheet by remember { mutableStateOf(false) }
     var editingSim by remember { mutableStateOf<android.telephony.SubscriptionInfo?>(null) }
@@ -232,15 +224,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     var lastTapTime by remember { mutableStateOf(0L) }
     var versionTapHandled by remember { mutableStateOf(false) }
 
-    val configuracionesCodes = remember {
-        repository.loadCatalog().categories
-            .firstOrNull { it.id == "home" }
-            ?.groups
-            ?.firstOrNull { it.name?.value == "Configuraciones" }
-            ?.codes
-            .orEmpty()
-    }
-    val payPerUseCode = remember { repository.findCodeById("data-pay-per-use") }
     val advanceBalanceCodes = remember {
         listOf("advance-balance-25", "advance-balance-50").mapNotNull { repository.findCodeById(it) }
     }
@@ -318,43 +301,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         onClick = { showInterestLinksSheet = true }
                     )
                     OptionsDivider()
-                    if (payPerUseCode != null) {
-                        OptionsRow(
-                            headline = payPerUseCode.title.value,
-                            icon = Icons.Filled.DataUsage,
-                            accentHeadline = true,
-                            trailingContent = {
-                                Icon(
-                                    Icons.Filled.ArrowOutward,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
-                            onClick = { DialService.dialDirect(context, payPerUseCode.resolvedCode()) }
-                        )
-                        OptionsDivider()
-                    }
-                    configuracionesCodes.forEach { code ->
-                        val isAccentLink = code.id in setOf("sms-2266-lte", "sms-2266-imei", "sms-4222-mms-config")
-                        OptionsRow(
-                            headline = code.title.value,
-                            icon = resolveAndroidIcon(code.icon),
-                            accentHeadline = isAccentLink,
-                            trailingContent = if (isAccentLink) ({
-                                val arrowIcon = if (code.id == "sms-2266-lte") Icons.Filled.ArrowOutward
-                                               else Icons.AutoMirrored.Filled.ArrowForward
-                                Icon(
-                                    arrowIcon,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }) else null,
-                            onClick = { onCodeClick(code) }
-                        )
-                        OptionsDivider()
-                    }
+                    OptionsRow(
+                        headline = stringResource(R.string.options_sim_settings_title),
+                        supporting = stringResource(R.string.options_sim_settings_desc),
+                        icon = Icons.Filled.SimCard,
+                        onClick = { showSimSettingsSheet = true }
+                    )
+                    OptionsDivider()
                     if (advanceBalanceCodes.isNotEmpty()) {
                         OptionsRow(
                             headline = stringResource(R.string.options_account_advance_balance),
@@ -409,13 +362,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         icon = Icons.Filled.Wifi,
                         onClick = { onNavigate(OptionsDestination.WifiRooms) }
                     )
-                    OptionsDivider()
-                    OptionsRow(
-                        headline = stringResource(R.string.options_tools_directory),
-                        supporting = stringResource(R.string.options_tools_directory_desc),
-                        icon = Icons.Filled.Search,
-                        onClick = { onNavigate(OptionsDestination.YellowPagesSearch) }
-                    )
+                    // OptionsDivider()
+                    // OptionsRow(
+                    //     headline = stringResource(R.string.options_tools_directory),
+                    //     supporting = stringResource(R.string.options_tools_directory_desc),
+                    //     icon = Icons.Filled.Search,
+                    //     onClick = { onNavigate(OptionsDestination.YellowPagesSearch) }
+                    // )
                     if (dbSearchUnlocked) {
                         OptionsDivider()
                         OptionsRow(
@@ -578,13 +531,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
             item {
                 OptionsSection(header = stringResource(R.string.options_section_about)) {
-                    OptionsRow(
-                        headline = stringResource(R.string.options_about_caller_id),
-                        supporting = if (isCallerIdRoleHeld) stringResource(R.string.options_about_caller_id_active) else stringResource(R.string.options_about_caller_id_inactive),
-                        icon = if (isCallerIdRoleHeld) Icons.Filled.PhoneInTalk else Icons.Filled.PhoneDisabled,
-                        onClick = { onNavigate(OptionsDestination.CallerID) }
-                    )
-                    OptionsDivider()
                     OptionsRow(
                         headline = stringResource(R.string.options_about_widgets),
                         supporting = stringResource(R.string.options_about_widgets_desc),
@@ -1139,6 +1085,62 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
         }
     }
 
+    if (showSimSettingsSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showSimSettingsSheet = false },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp).padding(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    stringResource(R.string.options_sim_settings_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)
+                ) {
+                    Column {
+                        simSettingsCodes.forEachIndexed { index, code ->
+                            if (index > 0) HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth().clickable {
+                                    showSimSettingsSheet = false
+                                    if (code.id == "data-pay-per-use") {
+                                        DialService.dialDirect(context, code.resolvedCode())
+                                    } else {
+                                        onCodeClick(code)
+                                    }
+                                }.padding(horizontal = 16.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(resolveAndroidIcon(code.icon), contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary)
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(code.title.value, style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.primary)
+                                    Text(code.details.value, style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                Icon(
+                                    Icons.Filled.ArrowOutward,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     if (showInterestLinksSheet) {
         ModalBottomSheet(
             onDismissRequest = { showInterestLinksSheet = false },
@@ -1247,16 +1249,3 @@ internal fun OptionsRow(
 internal fun OptionsDivider() {
     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }
-
-private fun requestCallScreeningRole(context: Context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
-        if (roleManager.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) {
-            val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-        }
-    }
-}
-
-

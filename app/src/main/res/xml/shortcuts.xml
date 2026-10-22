@@ -2,6 +2,20 @@
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
 
     <shortcut
+        android:shortcutId="saldo_corporativo"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_corporate"
+        android:shortcutShortLabel="@string/shortcut_corp_short"
+        android:shortcutLongLabel="@string/shortcut_corp_long">
+        <intent
+            android:action="com.qvacell.app.ACTION_DIAL_USSD"
+            android:targetPackage="com.qvacell.app"
+            android:targetClass="com.qvacell.app.MainActivity">
+            <extra android:name="ussd_code" android:value="*111#" />
+        </intent>
+    </shortcut>
+
+    <shortcut
         android:shortcutId="consulta_saldo"
         android:enabled="true"
         android:icon="@drawable/ic_shortcut_balance"
@@ -26,6 +40,20 @@
             android:targetPackage="com.qvacell.app"
             android:targetClass="com.qvacell.app.MainActivity">
             <extra android:name="ussd_code" android:value="*222*266#" />
+        </intent>
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="comprar_plan"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_purchase"
+        android:shortcutShortLabel="@string/shortcut_purchase_short"
+        android:shortcutLongLabel="@string/shortcut_purchase_long">
+        <intent
+            android:action="com.qvacell.app.ACTION_DIAL_USSD"
+            android:targetPackage="com.qvacell.app"
+            android:targetClass="com.qvacell.app.MainActivity">
+            <extra android:name="ussd_code" android:value="*133#" />
         </intent>
     </shortcut>
 
