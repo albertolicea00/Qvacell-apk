@@ -514,6 +514,30 @@ Analytics automatically reports first opens, sessions, engagement, and other SDK
 
 Performance Monitoring automatically measures app startup and Activity screen rendering; the Gradle plugin instruments eligible HTTP/S requests. Qvacell's Compose destinations share one Activity, so those automatic screen traces do not provide a separate duration for each destination. `AppTelemetry.startTrace()` adds a `contacts_load` custom duration trace around `ContactsRepository.loadContacts()` without recording contact data. Performance Monitoring does not directly report CPU, memory, or battery consumption; use Android profiling tools for those resource measurements.
 
+
+### 19.1 Cuba network limitation (2026-10-22)
+
+Qvacell targets Cuban users, so telemetry delivery from Cuba is a known operational concern.
+On 2026-10-22, a Samsung SM-A155M running LlamaCon99, another Android app using Firebase
+Analytics, Crashlytics, and Performance Monitoring, produced these results:
+
+| Service | Without VPN | With VPN |
+| --- | --- | --- |
+| Analytics | Test event accepted: HTTP 204 | Test event accepted: HTTP 204 |
+| Crashlytics | Report upload rejected: HTTP 403 | Synthetic nonfatal report accepted: HTTP 200 |
+| Performance Monitoring | Metric upload rejected: HTTP 403; Remote Config reported an authorization failure | Remote Config recovered; test trace upload accepted: HTTP 200 |
+
+The VPN retest required no code or Firebase configuration changes. Crashlytics uploads went to
+`crashlyticsreports-pa.googleapis.com`; Performance uploads went to
+`firebaselogging-pa.googleapis.com`. Server acceptance was confirmed; processed data in Firebase
+Console was not verified.
+
+These observations come from LlamaCon99, not a Qvacell delivery test. Verification specifically
+for Qvacell (`com.qvacell.app`) and other Cuban networks remains pending. Reports from Qvacell
+users connecting without VPN may be missing; successful local logging or enqueueing alone does
+not confirm delivery. When validating Qvacell, compare the same test device with and without VPN,
+check transport HTTP responses, and confirm the matching data in Firebase Console.
+
 ---
 
 ## 20. Release APK Optimization (R8)
