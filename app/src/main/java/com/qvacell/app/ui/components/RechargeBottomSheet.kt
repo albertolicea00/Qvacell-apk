@@ -16,13 +16,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -118,36 +116,38 @@ fun RechargeBottomSheet(onDismiss: () -> Unit, onDone: () -> Unit = onDismiss) {
             ) {
                 Column {
                     Row(
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         BasicTextField(
                             value = cardNumber,
                             onValueChange = { cardNumber = it },
-                            modifier = Modifier.weight(1f).padding(start = 16.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 16.dp),
                             textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             singleLine = true,
                             decorationBox = { inner ->
-                                if (cardNumber.isEmpty()) {
-                                    Text(
-                                        stringResource(R.string.recharge_card_hint),
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                    )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    if (cardNumber.isEmpty()) {
+                                        Text(
+                                            stringResource(R.string.recharge_card_hint),
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                                        )
+                                    }
+                                    inner()
                                 }
-                                inner()
                             }
                         )
-                        IconButton(onClick = { /* TODO: camera scan */ }, modifier = Modifier.size(40.dp)) {
-                            Icon(
-                                Icons.Filled.CameraAlt,
-                                contentDescription = stringResource(R.string.recharge_scan_card),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                        ScanCardButton(onCodeScanned = { cardNumber = it })
                         Spacer(Modifier.width(4.dp))
                     }
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))

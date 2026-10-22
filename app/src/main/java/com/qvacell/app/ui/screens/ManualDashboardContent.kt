@@ -27,7 +27,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
-import androidx.compose.material.icons.filled.CameraAlt
+import com.qvacell.app.ui.components.ScanCardButton
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Visibility
@@ -402,14 +402,7 @@ fun ManualDashboardContent(
                             inner()
                         }
                     )
-                    IconButton(onClick = { /* TODO: camera scan */ }, modifier = Modifier.size(40.dp)) {
-                        Icon(
-                            Icons.Filled.CameraAlt,
-                            contentDescription = stringResource(R.string.recharge_scan_card),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    ScanCardButton(onCodeScanned = { cardNumber = it })
                     Spacer(Modifier.width(4.dp))
                 }
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
