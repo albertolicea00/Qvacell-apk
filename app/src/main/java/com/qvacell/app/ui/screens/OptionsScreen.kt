@@ -398,13 +398,13 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
                         icon = Icons.Filled.Wifi,
                         onClick = { onNavigate(OptionsDestination.WifiRooms) }
                     )
-                    OptionsDivider()
-                    OptionsRow(
-                        headline = stringResource(R.string.options_tools_directory),
-                        supporting = stringResource(R.string.options_tools_directory_desc),
-                        icon = Icons.Filled.Search,
-                        onClick = { onNavigate(OptionsDestination.YellowPagesSearch) }
-                    )
+                    // OptionsDivider()
+                    // OptionsRow(
+                    //     headline = stringResource(R.string.options_tools_directory),
+                    //     supporting = stringResource(R.string.options_tools_directory_desc),
+                    //     icon = Icons.Filled.Search,
+                    //     onClick = { onNavigate(OptionsDestination.YellowPagesSearch) }
+                    // )
                     if (dbSearchUnlocked) {
                         OptionsDivider()
                         OptionsRow(
