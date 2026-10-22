@@ -20,7 +20,7 @@ import com.qvacell.app.model.WrappedCaller
 @TypeConverters(Converters::class)
 abstract class QvacellDatabase : RoomDatabase() {
     abstract fun reminderDao(): ReminderDao
-    abstract fun wrappedCallerDao(): WrappedCallerDao
+    // Legacy table retained for schema compatibility; caller identification lives in LlamaCon99.
     abstract fun dashboardValueSnapshotDao(): DashboardValueSnapshotDao
     abstract fun sourceAnchorDao(): SourceAnchorDao
 

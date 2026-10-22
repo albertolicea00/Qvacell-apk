@@ -1,7 +1,6 @@
 package com.qvacell.app.ui.screens
 
 import android.Manifest
-import android.app.role.RoleManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.Intent
@@ -35,8 +34,6 @@ import androidx.compose.material.icons.filled.DataUsage
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowOutward
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.PhoneDisabled
-import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Lock
@@ -145,7 +142,6 @@ sealed class OptionsDestination {
     data object HomeWidgets : OptionsDestination()
     data object VoiceShortcuts : OptionsDestination()
     data object DashboardSettings : OptionsDestination()
-    data object CallerID : OptionsDestination()
     data object RadioNetworkHelp : OptionsDestination()
 }
 
@@ -172,13 +168,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
     // 5 taps in 3 seconds on the version text toggles unlock / hide.
     val dbSearchUnlocked by settings.debugDatabaseSearchEnabled.collectAsStateWithLifecycle(initialValue = false)
     val ussdCaptureEnabled by settings.ussdCaptureEnabled.collectAsStateWithLifecycle(initialValue = false)
-
-    val isCallerIdRoleHeld = remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
-            roleManager.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)
-        } else false
-    }
 
     val ussdCapturePermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -578,13 +567,6 @@ fun OptionsScreen(onNavigate: (OptionsDestination) -> Unit) {
 
             item {
                 OptionsSection(header = stringResource(R.string.options_section_about)) {
-                    OptionsRow(
-                        headline = stringResource(R.string.options_about_caller_id),
-                        supporting = if (isCallerIdRoleHeld) stringResource(R.string.options_about_caller_id_active) else stringResource(R.string.options_about_caller_id_inactive),
-                        icon = if (isCallerIdRoleHeld) Icons.Filled.PhoneInTalk else Icons.Filled.PhoneDisabled,
-                        onClick = { onNavigate(OptionsDestination.CallerID) }
-                    )
-                    OptionsDivider()
                     OptionsRow(
                         headline = stringResource(R.string.options_about_widgets),
                         supporting = stringResource(R.string.options_about_widgets_desc),
@@ -1247,16 +1229,3 @@ internal fun OptionsRow(
 internal fun OptionsDivider() {
     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
 }
-
-private fun requestCallScreeningRole(context: Context) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        val roleManager = context.getSystemService(Context.ROLE_SERVICE) as RoleManager
-        if (roleManager.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) {
-            val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(intent)
-        }
-    }
-}
-
-

@@ -34,7 +34,7 @@ import kotlinx.coroutines.flow.first
 class MainActivity : ComponentActivity() {
 
     private val notificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* no-op: reminders/caller-ID notifications simply won't show if denied */ }
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* no-op: reminder notifications simply won't show if denied */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

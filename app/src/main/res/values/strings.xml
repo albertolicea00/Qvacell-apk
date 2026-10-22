@@ -88,8 +88,6 @@
     <string name="events_todus_expiry">Vence el plan toDus</string>
     <string name="events_daily_expiry">Vence el paquete diario</string>
     <string name="events_night_bonus_expiry">Vence el bono nocturno</string>
-    <string name="title_caller_id">Identificador de Llamadas</string>
-    <string name="title_caller_id_placeholder">Identifica llamadas entrantes con información del directorio — función en desarrollo.</string>
 
     <!-- Connection & Network Status -->
     <string name="network_no_signal">Sin señal — el USSD no funcionará</string>
@@ -253,7 +251,6 @@
     <string name="options_transfer_pin">Clave de Transferencia</string>
     <string name="options_widgets">Widgets de Pantalla</string>
     <string name="options_voice_shortcuts">Atajos de Voz</string>
-    <string name="options_caller_id">Identificador de Llamadas (*99)</string>
     <string name="options_version">Versión</string>
     <string name="options_update_available_title">Actualización disponible</string>
     <string name="options_update_available_msg">Hay una nueva versión (%1$s) disponible.</string>
@@ -302,8 +299,6 @@
 
     <!-- Notifications -->
     <string name="notif_channel_reminders">Recordatorios</string>
-    <string name="notif_channel_caller_id">Identificador de Llamadas</string>
-    <string name="caller_id_incoming_collect">Llamada por cobrar de %1$s</string>
 
     <!-- Onboarding -->
     <string name="onboarding_skip">Saltar</string>
@@ -409,9 +404,6 @@
     <string name="options_dashboards_how_it_works_desc">Conoce y configura cómo funciona nuestro dashboard dinámico</string>
     <string name="options_about_links">Enlaces de interés</string>
     <string name="options_about_links_desc">Portales y servicios en línea de ETECSA</string>
-    <string name="options_about_caller_id">Identificador de Llamadas</string>
-    <string name="options_about_caller_id_active">Activo</string>
-    <string name="options_about_caller_id_inactive">Solicitar rol de selección de llamadas</string>
     <string name="options_about_widgets">Widgets de Inicio</string>
     <string name="options_about_widgets_desc">Widgets para la pantalla de inicio de tu teléfono</string>
     <string name="options_about_gemini">Atajos de Voz (Gemini)</string>

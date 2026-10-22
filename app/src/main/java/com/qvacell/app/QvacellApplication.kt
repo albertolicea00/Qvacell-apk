@@ -19,8 +19,5 @@ class QvacellApplication : Application() {
         manager.createNotificationChannel(
             NotificationChannel("reminders", "Recordatorios", NotificationManager.IMPORTANCE_HIGH)
         )
-        manager.createNotificationChannel(
-            NotificationChannel("caller_id", "Identificador de Llamadas", NotificationManager.IMPORTANCE_HIGH)
-        )
     }
 }

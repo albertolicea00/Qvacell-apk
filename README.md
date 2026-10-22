@@ -23,7 +23,6 @@ An Android app to quickly access the **USSD service codes of ETECSA (Cubacel)**:
 - 📋 **Full USSD Catalog** — Organized by categories (Balance & Plans, Purchases, Helplines, Utilities) with input-aware prompts.
 - 📞 **One-Tap Dialing** — Opens the system dialer via `ACTION_DIAL`, requiring the same explicit user confirmation `tel://` gets on iOS.
 - 👤 **Contact Integration** — Reads the device contacts to call, transfer credit, or place `*99` collect calls directly.
-- 🆔 **Caller ID (`*99` collect calls)** — A `CallScreeningService` unwraps ETECSA's wrapped collect-call number and surfaces the real contact's name via a heads-up notification. See [Known Limitations](#-known-limitations) — Android does not let a non-default-dialer app inject a name into the system in-call UI the way iOS CallKit does.
 - 🛜 **Wi-Fi & Navigation Directory** — Offline search for ETECSA navigation rooms and public Wi-Fi hotspots by province.
 - ✉️ **SMS Services Catalog** — Browse and prefill SMS service queries (news, weather, sports, utility rates) without silent sending.
 - 👥 **Account & PIN Management** — Store transfer PIN in an encrypted local store and manage Plan Amigo numbers.
@@ -33,7 +32,7 @@ An Android app to quickly access the **USSD service codes of ETECSA (Cubacel)**:
 
 > [!NOTE]
 > **Native Android App**
-> This app is built natively for Android to leverage platform-specific capabilities (like advanced background services, call screening, and SMS integration) that could not be fully replicated on iOS. This is why it exists as a separate, dedicated native repository.
+> This app is built natively for Android to leverage platform-specific capabilities (like advanced background services and SMS integration) that could not be fully replicated on iOS. This is why it exists as a separate, dedicated native repository.
 
 ## 🛠️ Requirements & Compatibility
 
@@ -108,18 +107,16 @@ Open the project in Android Studio and let it sync — the Gradle wrapper regene
 
 **USSD dialing requires a physical device with a Cubacel SIM** 📲 — the emulator has no real telephony stack and cannot place calls.
 
-To get Caller ID working for `*99` collect calls, open **Options › Acerca de › Identificador de Llamadas** in the app and grant the call-screening role when prompted (`RoleManager.ROLE_CALL_SCREENING`). This is a one-time, manual Android setting — no app can enable it automatically. See [ARCHITECTURE.md § 11](ARCHITECTURE.md#11-caller-id-callscreeningservice-99-collect-call-identification) for why the result looks different from iOS's CallKit extension.
-
 ## 🗂️ Project Structure
 
 ```
 app/src/main/java/com/qvacell/app/
 ├── QvacellApplication.kt        # Application entry point, notification channels
 ├── MainActivity.kt              # Single-Activity host, applies theme, requests notification permission
-├── model/                       # USSDCode/Category catalog, CubanPhoneNumber, Reminder, WrappedCaller
+├── model/                       # USSDCode/Category catalog, CubanPhoneNumber, Reminder
 ├── data/                        # Room database, DAOs, settings DataStore
 ├── service/                     # DialService, ContactsRepository, TransferPinStore,
-│                                 # ReminderRepository/Scheduler, DirectoryDatabase, CallerIdScreeningService
+│                                 # ReminderRepository/Scheduler, DirectoryDatabase
 ├── receiver/                    # Reminder alarm/action receivers, boot rescheduling
 └── ui/                          # Compose screens, navigation, shared components
 
@@ -164,7 +161,6 @@ Includes an offline directory of official ETECSA navigation rooms and public Wi-
 
 ## 🚧 Known Limitations
 
-- **Caller ID cannot show a custom name in the system in-call UI.** Unlike iOS's CallKit Call Directory Extension, Android's `CallScreeningService` API does not let a non-default-dialer app inject a caller name into the system's own incoming-call screen. This app instead surfaces the resolved name via a heads-up notification when a wrapped `*99` collect call rings. Becoming the user's default dialer app to get full name injection was deliberately not pursued — it's a much larger commitment (replacing core phone UI) for one feature.
 - **SIM phone numbers may not be detected automatically.** Most SIM cards (especially Cubacel / ETECSA) do not have the phone number (MSISDN) written directly onto the SIM chip by the carrier. In such cases, Android's telephony APIs return `null` or empty, so the app falls back to displaying the carrier name or slot index (e.g. `SIM 1` / `SIM 2`).
 - **Carrier/OEM dialer apps may intercept USSD codes** before this app's `ACTION_DIAL` intent reaches the modem, depending on device and ROM. This is an Android platform/OEM behavior outside the app's control.
 - **A system USSD error dialog may appear if cellular service drops during a dashboard query.** Qvacell stops the remaining requests and shows its own status, but Android's public `sendUssdRequest` API cannot cancel a request already sent to the telephony service or dismiss a dialog shown by the system or carrier. Airplane mode during a query reproduces the same limitation.

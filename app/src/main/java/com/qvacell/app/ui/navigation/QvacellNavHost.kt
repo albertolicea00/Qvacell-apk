@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.PhoneInTalk
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sms
@@ -123,7 +122,6 @@ private val OPTIONS_NESTED_ROUTES = setOf(
     Routes.TRANSFER_PIN_MANAGE,
     Routes.HOME_WIDGETS,
     Routes.VOICE_SHORTCUTS,
-    Routes.CALLER_ID,
     Routes.RADIO_NETWORK_HELP,
     Routes.DASHBOARD_SETTINGS,
     Routes.DASHBOARD_HELP,
@@ -148,7 +146,6 @@ private val OPTIONS_ROUTE_ICONS: Map<String, ImageVector> = mapOf(
     Routes.TRANSFER_PIN_MANAGE to Icons.Filled.Key,
     Routes.HOME_WIDGETS to Icons.Filled.Widgets,
     Routes.VOICE_SHORTCUTS to Icons.Filled.Mic,
-    Routes.CALLER_ID to Icons.Filled.PhoneInTalk,
     Routes.RADIO_NETWORK_HELP to Icons.Filled.Wifi,
     Routes.DASHBOARD_SETTINGS to Icons.Filled.Dashboard,
     Routes.DASHBOARD_HELP to Icons.AutoMirrored.Filled.Help,
@@ -444,7 +441,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                     OptionsDestination.HomeWidgets -> Routes.HOME_WIDGETS
                     OptionsDestination.VoiceShortcuts -> Routes.VOICE_SHORTCUTS
                     OptionsDestination.DashboardSettings -> Routes.DASHBOARD_SETTINGS
-                    OptionsDestination.CallerID -> Routes.CALLER_ID
                     OptionsDestination.RadioNetworkHelp -> Routes.RADIO_NETWORK_HELP
                 }
                 navController.navigate(route)
@@ -567,13 +563,6 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
             }
             composable(Routes.VOICE_SHORTCUTS) {
                 VoiceShortcutsScreen(onBack = { navController.popBackStack() })
-            }
-            composable(Routes.CALLER_ID) {
-                PlaceholderScreen(
-                    title = stringResource(R.string.title_caller_id),
-                    description = stringResource(R.string.title_caller_id_placeholder),
-                    onBack = { navController.popBackStack() }
-                )
             }
         }
     }

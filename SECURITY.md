@@ -15,7 +15,6 @@ This app has no backend server, no user accounts, and no network layer of its ow
 
 - The USSD catalog (`app/src/main/assets/codes.json`) is a static file bundled at build time.
 - The only privileged action the app performs is handing a dial string to Android via `ACTION_DIAL` — it does not place calls itself, and holds no `CALL_PHONE` permission.
-- The `CallScreeningService` (§11 in [ARCHITECTURE.md](ARCHITECTURE.md)) never blocks or rejects calls — it only reads the incoming number to unwrap ETECSA's `*99` collect-call format.
 - No analytics, no ads SDKs, no third-party dependencies beyond AndroidX/Jetpack (per [CONTRIBUTING.md](CONTRIBUTING.md): "No third-party dependencies beyond AndroidX/Jetpack unless discussed in an issue first").
 
 Given that, realistic security concerns for this project are narrower than a typical networked app. In scope:
