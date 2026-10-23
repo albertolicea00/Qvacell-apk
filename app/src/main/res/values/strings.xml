@@ -794,4 +794,8 @@
     <string name="network_no_cellular_service">Sin servicio celular</string>
     <string name="network_cellular">Red celular</string>
     <string name="dashboard_not_available">No disponible</string>
+    <string name="sim_cubacel_missing">No se detecta ninguna SIM activa. Los códigos USSD de Qvacell requieren una SIM Cubacel.</string>
+    <string name="sim_cubacel_unsupported">La SIM seleccionada no es de Cubacel. Los códigos USSD de Qvacell están diseñados para Cubacel.</string>
+    <string name="sim_cubacel_unknown">No se pudo identificar el operador de la SIM seleccionada. Los códigos USSD de Qvacell están diseñados para Cubacel.</string>
+    <string name="sim_cubacel_permission">Permite el acceso al estado del teléfono para verificar si la SIM seleccionada es de Cubacel.</string>
 </resources>

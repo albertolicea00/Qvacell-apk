@@ -397,6 +397,8 @@ When `!hasSignal`:
 - **Reload button** (`HomeQuickActionsScreen`): `enabled = !isRefreshing && hasSignal`.
 - **Individual card taps**: `requestQuery()` returns early.
 - **Signal warning** (`QvacellNavHost`): an amber warning appears immediately above the bottom navigation bar when the dynamic dashboard is visible and service is known to be unavailable. It does not appear on the manual dashboard. The optional `ConnectionBanner` controlled by `showNetworkStatus` remains in the bottom bar.
+- **SIM warning** (`QvacellNavHost`): the same amber area shows an informational warning on every screen with bottom navigation when no active SIM is detected or the selected SIM is not Cubacel. Missing phone-state permission and an unknown operator have separate messages. `CubacelStatus` checks the selected subscription's SIM operator (`36801`, [ETECSA MCC/MNC assignment](https://www.itu.int/dms_pub/itu-t/opb/sp/T-SP-E.212B-2016-PDF-E.pdf)), rather than its editable display name or the current roaming network. `rememberCubacelStatus` rechecks every two seconds and on SIM selection changes. SIM warnings take priority over dashboard errors. Outside the dynamic dashboard these warnings are informational and do not disable actions. Only confirmed missing or non-Cubacel SIMs block dynamic-dashboard updates (reload button, pull-to-refresh, and individual card queries). Unknown operators and missing phone-state permission do not introduce an additional block. `DashboardRefreshService` also checks before starting and before each USSD query, covering automatic refresh and SIM removal during a batch. Existing cellular-service checks remain unchanged.
+
 
 ### 15.13 Smart Refresh — Skip Unnecessary USSD Queries
 

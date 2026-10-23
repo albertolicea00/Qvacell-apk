@@ -62,6 +62,7 @@ import java.util.Locale
 import com.qvacell.app.ui.components.LocalStaleDaysThreshold
 import com.qvacell.app.ui.components.formatSpanishDate
 import com.qvacell.app.ui.components.hasCellularService
+import com.qvacell.app.ui.components.rememberCubacelStatus
 import com.qvacell.app.data.SettingsDataStore
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,7 +94,8 @@ fun DynamicDashboardContent(
         DashboardSwitchLoadingSkeleton(isCorporate = null)
         return
     }
-    val line = remember(simPreferences) {
+    val cubacelStatus by rememberCubacelStatus(simPreferences!!.selectedSlot)
+    val line = remember(simPreferences, cubacelStatus) {
         SimUtils.resolveDashboardLine(context, simPreferences!!.selectedSlot, simPreferences!!.appearances)
     }
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
@@ -137,7 +139,7 @@ fun DynamicDashboardContent(
     }
 
     fun requestQuery(codeId: String) {
-        if (!hasSignal || line.needsSelection) return
+        if (!hasSignal || cubacelStatus.blocksDashboardRefresh || line.needsSelection) return
         val code = catalogRepository.findCodeById(codeId) ?: return
         val needsConfirm = cardTapMode == "tap_confirm" || cardTapMode == "long_confirm"
         if (needsConfirm) {
@@ -158,12 +160,12 @@ fun DynamicDashboardContent(
     ) {
     PullToRefreshBox(
         isRefreshing = isRefreshing,
-        onRefresh = { if (hasSignal) DashboardRefreshService.refresh(context, catalogRepository, dashboardRepository) },
+        onRefresh = { if (hasSignal && !cubacelStatus.blocksDashboardRefresh) DashboardRefreshService.refresh(context, catalogRepository, dashboardRepository) },
         modifier = Modifier.fillMaxSize(),
         state = pullState,
         indicator = {}
     ) {
-        val activePull = pullState.distanceFraction > 0f && !isRefreshing && hasSignal
+        val activePull = pullState.distanceFraction > 0f && !isRefreshing && hasSignal && !cubacelStatus.blocksDashboardRefresh
         val pullOffset = if (activePull) (pullState.distanceFraction * 60).coerceAtMost(60f) else 0f
 
         Box(modifier = Modifier.fillMaxSize()) {

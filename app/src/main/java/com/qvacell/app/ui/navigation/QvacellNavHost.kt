@@ -58,6 +58,7 @@ import com.qvacell.app.ui.components.ConnectionBanner
 import com.qvacell.app.ui.components.hasCellularService
 import com.qvacell.app.service.DashboardRefreshService
 import com.qvacell.app.service.LineTypeSuggestion
+import com.qvacell.app.ui.components.rememberCubacelStatus
 import com.qvacell.app.service.SimUtils
 import com.qvacell.app.service.AppTelemetry
 import androidx.compose.ui.Modifier
@@ -209,16 +210,13 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
     val refreshFailure by DashboardRefreshService.refreshFailure.collectAsStateWithLifecycle(initialValue = null)
     val lineTypeSuggestion by DashboardRefreshService.lineTypeSuggestion.collectAsStateWithLifecycle(initialValue = null)
     val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    val cubacelStatus by rememberCubacelStatus(selectedSimSlot)
     val simAppearances by settings.simAppearances.collectAsStateWithLifecycle(initialValue = emptyMap())
     var confirmingLineType by remember { mutableStateOf<LineTypeSuggestion?>(null) }
     var isDynamicDashboard by remember { mutableStateOf(false) }
     var hasSignal by remember { mutableStateOf(true) }
     val showDynamicWarning = currentRoute == BottomTab.Home.route && isDynamicDashboard
-    val selectedSubscriptionId = remember(selectedSimSlot) {
-        SimUtils.getActiveSubscriptions(context)
-            .firstOrNull { it.simSlotIndex == selectedSimSlot }
-            ?.subscriptionId
-    }
+    val selectedSubscriptionId = cubacelStatus.subscriptionId
     val visibleLineTypeSuggestion = lineTypeSuggestion?.takeIf {
         it.subscriptionId == selectedSubscriptionId
     }
@@ -268,7 +266,8 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                     if (showNetworkStatus) {
                         ConnectionBanner()
                     }
-                    if (showDynamicWarning && (visibleRefreshFailure != null || !hasSignal)) {
+                    if (cubacelStatus.warningRes != null ||
+                        (showDynamicWarning && (visibleRefreshFailure != null || !hasSignal))) {
                         val warningColor = Color(0xFFFB8C00)
                         Row(
                             modifier = Modifier
@@ -279,8 +278,9 @@ fun QvacellNavHost(startTabRoute: String = BottomTab.Home.route) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(Icons.Filled.Warning, contentDescription = null, tint = warningColor, modifier = Modifier.size(16.dp))
-                            val warningMessage = visibleRefreshFailure ?: stringResource(R.string.network_no_service_pause)
-                            val lineTypeAction = visibleLineTypeSuggestion?.let { suggestion ->
+                            val warningMessage = cubacelStatus.warningRes?.let { stringResource(it) }
+                                ?: visibleRefreshFailure ?: stringResource(R.string.network_no_service_pause)
+                            val lineTypeAction = visibleLineTypeSuggestion?.takeIf { cubacelStatus.isCubacel }?.let { suggestion ->
                                 stringResource(
                                     if (suggestion.isCorporate) R.string.dashboard_line_type_action_corporate
                                     else R.string.dashboard_line_type_action_personal

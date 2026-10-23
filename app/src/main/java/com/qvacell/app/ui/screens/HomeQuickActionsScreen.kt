@@ -43,6 +43,7 @@ import com.qvacell.app.BuildConfig
 import com.qvacell.app.data.CatalogRepository
 import com.qvacell.app.data.SettingsDataStore
 import com.qvacell.app.service.DashboardDataRepository
+import com.qvacell.app.ui.components.rememberCubacelStatus
 import com.qvacell.app.service.DashboardRefreshService
 import com.qvacell.app.service.AppTelemetry
 import com.qvacell.app.ui.components.RechargeBottomSheet
@@ -80,6 +81,8 @@ fun HomeQuickActionsScreen(
     }
     var showUnavailableDialog by remember { mutableStateOf(false) }
 
+    val selectedSimSlot by settings.selectedSimSlot.collectAsStateWithLifecycle(initialValue = -1)
+    val cubacelStatus by rememberCubacelStatus(selectedSimSlot)
     val isRefreshing by DashboardRefreshService.isRefreshing.collectAsState()
 
     var hasSignal by remember { mutableStateOf(hasCellularService(context)) }
@@ -112,7 +115,7 @@ fun HomeQuickActionsScreen(
                         onClick = {
                             DashboardRefreshService.refresh(context, repository, dashboardRepository)
                         },
-                        enabled = !isRefreshing && hasSignal,
+                        enabled = !isRefreshing && hasSignal && !cubacelStatus.blocksDashboardRefresh,
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(

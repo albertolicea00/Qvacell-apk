@@ -69,7 +69,7 @@ object DashboardRefreshService {
         _refreshFailure.value = null
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val line = selectedDashboardLine(context)
+                val line = selectedDashboardLine(context) ?: return@launch
                 if (line.needsSelection) {
                     _refreshFailure.value = context.getString(R.string.dashboard_choose_sim)
                     return@launch
@@ -151,7 +151,7 @@ object DashboardRefreshService {
         _currentCodeId.value = code.id
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val line = selectedDashboardLine(context)
+                val line = selectedDashboardLine(context) ?: return@launch
                 if (line.needsSelection) {
                     _refreshFailure.value = context.getString(R.string.dashboard_choose_sim)
                     return@launch
@@ -193,6 +193,7 @@ object DashboardRefreshService {
         code: UssdCode,
         previousQuerySucceeded: Boolean = false
     ) {
+        if (reason == "sim_unavailable") return
         if (reason == "service_lost" || !hasDashboardService(context)) {
             _refreshFailure.value = context.getString(R.string.dashboard_refresh_service_lost)
             return
@@ -238,6 +239,12 @@ object DashboardRefreshService {
         code: UssdCode,
         subscriptionId: Int?
     ): UssdCaptureResult = suspendCancellableCoroutine { cont ->
+        val status = CubacelStatus.forSubscription(context, subscriptionId)
+        if (status.blocksDashboardRefresh) {
+            _refreshFailure.value = context.getString(requireNotNull(status.warningRes))
+            cont.resume(UssdCaptureResult.Failure("sim_unavailable"))
+            return@suspendCancellableCoroutine
+        }
         if (!hasDashboardService(context)) {
             cont.resume(UssdCaptureResult.Failure("service_lost"))
             return@suspendCancellableCoroutine
@@ -247,11 +254,17 @@ object DashboardRefreshService {
         }
     }
 
-    private suspend fun selectedDashboardLine(context: Context): SimUtils.DashboardLine {
+    private suspend fun selectedDashboardLine(context: Context): SimUtils.DashboardLine? {
         val settings = SettingsDataStore(context)
+        val selectedSlot = settings.selectedSimSlot.first()
+        val status = CubacelStatus.read(context, selectedSlot)
+        if (status.blocksDashboardRefresh) {
+            _refreshFailure.value = context.getString(requireNotNull(status.warningRes))
+            return null
+        }
         return SimUtils.resolveDashboardLine(
             context,
-            settings.selectedSimSlot.first(),
+            selectedSlot,
             settings.simAppearances.first()
         )
     }
