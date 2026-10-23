@@ -1,3 +1,11 @@
 <resources>
-    <style name="Theme.Qvacell" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Match Compose's background before the first frame, including system night mode. -->
+    <style name="Theme.Qvacell.Base" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/launch_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">@bool/launch_light_system_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/launch_light_system_bars</item>
+    </style>
+    <style name="Theme.Qvacell" parent="Theme.Qvacell.Base" />
 </resources>
