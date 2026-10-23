@@ -8,8 +8,9 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
-    id("com.google.firebase.firebase-perf")
+    // Disabled pending availability from Cuba; see ARCHITECTURE.md §19.2.
+    // id("com.google.firebase.crashlytics")
+    // id("com.google.firebase.firebase-perf")
 }
 
 android {
@@ -149,8 +150,9 @@ dependencies {
     // this project's Kotlin 2.2.10 compiler cannot read.
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
     implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-crashlytics")
-    implementation("com.google.firebase:firebase-perf")
+    // Disabled pending availability from Cuba; see ARCHITECTURE.md §19.2.
+    // implementation("com.google.firebase:firebase-crashlytics")
+    // implementation("com.google.firebase:firebase-perf")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.09.03")
     implementation(composeBom)

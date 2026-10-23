@@ -50,13 +50,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+// Disabled pending availability from Cuba; see ARCHITECTURE.md §19.2.
+// import com.qvacell.app.service.AppTelemetry
 import com.qvacell.app.R
 import androidx.core.content.ContextCompat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import com.qvacell.app.service.ContactEntry
 import com.qvacell.app.service.ContactsRepository
-import com.qvacell.app.service.AppTelemetry
 import com.qvacell.app.service.DeviceContact
 
 import com.qvacell.app.ui.components.ContactOptionsSheet
@@ -95,11 +96,12 @@ fun ContactsListScreen() {
     LaunchedEffect(hasPermission) {
         if (hasPermission) {
             isLoading = true
-            val loadTrace = AppTelemetry.startTrace(context, "contacts_load")
+            // Disabled pending availability from Cuba; see ARCHITECTURE.md §19.2.
+            // val loadTrace = AppTelemetry.startTrace(context, "contacts_load")
             try {
                 contacts = repository.loadContacts()
             } finally {
-                loadTrace?.stop()
+                // loadTrace?.stop()
                 isLoading = false
             }
         } else {

@@ -4,7 +4,7 @@ For contribution workflow see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 This document describes the technical architecture of Qvacell for Android, a native Kotlin/Jetpack Compose app that lets users dial ETECSA (Cubacel) USSD service codes (`*222#` style dial strings) without needing to remember them.
 
-It is an Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell-ios). App features remain local and require no Qvacell backend: the catalog is bundled, contacts are read on-device. Firebase Analytics, Crashlytics, and Performance Monitoring are the exception: they send app usage and diagnostics to Firebase (§19); contacts, phone numbers, USSD codes/responses, and the transfer PIN are not included in custom telemetry.
+It is an Android port of [qvacell-ios](https://github.com/albertolicea00/qvacell-ios). App features remain local and require no Qvacell backend: the catalog is bundled, contacts are read on-device. Firebase Analytics is the exception: it sends app usage to Firebase (§19); contacts, phone numbers, USSD codes/responses, and the transfer PIN are not included in custom telemetry.
 
 ---
 
@@ -504,16 +504,15 @@ Qvacell distributes two flavors (`store` and `unlocked`) under the **exact same 
 
 ---
 
-## 19. Firebase Analytics, Crashlytics & Performance Monitoring
+## 19. Firebase Analytics
 
-`app/google-services.json` registers the Android package `com.qvacell.app` with Firebase. Both `store` and `unlocked` use that same package and Firebase Android app. The root Gradle build declares Google Services 4.5.0, Crashlytics Gradle plugin 3.0.8, and Performance Monitoring plugin 2.0.2; the app module applies all three and uses Firebase BoM 34.19.0 with `firebase-analytics`, `firebase-crashlytics`, and `firebase-perf`. BoM 35.0.0 currently resolves Google measurement 24.0.0 with Kotlin metadata 2.4, which this project's Kotlin 2.2.10 compiler cannot read; upgrade Kotlin/tooling before raising the BoM.
+`app/google-services.json` registers the Android package `com.qvacell.app` with Firebase. Both `store` and `unlocked` use that same package and Firebase Android app. The root Gradle build declares Google Services 4.5.0; the app module applies it and uses Firebase BoM 34.19.0 with `firebase-analytics`. BoM 35.0.0 currently resolves Google measurement 24.0.0 with Kotlin metadata 2.4, which this project's Kotlin 2.2.10 compiler cannot read; upgrade Kotlin/tooling before raising the BoM.
 
-Analytics automatically reports first opens, sessions, engagement, and other SDK events. `AppTelemetry.screen()` logs a named `screen_view` for each Compose Navigation destination; Home uses `dashboard_manual` or `dashboard_dynamic` instead of the single Activity name. Automatic Activity screen reporting is disabled to avoid counting the same visit twice. `AppTelemetry.initialize()` tags both Analytics and Crashlytics with the `distribution` (`store`/`unlocked`) so reports can be filtered by build. Crashlytics collects crashes and ANRs; no code logs phone numbers, contact names, PINs, USSD strings, or response text.
+Analytics automatically reports first opens, sessions, engagement, and other SDK events. `AppTelemetry.screen()` logs a named `screen_view` for each Compose Navigation destination; Home uses `dashboard_manual` or `dashboard_dynamic` instead of the single Activity name. Automatic Activity screen reporting is disabled to avoid counting the same visit twice. `AppTelemetry.initialize()` tags Analytics with the `distribution` (`store`/`unlocked`) so reports can be filtered by build. Custom telemetry does not log phone numbers, contact names, PINs, USSD strings, or response text.
 
-`first_open` measures the first launch after installation or reinstallation, **not raw downloads/installations**. Google Play Console remains the source for actual Play install counts; Firebase covers first launches across both distribution channels. Verify screen events in Analytics DebugView and crash reports with a controlled test crash on a test build/device after the Firebase console has Crashlytics enabled.
+`first_open` measures the first launch after installation or reinstallation, **not raw downloads/installations**. Google Play Console remains the source for actual Play install counts; Firebase covers first launches across both distribution channels. Verify screen events in Analytics DebugView.
 
-Performance Monitoring automatically measures app startup and Activity screen rendering; the Gradle plugin instruments eligible HTTP/S requests. Qvacell's Compose destinations share one Activity, so those automatic screen traces do not provide a separate duration for each destination. `AppTelemetry.startTrace()` adds a `contacts_load` custom duration trace around `ContactsRepository.loadContacts()` without recording contact data. Performance Monitoring does not directly report CPU, memory, or battery consumption; use Android profiling tools for those resource measurements.
-
+Crashlytics and Performance Monitoring are temporarily disabled by commenting out their Gradle plugins, dependencies, imports, initialization, and contacts-loading trace. The code is preserved for reactivation when delivery from Cuba becomes available. Qvacell retains only Analytics based on the Cuba network observations below. Crash, ANR, and performance reports are no longer collected.
 
 ### 19.1 Cuba network limitation (2026-10-22)
 
@@ -533,10 +532,20 @@ The VPN retest required no code or Firebase configuration changes. Crashlytics u
 Console was not verified.
 
 These observations come from LlamaCon99, not a Qvacell delivery test. Verification specifically
-for Qvacell (`com.qvacell.app`) and other Cuban networks remains pending. Reports from Qvacell
-users connecting without VPN may be missing; successful local logging or enqueueing alone does
-not confirm delivery. When validating Qvacell, compare the same test device with and without VPN,
+for Qvacell (`com.qvacell.app`) and other Cuban networks remains pending. Successful local logging
+or enqueueing alone does not confirm Analytics delivery. When validating Qvacell, compare the same test device with and without VPN,
 check transport HTTP responses, and confirm the matching data in Firebase Console.
+
+### 19.2 Reactivating Crashlytics and Performance Monitoring
+
+Only Analytics is currently active. The disabled integration is preserved as `//` comments marked with a reference to this section. Once uploads work from Cuba without VPN, uncomment the following together:
+
+1. `build.gradle.kts`: the Crashlytics 3.0.8 and Performance Monitoring 2.0.2 plugin declarations.
+2. `app/build.gradle.kts`: both plugin applications and the `firebase-crashlytics` / `firebase-perf` dependencies.
+3. `AppTelemetry.kt`: the three Firebase imports, the Crashlytics `distribution` custom key, and the complete `startTrace()` function.
+4. `ContactsListScreen.kt`: the `AppTelemetry` import, `loadTrace` creation, and `loadTrace?.stop()` in `finally`.
+
+Sync Gradle, build both distributions, and run the unit tests. On a test device in Cuba without VPN, verify a controlled Crashlytics report and a Performance trace: check successful transport responses and confirm the data in Firebase Console. Recheck Analytics and update both READMEs to reflect the services actually enabled. Re-enabling the Crashlytics plugin also restores release mapping-file uploads.
 
 ---
 
@@ -546,7 +555,7 @@ The `release` build type enables `isMinifyEnabled = true` and `isShrinkResources
 
 The catalog stores icon names as strings, so R8 cannot infer references from `codes.json`. `AndroidIconResolver.kt` maps every catalog icon to a direct Compose icon reference. This avoids reflection and tells R8 which icon accessors to retain. Avoid a broad keep rule for all Material icons because it would retain unused icons and reduce the size savings. An icon missing from the resolver falls back to `Icons.Filled.Circle`; `AndroidIconResolverTest` reads `codes.json` and fails if any catalog icon resolves to that fallback. When adding or changing Android icon identifiers, update the resolver and run the app unit tests.
 
-R8 can change or remove code reached only through reflection, JNI, or external names. New dynamic access needs a narrow keep rule and a test against the minified release build. Crashlytics mapping files are generated and uploaded by the Crashlytics Gradle plugin for minified release builds, keeping obfuscated crash traces readable. Keep the mapping file associated with each distributed APK.
+R8 can change or remove code reached only through reflection, JNI, or external names. New dynamic access needs a narrow keep rule and a test against the minified release build. Keep the R8 mapping file associated with each distributed APK to allow manual deobfuscation of stack traces; mapping files are not uploaded to Crashlytics while its plugin is commented out.
 
 APK size depends on dependencies, resources, tool versions, and build variant. In the local comparison made for v1.0.6, the store APK measured 3.76 MiB and unlocked measured 3.81 MiB, compared with the unminified v1.0.5 APKs at 16.72 MiB and 16.74 MiB. These are observed outputs, not guaranteed future sizes; compare the same variant and output type when reviewing size changes.
 

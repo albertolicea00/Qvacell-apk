@@ -4,9 +4,10 @@ import android.content.Context
 import android.os.Bundle
 import com.google.firebase.FirebaseApp
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.google.firebase.perf.FirebasePerformance
-import com.google.firebase.perf.metrics.Trace
+// Disabled pending availability from Cuba; see ARCHITECTURE.md §19.2.
+// import com.google.firebase.crashlytics.FirebaseCrashlytics
+// import com.google.firebase.perf.FirebasePerformance
+// import com.google.firebase.perf.metrics.Trace
 import com.qvacell.app.BuildConfig
 
 /** Firebase is inactive until app/google-services.json initializes a default Firebase app. */
@@ -15,7 +16,7 @@ object AppTelemetry {
         if (FirebaseApp.getApps(context).isEmpty()) return
         val distribution = if (BuildConfig.DASHBOARD_CAPTURE_ENABLED) "unlocked" else "store"
         FirebaseAnalytics.getInstance(context).setUserProperty("distribution", distribution)
-        FirebaseCrashlytics.getInstance().setCustomKey("distribution", distribution)
+        // FirebaseCrashlytics.getInstance().setCustomKey("distribution", distribution)
     }
 
     fun screen(context: Context, name: String) {
@@ -27,8 +28,9 @@ object AppTelemetry {
         FirebaseAnalytics.getInstance(context).logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, parameters)
     }
 
-    fun startTrace(context: Context, name: String): Trace? {
-        if (FirebaseApp.getApps(context).isEmpty()) return null
-        return FirebasePerformance.getInstance().newTrace(name).apply { start() }
-    }
+    // Disabled pending availability from Cuba; see ARCHITECTURE.md §19.2.
+    // fun startTrace(context: Context, name: String): Trace? {
+    //     if (FirebaseApp.getApps(context).isEmpty()) return null
+    //     return FirebasePerformance.getInstance().newTrace(name).apply { start() }
+    // }
 }
