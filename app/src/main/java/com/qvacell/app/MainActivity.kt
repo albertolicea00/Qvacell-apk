@@ -3,6 +3,7 @@ package com.qvacell.app
 import android.Manifest
 import android.content.pm.PackageManager
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -29,6 +30,7 @@ import com.qvacell.app.ui.navigation.QvacellNavHost
 import com.qvacell.app.ui.navigation.Routes
 import com.qvacell.app.service.DialService
 import com.qvacell.app.ui.theme.QvacellTheme
+import com.qvacell.app.ui.theme.launchThemeContext
 import kotlinx.coroutines.flow.first
 
 class MainActivity : ComponentActivity() {
@@ -56,7 +58,10 @@ class MainActivity : ComponentActivity() {
             var initialHasCompletedOnboarding by remember { mutableStateOf<Boolean?>(null) }
 
             LaunchedEffect(Unit) {
-                initialThemeMode = settings.themeMode.first()
+                val savedThemeMode = settings.themeMode.first()
+                val launchContext = launchThemeContext(this@MainActivity, savedThemeMode)
+                window.setBackgroundDrawable(ColorDrawable(launchContext.getColor(R.color.launch_background)))
+                initialThemeMode = savedThemeMode
                 initialAccentColor = settings.accentColor.first()
                 initialDefaultTab = settings.defaultTab.first()
                 initialHasCompletedOnboarding = settings.hasCompletedOnboarding.first()
