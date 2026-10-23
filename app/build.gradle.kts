@@ -146,6 +146,12 @@ android {
 }
 
 dependencies {
+    constraints {
+        implementation("androidx.fragment:fragment:1.3.6") {
+            because("Activity Result APIs require Fragment >= 1.3.0; transitive dependencies otherwise resolve 1.1.0")
+        }
+    }
+
     // BoM 35.0.0 pulls measurement 24.0.0 compiled with Kotlin metadata 2.4, which
     // this project's Kotlin 2.2.10 compiler cannot read.
     implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
